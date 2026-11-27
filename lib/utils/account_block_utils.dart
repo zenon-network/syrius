@@ -17,7 +17,10 @@ class _AddressLockEntry {
   int activeCount = 0;
 }
 
+/// Utilities for creating, publishing, and inspecting Zenon account blocks.
 class AccountBlockUtils {
+  /// Creates an [AccountBlockUtils] instance with optional dependency
+  /// overrides.
   AccountBlockUtils({
     this._publishSuccessNotification = true,
     Zenon Function()? zenonProvider,
@@ -73,6 +76,8 @@ class AccountBlockUtils {
     }
   }
 
+  /// Validates node sync and wallet state, then prepares and publishes
+  /// [transactionParams] under a per-address lock.
   Future<AccountBlockTemplate> createAccountBlock(
     AccountBlockTemplate transactionParams,
     String purposeOfGeneratingPlasma, {
@@ -269,19 +274,21 @@ class AccountBlockUtils {
     }
   }
 
+  /// Decodes contract call [encodedData] using [abi], or returns `null` when
+  /// no matching function entry is found.
   static BlockData? getDecodedBlockData(Abi abi, List<int> encodedData) {
     if (encodedData.length < AbiFunction.encodedSignLength) {
       return null;
     }
-    final bool Function(List? list1, List? list2) eq =
-        const ListEquality().equals;
+    final bool Function(List<dynamic>? list1, List<dynamic>? list2) eq =
+        const ListEquality<dynamic>().equals;
     try {
       for (final Entry entry in abi.entries) {
         if (eq(
           AbiFunction.extractSignature(entry.encodeSignature()),
           AbiFunction.extractSignature(encodedData),
         )) {
-          final List decoded = AbiFunction(
+          final List<dynamic> decoded = AbiFunction(
             entry.name!,
             entry.inputs!,
           ).decode(encodedData);
@@ -298,8 +305,8 @@ class AccountBlockUtils {
     return null;
   }
 
-  // Returns a list of AccountBlocks that are newer than a given timestamp.
-  // The list is returned in ascending order.
+  /// Returns a list of [AccountBlock]s for [address] that are newer than
+  /// [time], ordered chronologically ascending.
   static Future<List<AccountBlock>> getAccountBlocksAfterTime(
     Address address,
     int time,
@@ -345,6 +352,8 @@ class AccountBlockUtils {
     return blocks.reversed.toList();
   }
 
+  /// Returns the momentum confirmation timestamp for the block at [height] on
+  /// [address], or `null` if unavailable.
   static Future<int?> getTimeForAccountBlockHeight(
     Address address,
     int height,
@@ -381,13 +390,19 @@ class AccountBlockUtils {
   Future<void> _sendReviewNotification(
     AccountBlockTemplate transactionParams,
   ) async {
+    final String direction = BlockUtils.isSendBlock(transactionParams.blockType)
+        ? 'Sending transaction'
+        : 'Receiving transaction';
+    final String blockTypeName =
+        FormatUtils.extractNameFromEnum<BlockTypeEnum>(
+          BlockTypeEnum.values[transactionParams.blockType],
+        );
     await _addNotification(
       WalletNotification(
         title:
-            '${BlockUtils.isSendBlock(transactionParams.blockType) ? 'Sending transaction' : 'Receiving transaction'}, please review the transaction on your hardware device',
+            '$direction, please review the transaction on your hardware device',
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        details:
-            'Review account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(BlockTypeEnum.values[transactionParams.blockType])}',
+        details: 'Review account-block type: $blockTypeName',
         type: NotificationType.confirm,
       ),
     );

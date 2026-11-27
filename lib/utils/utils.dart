@@ -5,7 +5,6 @@ export 'app_theme.dart';
 export 'clipboard_utils.dart';
 export 'color_utils.dart';
 export 'constants.dart';
-export 'device_utils.dart';
 export 'extensions.dart';
 export 'file_utils.dart';
 export 'format_utils.dart';

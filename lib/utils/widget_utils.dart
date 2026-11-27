@@ -7,7 +7,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_theme_notifier.d
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// UI helper utilities for theme, text scale, visibility keys, and plasma copy.
 class WidgetUtils {
+  /// Restores the saved [ThemeMode] into [AppThemeNotifier] for [context].
   static void setThemeMode(BuildContext context) {
     final AppThemeNotifier appThemeNotifier = Provider.of<AppThemeNotifier>(
       context,
@@ -23,6 +25,7 @@ class WidgetUtils {
     }
   }
 
+  /// Restores the saved [TextScaling] into [TextScalingNotifier] for [context].
   static void setTextScale(BuildContext context) {
     final TextScalingNotifier textScalingNotifier =
         Provider.of<TextScalingNotifier>(
@@ -40,9 +43,11 @@ class WidgetUtils {
     }
   }
 
+  /// Returns the preference key storing whether [widgetTitle] is hidden.
   static String isWidgetHiddenKey(String widgetTitle) =>
       '${widgetTitle}is_hidden';
 
+  /// Returns a human-readable plasma level tooltip label for [plasmaInfo].
   static String getPlasmaToolTipMessage(PlasmaInfo plasmaInfo) {
     if (plasmaInfo.currentPlasma >= kPillarPlasmaAmountNeeded) {
       return 'High Plasma';

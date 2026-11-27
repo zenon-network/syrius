@@ -4,11 +4,13 @@ import 'package:hive_ce/hive_ce.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Native dual-coin tokens (ZNN and QSR).
 final List<Token> kDualCoin = <Token>[
   kZnnCoin,
   kQsrCoin,
 ];
 
+/// Static [Token] metadata for native ZNN.
 final Token kZnnCoin = Token.fromJson(
   <String, dynamic>{
     'name': 'ZNN',
@@ -24,6 +26,8 @@ final Token kZnnCoin = Token.fromJson(
     'isUtility': true,
   },
 );
+
+/// Static [Token] metadata for native QSR.
 final Token kQsrCoin = Token.fromJson(
   <String, dynamic>{
     'name': 'QSR',
@@ -40,11 +44,13 @@ final Token kQsrCoin = Token.fromJson(
   },
 );
 
+/// Brand color lookup for native ZNN and QSR token standards.
 final Map<TokenStandard, Color> kCoinIdColor = <TokenStandard, Color>{
   kZnnCoin.tokenStandard: AppColors.znnColor,
   kQsrCoin.tokenStandard: AppColors.qsrColor,
 };
 
+/// Returns `true` if [tokenStandard] is ZNN, QSR, or a user-favorited token.
 bool isTrustedToken(String tokenStandard) {
   return <String>[
     znnTokenStandard,

@@ -1,4 +1,4 @@
-import 'package:convert/convert.dart';
+import 'package:hex/hex.dart';
 import 'package:logging/logging.dart';
 import 'package:validators/validators.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
@@ -6,9 +6,14 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/l10n/app_locali
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Form field validators returning localized error messages or `null` when
+/// valid.
 class InputValidators {
+  /// Regular expression matching a `0x`-prefixed 40-character hexadecimal EVM
+  /// address.
   static String kEVMAddressRegex = r'^(0x)([a-fA-F0-9]){40}$';
 
+  /// Validates that [address] is a well-formed EVM address.
   static String? evmAddress(String? address, {AppLocalizations? l10n}) {
     if (address != null && RegExp(kEVMAddressRegex).hasMatch(address)) {
       return null;
@@ -16,6 +21,8 @@ class InputValidators {
     return (l10n ?? resolveAppLocalizations()).invalidAddress;
   }
 
+  /// Validates that [node] is a `ws://` or `wss://` node URL with an explicit
+  /// port.
   static String? node(String? node, {AppLocalizations? l10n}) {
     if (node != null &&
         RegExp(
@@ -26,6 +33,8 @@ class InputValidators {
     return (l10n ?? resolveAppLocalizations()).invalidNode;
   }
 
+  /// Validates that [recipientAddress] belongs to the active wallet's derived
+  /// address list.
   static String? recipientAddress(
     String recipientAddress, {
     AppLocalizations? l10n,
@@ -36,6 +45,7 @@ class InputValidators {
     return null;
   }
 
+  /// Validates that [value] is non-null and non-empty for [fieldName].
   static String? notEmpty(
     String fieldName,
     String? value, {
@@ -46,6 +56,7 @@ class InputValidators {
         : null;
   }
 
+  /// Validates that [number] parses as a base-10 integer.
   static String? validateNumber(String? number, {AppLocalizations? l10n}) {
     final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     try {
@@ -54,7 +65,7 @@ class InputValidators {
       }
       int.parse(number);
       return null;
-    } catch (e, stackTrace) {
+    } on Object catch (e, stackTrace) {
       Logger(
         'InputValidators',
       ).log(Level.SEVERE, 'validateNumber ', e, stackTrace);
@@ -62,6 +73,7 @@ class InputValidators {
     }
   }
 
+  /// Validates that [value] is a non-empty [BigInt] amount string.
   static String? validateAmount(String? value, {AppLocalizations? l10n}) {
     final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     if (value != null) {
@@ -71,7 +83,7 @@ class InputValidators {
         }
         BigInt.parse(value);
         return null;
-      } catch (e, stackTrace) {
+      } on Object catch (e, stackTrace) {
         Logger(
           'InputValidators',
         ).log(Level.SEVERE, 'validateAmount', e, stackTrace);
@@ -82,6 +94,8 @@ class InputValidators {
     }
   }
 
+  /// Validates that decimal input [value] has at most [decimals] fractional
+  /// digits and falls within `[minValue, maxValue]`.
   static String? correctValue(
     String? value,
     BigInt maxValue,
@@ -136,7 +150,7 @@ class InputValidators {
                 minValue.addDecimals(decimals),
                 maxValue.addDecimals(decimals),
               );
-      } catch (e, stackTrace) {
+      } on Object catch (e, stackTrace) {
         Logger(
           'InputValidators',
         ).log(Level.SEVERE, 'correctValue', e, stackTrace);
@@ -146,6 +160,7 @@ class InputValidators {
     return resolvedL10n.valueCannotBeEmpty;
   }
 
+  /// Validates that [value] is a non-empty, syntactically valid Zenon address.
   static String? checkAddress(String? value, {AppLocalizations? l10n}) {
     final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     if (value != null) {
@@ -158,6 +173,7 @@ class InputValidators {
     }
   }
 
+  /// Validates that [secondPass] matches [firstPass].
   static String? checkPasswordMatch(
     String firstPass,
     String? secondPass, {
@@ -169,6 +185,8 @@ class InputValidators {
     return null;
   }
 
+  /// Validates that [value] satisfies Syrius password length and character
+  /// complexity rules.
   static String? validatePassword(String? value, {AppLocalizations? l10n}) {
     final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     if (value != null) {
@@ -187,6 +205,8 @@ class InputValidators {
     }
   }
 
+  /// Validates that [value] is a valid Zenon address not belonging to the
+  /// current wallet seed, as required for Pillar producer addresses.
   static String? validatePillarMomentumAddress(
     String? value, {
     AppLocalizations? l10n,
@@ -207,6 +227,7 @@ class InputValidators {
     }
   }
 
+  /// Validates that [value] parses to `0`, required for non-mintable tokens.
   static String? isMaxSupplyZero(String? value, {AppLocalizations? l10n}) {
     final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     if (value != null) {
@@ -215,7 +236,7 @@ class InputValidators {
           return resolvedL10n.maxSupplyZeroForNonMintableTokens;
         }
         return null;
-      } catch (e, stackTrace) {
+      } on Object catch (e, stackTrace) {
         Logger(
           'InputValidators',
         ).log(Level.SEVERE, 'isMaxSupplyZero', e, stackTrace);
@@ -226,6 +247,7 @@ class InputValidators {
     }
   }
 
+  /// Validates that [value] is a valid HTTPS URL.
   static String? checkUrl(String? value, {AppLocalizations? l10n}) {
     final List<String> protocols = <String>['https'];
 
@@ -235,17 +257,19 @@ class InputValidators {
     return (l10n ?? resolveAppLocalizations()).invalidUrl;
   }
 
+  /// Validates that [value] parses as a Zenon [Hash].
   static String? checkHash(String? value, {AppLocalizations? l10n}) {
     try {
       if (Hash.parse(value!).runtimeType == Hash) {
         return null;
       }
-    } catch (e) {
+    } on Object {
       return (l10n ?? resolveAppLocalizations()).invalidHash;
     }
     return (l10n ?? resolveAppLocalizations()).invalidHash;
   }
 
+  /// Validates that hex-encoded preimage [value] hashes to [htlc]'s hash lock.
   static Future<String?> checkSecret(
     HtlcInfo htlc,
     String? value, {
@@ -254,13 +278,13 @@ class InputValidators {
     if (value != null) {
       try {
         final Hash preimageCheck = htlc.hashType == htlcHashTypeSha3
-            ? Hash.digest(hex.decode(value))
-            : Hash.fromBytes(await Crypto.sha256Bytes(hex.decode(value)));
+            ? Hash.digest(HEX.decode(value))
+            : Hash.fromBytes(await Crypto.sha256Bytes(HEX.decode(value)));
 
         if (preimageCheck == Hash.fromBytes(htlc.hashLock)) {
           return null;
         }
-      } catch (e) {
+      } on Object {
         return (l10n ?? resolveAppLocalizations()).invalidSecret;
       }
     }
