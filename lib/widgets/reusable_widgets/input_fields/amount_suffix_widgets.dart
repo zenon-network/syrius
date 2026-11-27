@@ -22,6 +22,7 @@ class AmountSuffixWidgets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final VoidCallback? onMax = onMaxPressed;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -29,13 +30,11 @@ class AmountSuffixWidgets extends StatelessWidget {
           token: tokenId,
           context: context,
         ),
-        Visibility(
-          visible: onMaxPressed != null,
-          child: AmountSuffixMaxWidget(
-            onPressed: onMaxPressed!,
+        if (onMax != null)
+          AmountSuffixMaxWidget(
+            onPressed: onMax,
             context: context,
           ),
-        ),
       ],
     );
   }
