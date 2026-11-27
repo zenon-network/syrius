@@ -20,6 +20,7 @@ class CompleteSwapButton extends StatelessWidget {
     return BlocBuilder<CompleteSwapBloc, CompleteSwapState>(
       builder: (BuildContext context, CompleteSwapState state) {
         return InstructionButton(
+          key: const Key('complete_p2p_swap_button'),
           text: context.l10n.swap,
           isEnabled: true,
           isLoading: state is CompleteSwapLoading,

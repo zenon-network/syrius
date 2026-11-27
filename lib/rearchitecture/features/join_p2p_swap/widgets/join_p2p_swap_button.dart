@@ -29,6 +29,7 @@ class JoinSwapButton extends StatelessWidget {
     return BlocBuilder<JoinP2pSwapBloc, JoinP2pSwapState>(
       builder: (BuildContext context, JoinP2pSwapState state) {
         return InstructionButton(
+          key: const Key('join_p2p_swap_submit_button'),
           text: context.l10n.joinSwap,
           instructionText: context.l10n.inputAmountToSend,
           loadingText: context.l10n.sendingTransaction,

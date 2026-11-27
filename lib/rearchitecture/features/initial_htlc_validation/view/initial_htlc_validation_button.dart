@@ -22,6 +22,7 @@ class InitialHtlcValidationButton extends StatelessWidget {
     return BlocBuilder<InitialHtlcValidationBloc, InitialHtlcValidationState>(
       builder: (BuildContext context, InitialHtlcValidationState state) {
         return InstructionButton(
+          key: const Key('join_p2p_swap_validate_button'),
           text: context.l10n.continueText,
           loadingText: context.l10n.searching,
           instructionText: context.l10n.inputDepositId,

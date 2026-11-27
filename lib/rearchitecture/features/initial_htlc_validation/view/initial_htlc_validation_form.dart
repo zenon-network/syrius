@@ -40,6 +40,7 @@ class _InitialHtlcValidationFormState extends State<InitialHtlcValidationForm> {
           spacing: kVerticalGap16.height!,
           children: <Widget>[
             TextField(
+              key: const Key('join_p2p_swap_deposit_id_field'),
               decoration: InputDecoration(
                 errorText: value.text.isNotEmpty ? depositIdError : null,
                 hintText: context.l10n.depositIdProvidedByCounterparty,

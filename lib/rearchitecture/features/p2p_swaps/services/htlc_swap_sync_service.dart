@@ -258,7 +258,12 @@ class HtlcSwapSyncService {
       return null;
     }
 
-    final int expirationTime = blockData.params['expirationTime'];
+    final int? expirationTime = _parseAbiInt(
+      blockData.params['expirationTime'],
+    );
+    if (expirationTime == null) {
+      return null;
+    }
     return swap.copyWith(
       counterHtlcId: htlcId,
       toAmount: pairedBlock.amount,
@@ -356,16 +361,27 @@ class HtlcSwapSyncService {
 
     // Verify that the hash types match.
     if (!data.params.containsKey('hashType') ||
-        data.params['hashType'] != swap.hashType) {
+        _parseAbiInt(data.params['hashType']) != swap.hashType) {
       return false;
     }
 
-    // Verify that block data contains an expiration time parameter.
-    if (!data.params.containsKey('expirationTime')) {
+    // Verify that block data contains a valid expiration time parameter.
+    if (!data.params.containsKey('expirationTime') ||
+        _parseAbiInt(data.params['expirationTime']) == null) {
       return false;
     }
 
     return true;
+  }
+
+  int? _parseAbiInt(Object? value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is BigInt && value.isValidInt) {
+      return value.toInt();
+    }
+    return null;
   }
 
   Future<void> _checkForExpiredSwaps() async {

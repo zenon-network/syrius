@@ -564,6 +564,7 @@ class _ViewState extends State<_View> {
         Tooltip(
           message: context.l10n.no.capitalize(),
           child: RawMaterialButton(
+            key: const Key('accelerator_vote_no_button'),
             constraints: const BoxConstraints(minWidth: 50, minHeight: 50),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             shape: const CircleBorder(),
@@ -593,6 +594,7 @@ class _ViewState extends State<_View> {
         Tooltip(
           message: context.l10n.yes.capitalize(),
           child: RawMaterialButton(
+            key: const Key('accelerator_vote_yes_button'),
             constraints: const BoxConstraints(minWidth: 50, minHeight: 50),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             shape: const CircleBorder(),
@@ -622,6 +624,7 @@ class _ViewState extends State<_View> {
         Tooltip(
           message: context.l10n.abstain,
           child: RawMaterialButton(
+            key: const Key('accelerator_vote_abstain_button'),
             constraints: const BoxConstraints(minWidth: 50, minHeight: 50),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             shape: const CircleBorder(),
