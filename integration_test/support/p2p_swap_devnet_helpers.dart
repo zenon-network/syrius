@@ -8,7 +8,8 @@ import 'package:flutter/foundation.dart'
         DiagnosticsNode,
         FlutterError,
         FlutterErrorDetails,
-        FlutterExceptionHandler;
+        FlutterExceptionHandler,
+        debugPrint;
 import 'package:flutter/widgets.dart' show DebugCreator, Element, RenderObject;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
@@ -279,6 +280,7 @@ class P2pSwapDevnetContext {
     _activeSyncService = syncService;
     syncService.start();
 
+    bool hasPrimaryError = false;
     try {
       final HtlcSwap? swap = await pollDevnet<HtlcSwap?>(
         () => repository.getSwapById(swapId),
@@ -286,10 +288,24 @@ class P2pSwapDevnetContext {
         description: description,
       );
       return swap!;
+    } on Object {
+      hasPrimaryError = true;
+      rethrow;
     } finally {
-      await _stopSyncServiceBounded(syncService);
-      if (identical(_activeSyncService, syncService)) {
-        _activeSyncService = null;
+      try {
+        await _stopSyncServiceBounded(syncService);
+      } on Object catch (stopError, stopStackTrace) {
+        if (!hasPrimaryError) {
+          Error.throwWithStackTrace(stopError, stopStackTrace);
+        }
+        debugPrint(
+          'HtlcSwapSyncService failed to stop cleanly after a primary error '
+          '($description): $stopError\n$stopStackTrace',
+        );
+      } finally {
+        if (identical(_activeSyncService, syncService)) {
+          _activeSyncService = null;
+        }
       }
     }
   }
@@ -297,12 +313,15 @@ class P2pSwapDevnetContext {
   Future<void> _stopSyncServiceBounded(HtlcSwapSyncService syncService) async {
     try {
       await syncService.stop().timeout(const Duration(seconds: 15));
-    } on TimeoutException {
+    } on TimeoutException catch (timeoutError) {
       // Abort the stalled WebSocket transport so any hung sync RPC completes
       // with an error and drains before the Drift stores are closed.
+      debugPrint(
+        'HtlcSwapSyncService.stop() timed out after 15s ($timeoutError); '
+        'aborting WebSocket transport to drain in-flight RPCs.',
+      );
       app.zenon?.wsClient.stop();
       await syncService.stop().timeout(const Duration(seconds: 5));
-      rethrow;
     }
   }
 
