@@ -54,7 +54,8 @@ const SizedBox kSpacingBetweenActionButtons = SizedBox(
 const Size kAcceleratorProgressBarSize = Size(300, 10);
 
 // Wallet version
-/// Semantic version string recorded for the wallet storage format.
+/// Syrius wallet version displayed in About and saved under
+/// [kWalletVersionKey].
 const String kWalletVersion = '0.2.5';
 
 // Boxes constants
@@ -91,7 +92,7 @@ const String kLastCheckedHtlcBlockBox = 'last_checked_htlc_block_box';
 /// SQLite database filename for encrypted HTLC P2P swaps.
 const String kHtlcSwapsDatabase = 'htlc_swaps.sqlite';
 
-/// Hive cache boxes deleted during a wallet reset.
+/// Hive cache boxes deleted during the delete-cache flow and wallet reset.
 const List<String> kCacheBoxesToBeDeleted = <String>[
   kFavoriteTokensBox,
   kAddressesBox,
@@ -158,16 +159,15 @@ const String kWindowPositionYKey = 'window_position_y_key';
 /// Shared preferences key for whether the desktop window is maximized.
 const String kWindowMaximizedKey = 'window_maximized_key';
 
-/// Shared preferences key for enabling P2P swaps UI.
-const String kP2pSwapsKey = 'p2p_swaps_key';
-
 /// Shared preferences key for enabling automatic P2P HTLC unlocks.
 const String kP2pAtomicUnlockKey = 'p2p_atomic_unlock_key';
 
 /// Shared preferences key for enabling automatic P2P HTLC reclaims.
 const String kP2pAutoReclaimKey = 'p2p_auto_reclaim_key';
 
-/// Shared preferences key for the last checked HTLC block height.
+/// Legacy key for the last checked HTLC block height inside
+/// [kLastCheckedHtlcBlockBox] (referenced only by
+/// `legacy_htlc_swaps_migrator_test.dart`).
 const String kLastCheckedHtlcBlockKey = 'last_checked_htlc_block_key';
 
 /// Default border width for outlined containers and inputs.
@@ -189,9 +189,6 @@ const int kSeedGridNumOfRows = 4;
 /// Number of mnemonic words the user must confirm during wallet creation.
 const int kNumOfSeedWordsToBeFound = 6;
 
-/// Number of horizontal tick labels on the left axis of charts.
-const int kNumOfChartLeftSideTitles = 10;
-
 /// Number of seconds in one hour.
 const int kOneHourInSeconds = 3600;
 
@@ -209,9 +206,6 @@ const int kDaysInAWeek = 7;
 
 /// Expected number of Zenon momentums produced per week.
 const int kMomentumsPerWeek = kMomentumsPerDay * kDaysInAWeek;
-
-/// Default maximum number of addresses displayed or generated per batch.
-const int kNumOfAddresses = 10;
 
 /// Plasma required for Pillar registration and management transactions.
 const int kPillarPlasmaAmountNeeded = 252000;
@@ -250,7 +244,7 @@ const List<int> kPowerUsersPlasmaRequirements = <int>[
   kIssueTokenPlasmaAmountNeeded,
 ];
 
-/// Sentinel node name representing the bundled embedded full node.
+/// Placeholder value of `kCurrentNode` that selects the bundled embedded node.
 const String kEmbeddedNode = 'Embedded Node';
 
 /// Default localhost WebSocket URL used to connect to the embedded node.
