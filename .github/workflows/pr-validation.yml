@@ -60,8 +60,8 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get --enforce-lockfile
 
-      - name: Analyze rearchitecture code
-        run: flutter analyze --no-pub lib/rearchitecture
+      - name: Analyze repository
+        run: flutter analyze --no-pub
 
       - name: Run unit and widget tests
         run: flutter test --no-pub test --exclude-tags chain

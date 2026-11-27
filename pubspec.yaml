@@ -15,7 +15,6 @@ dependencies:
   clipboard_watcher: ^0.3.0
   collection: ^1.17.0
   desktop_drop: ^0.8.0
-  device_info_plus: ^12.3.0
   dotted_border: ^3.1.0
   drift: ^2.34.4
   equatable: ^2.0.5
