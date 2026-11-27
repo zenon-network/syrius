@@ -7,7 +7,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Utilities for creating, decrypting, and managing the active [WalletFile].
 class WalletUtils {
+  /// Returns the primary (index 0) wallet address.
   static Address get baseAddress {
     return Address.parse(kDefaultAddressList.first!);
   }
@@ -36,11 +38,13 @@ class WalletUtils {
     }
   }
 
+  /// Decrypts the wallet file at [walletPath] with [password].
   static Future<WalletFile> decryptWalletFile(
-      String walletPath, String password,) async {
-    return WalletFile.decrypt(walletPath, password);
-  }
+    String walletPath,
+    String password,
+  ) => WalletFile.decrypt(walletPath, password);
 
+  /// Creates a new [LedgerWalletFile], persists its path, and activates it.
   static Future<void> createLedgerWalletFile(
     String walletId,
     String password, {
@@ -71,6 +75,8 @@ class WalletUtils {
     await setWalletFile(createdWalletFile);
   }
 
+  /// Creates a new [KeyStoreWalletFile] from [mnemonic], persists its path,
+  /// and activates it.
   static Future<void> createKeyStoreWalletFile(
     String mnemonic,
     String password, {
@@ -102,26 +108,32 @@ class WalletUtils {
   }
 
   static Future<void> _storeWalletPath(String? walletPath) async {
-    final Box keyStoreBox = await Hive.openBox(kKeyStoreBox);
+    final Box<dynamic> keyStoreBox = await Hive.openBox<dynamic>(kKeyStoreBox);
     await keyStoreBox.put(0, walletPath);
   }
 
+  /// Restores [kWalletPath] from Hive storage (migrating from legacy shared
+  /// preferences if needed) or persists the current [kWalletPath].
   static Future<void> setWalletPath() async {
     if (kWalletPath == null) {
-      final Box keyStoreBox = await Hive.openBox(kKeyStoreBox);
+      final Box<dynamic> keyStoreBox = await Hive.openBox<dynamic>(
+        kKeyStoreBox,
+      );
       if (keyStoreBox.isEmpty) {
         // Here we check if the key store path is saved in another place
         // and we copy that value, if it exists
-        final String? keyStorePath = sharedPrefsService!.get(kEntropyFilePathKey);
+        final String? keyStorePath = sharedPrefsService!.get(
+          kEntropyFilePathKey,
+        );
         if (keyStorePath != null) {
-          keyStoreBox.add(keyStorePath);
+          await keyStoreBox.add(keyStorePath);
           kWalletPath = keyStoreBox.values.first;
         }
       } else {
         kWalletPath = keyStoreBox.values.first;
       }
     } else {
-      _storeWalletPath(kWalletPath);
+      await _storeWalletPath(kWalletPath);
     }
   }
 }

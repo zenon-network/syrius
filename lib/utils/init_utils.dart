@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hive_ce/hive_ce.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_local_storage_api.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/legacy_htlc_swaps_migrator.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
@@ -16,7 +16,10 @@ import 'package:zenon_syrius_wallet_flutter/utils/wallet_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Utilities for bootstrapping application and wallet state at startup.
 class InitUtils {
+  /// Initializes display settings, preferences, node configuration, and Hive
+  /// boxes before unlocking the wallet.
   static Future<void> initApp(BuildContext context) async {
     WidgetUtils.setThemeMode(context);
     WidgetUtils.setTextScale(context);
@@ -71,6 +74,8 @@ class InitUtils {
         defaultValue: kAutoLockWalletDefaultIntervalMinutes,
       );
 
+  /// Initializes addresses, WebSocket connectivity, and encrypted swap storage
+  /// after the wallet has been decrypted with [cipherKey].
   static Future<void> initWalletAfterDecryption(List<int> cipherKey) async {
     await ZenonAddressUtils.setAddresses(kWalletFile);
     await ZenonAddressUtils.setAddressLabels();
@@ -89,16 +94,16 @@ class InitUtils {
     kWalletInitCompleted = true;
   }
 
-  static Future<void> _openFavoriteTokensBox() async =>
-      Hive.openBox(kFavoriteTokensBox);
+  static Future<void> _openFavoriteTokensBox() =>
+      Hive.openBox<dynamic>(kFavoriteTokensBox);
 
-  static Future<void> _openNotificationsBox() async =>
-      Hive.openBox(kNotificationsBox);
+  static Future<void> _openNotificationsBox() =>
+      Hive.openBox<dynamic>(kNotificationsBox);
 
-  static Future<void> _openRecipientBox() async =>
-      Hive.openBox(kRecipientAddressBox);
+  static Future<void> _openRecipientBox() =>
+      Hive.openBox<dynamic>(kRecipientAddressBox);
 
-  static Future<void> _setWalletVersion() async => sharedPrefsService!.put(
+  static Future<void> _setWalletVersion() => sharedPrefsService!.put(
     kWalletVersionKey,
     kWalletVersion,
   );

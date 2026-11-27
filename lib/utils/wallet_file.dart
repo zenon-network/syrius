@@ -52,7 +52,9 @@ class WalletFileReadException extends WalletException {
   final Object? walletType;
 }
 
+/// Abstract handle for an encrypted software or hardware wallet file.
 abstract class WalletFile {
+  /// Creates a [WalletFile] bound to filesystem path [_path].
   WalletFile(this._path);
   final String _path;
   static int _tmpFileCounter = 0;
@@ -61,15 +63,16 @@ abstract class WalletFile {
   /// drop/pick and would freeze the UI thread in readAsStringSync.
   static const int maxWalletFileSizeBytes = 1024 * 1024;
 
+  /// Reads and decrypts the wallet file at [walletPath] using [password].
   static Future<WalletFile> decrypt(String walletPath, String password) async {
     final EncryptedFile encrypted = await WalletFile.read(walletPath);
-    final walletType = encrypted.metadata != null
+    final Object? walletType = encrypted.metadata != null
         ? encrypted.metadata![walletTypeKey]
         : null;
     if (walletType == null || walletType == keyStoreWalletType) {
-      return KeyStoreWalletFile.decrypt(walletPath, password);
+      return await KeyStoreWalletFile.decrypt(walletPath, password);
     } else if (walletType == ledgerWalletType) {
-      return LedgerWalletFile.decrypt(walletPath, password);
+      return await LedgerWalletFile.decrypt(walletPath, password);
     } else {
       throw WalletFileReadException(
         WalletFileReadFailureReason.unsupportedWalletType,
@@ -80,6 +83,7 @@ abstract class WalletFile {
     }
   }
 
+  /// Reads and validates the encrypted wallet file JSON from [walletPath].
   static Future<EncryptedFile> read(String walletPath) async {
     final FileSystemEntityType entityType = FileSystemEntity.typeSync(
       walletPath,
@@ -189,6 +193,7 @@ abstract class WalletFile {
     }
   }
 
+  /// Encrypts [data] with [password] and atomically writes it to [walletPath].
   static Future<void> write(
     String walletPath,
     String password,
@@ -219,15 +224,19 @@ abstract class WalletFile {
     }
   }
 
+  /// Filesystem path of this wallet file.
   String get walletPath => _path;
 
+  /// Metadata type identifier of this wallet (e.g. keystore or Ledger).
   String get walletType;
 
+  /// Whether an active wallet access session is currently open.
   bool get isOpen;
 
   /// Whether this wallet file has been permanently closed.
   bool get isClosed => false;
 
+  /// Whether this wallet is backed by a hardware device.
   bool get isHardwareWallet;
 
   /// Runs [accessSection] while holding exclusive access to this wallet.
@@ -237,6 +246,7 @@ abstract class WalletFile {
   /// active access lock.
   Future<void> close();
 
+  /// Re-encrypts this wallet file from [currentPassword] to [newPassword].
   Future<void> changePassword(
     String currentPassword,
     String newPassword,
@@ -297,6 +307,7 @@ class _WalletFileLifecycle {
   }
 }
 
+/// Software keystore-backed [WalletFile] implementation.
 class KeyStoreWalletFile extends WalletFile {
   KeyStoreWalletFile._internal(super._path, String walletSeed)
     : _walletSeed = walletSeed;
@@ -304,10 +315,13 @@ class KeyStoreWalletFile extends WalletFile {
   String? _walletSeed;
   KeyStore? _keyStore;
 
+  /// Shared SDK manager for persisting keystore files.
   static final KeyStoreManager keyStoreWalletManager = KeyStoreManager(
     walletPath: znnDefaultWalletDirectory,
   );
 
+  /// Creates and saves a new encrypted keystore wallet from [mnemonic] and
+  /// [password].
   static Future<KeyStoreWalletFile> create(
     String mnemonic,
     String password, {
@@ -322,6 +336,7 @@ class KeyStoreWalletFile extends WalletFile {
     );
   }
 
+  /// Decrypts an existing keystore wallet at [walletPath] using [password].
   static Future<KeyStoreWalletFile> decrypt(
     String walletPath,
     String password,
@@ -392,6 +407,7 @@ class KeyStoreWalletFile extends WalletFile {
   }
 }
 
+/// Ledger hardware-backed [WalletFile] implementation.
 class LedgerWalletFile extends WalletFile {
   LedgerWalletFile._internal(super._path, this._walletName)
     : _connector = _connect;
@@ -405,6 +421,7 @@ class LedgerWalletFile extends WalletFile {
   final Future<LedgerWallet> Function(String walletIdOrName) _connector;
   LedgerWallet? _wallet;
 
+  /// Shared SDK manager for discovering and opening Ledger devices.
   static final LedgerWalletManager ledgerWalletManager = LedgerWalletManager();
 
   static Future<LedgerWallet> _connect(String walletIdOrName) async {
@@ -416,12 +433,17 @@ class LedgerWalletFile extends WalletFile {
             as LedgerWallet;
       }
     }
+    // LedgerError is an external freezed union from znn_ledger_dart that
+    // callers catch explicitly via `on LedgerError`.
+    // ignore: only_throw_errors
     throw const LedgerError.connectionError(
       origMessage:
           'Cannot find the hardware device, please connect/unlock the device on which the wallet is initialized',
     );
   }
 
+  /// Connects to the Ledger device [walletId] and writes its encrypted
+  /// metadata file secured with [password].
   static Future<LedgerWalletFile> create(
     String walletId,
     String password, {
@@ -451,6 +473,7 @@ class LedgerWalletFile extends WalletFile {
     }
   }
 
+  /// Decrypts an existing Ledger wallet file at [walletPath] using [password].
   static Future<LedgerWalletFile> decrypt(
     String walletPath,
     String password,

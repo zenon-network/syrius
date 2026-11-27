@@ -2,13 +2,19 @@ import 'dart:math' show pow;
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// String formatting and numeric conversion helpers.
 extension StringExtensions on String {
+  /// Returns this string with the first character uppercased and the rest
+  /// lowercased.
   String capitalize() {
     return '${this[0].toUpperCase()}${toLowerCase().substring(1)}';
   }
 
+  /// Parses this string as a [num].
   num toNum() => num.parse(this);
 
+  /// Converts a decimal string into its integer base-unit [BigInt] using
+  /// [decimals] fractional digits.
   BigInt extractDecimals(int decimals) {
     if (!contains('.')) {
       if (decimals == 0 && isEmpty) {
@@ -24,31 +30,37 @@ extension StringExtensions on String {
             : parts[1].padRight(decimals, '0')),);
   }
 
+  /// Returns this string unchanged.
   String abs() => this;
 }
 
+/// Fixed-decimal truncation helpers for [double] values.
 extension FixedNumDecimals on double {
+  /// Truncates this value to [numDecimals] fractional digits and returns it as
+  /// a string.
   String toStringFixedNumDecimals(int numDecimals) {
     return '${(this * pow(10, numDecimals)).truncate() / pow(10, numDecimals)}';
   }
 }
 
+/// Token amount formatting helpers for [BigInt] values.
 extension BigIntExtensions on BigInt {
+  /// Formats this base-unit amount with [decimals] decimal places.
   String addDecimals(int decimals) {
 
     return AmountUtils.addDecimals(this, decimals);
   }
 }
 
-// This extension takes other list with fewer elements and creates a single one
-// by interleaving them, starting with the first element of the first list,
-// then the first element of the second list. If second list runs out of elements
-// then we continue with the elements from the first list
-extension ZipTwoLists on List {
+/// Interleaves two lists element by element.
+extension ZipTwoLists on List<dynamic> {
+  /// Interleaves elements from this list and [smallerList], starting with the
+  /// first element of this list and appending any remaining elements after
+  /// [smallerList] is exhausted.
   List<T> zip<T>(List<T> smallerList) {
     return fold(
       <T>[],
-      (List<T> previousValue, element) {
+      (List<T> previousValue, dynamic element) {
         final int elementIndex = indexOf(element);
         previousValue.add(element);
         if (elementIndex < smallerList.length) {
@@ -62,7 +74,9 @@ extension ZipTwoLists on List {
   }
 }
 
+/// Abbreviated display helpers for long strings such as addresses and hashes.
 extension ShortString on String {
+  /// Returns the first 6 and last 6 characters separated by an ellipsis.
   String get short {
     final String longString = this;
     return '${longString.substring(0, 6)}...'
@@ -70,7 +84,9 @@ extension ShortString on String {
   }
 }
 
+/// Human-readable formatting helpers for [LedgerError].
 extension LedgerErrorExtensions on LedgerError {
+  /// Converts this [LedgerError] into a user-facing error description.
   String toFriendlyString() {
     return when(
         connectionError: (String origMessage) => origMessage,
@@ -90,7 +106,8 @@ extension LedgerErrorExtensions on LedgerError {
       case StatusWord.notAllowed:
         return 'Request not allowed';
       case StatusWord.insNotSupported:
-        return 'Instruction not supported, please make sure the Zenon app is opened';
+        return 'Instruction not supported, please make sure the Zenon app is '
+            'opened';
       case StatusWord.claNotSupported:
         return 'Class not supported, please make sure the Zenon app is opened';
       case StatusWord.appIsNotOpen:

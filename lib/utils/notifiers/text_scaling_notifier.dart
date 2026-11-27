@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_display/model/display_settings_enums.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 
+/// Notifies listeners when the application's [TextScaling] preference changes.
 class TextScalingNotifier extends ChangeNotifier {
   TextScaling? _currentTextScaling = kDefaultTextScaling;
 
+  /// Updates the active text scaling mode to [newTextScaling] and notifies
+  /// listeners if it changed.
   void changeTextScaling(TextScaling? newTextScaling) {
     if (_currentTextScaling != newTextScaling) {
       _currentTextScaling = newTextScaling;
@@ -12,6 +15,8 @@ class TextScalingNotifier extends ChangeNotifier {
     }
   }
 
+  /// Resolves the numeric text scale factor for the current [TextScaling]
+  /// setting using [context]'s media query when set to [TextScaling.system].
   double getTextScaleFactor(BuildContext context) {
     switch (_currentTextScaling) {
       case TextScaling.system:
@@ -29,5 +34,6 @@ class TextScalingNotifier extends ChangeNotifier {
     }
   }
 
+  /// Currently active [TextScaling] preference.
   TextScaling? get currentTextScaling => _currentTextScaling;
 }

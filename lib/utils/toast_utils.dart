@@ -2,10 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+/// Utilities for displaying transient overlay toast banners.
 class ToastUtils {
   static Timer? _timer;
   static OverlayEntry? _overlay;
 
+  /// Displays a floating toast with [message] and optional background [color]
+  /// in the overlay of [context].
   static void showToast(BuildContext context, String message, {Color? color}) {
     _timer?.cancel();
     _overlay?.remove();
@@ -25,8 +28,8 @@ class ToastUtils {
     return OverlayEntry(
       builder: (_) => TweenAnimationBuilder<double>(
         duration: const Duration(milliseconds: 200),
-        tween: Tween(begin: 0, end: 1),
-        builder: (_, double opacity, __) {
+        tween: Tween<double>(begin: 0, end: 1),
+        builder: (_, double opacity, _) {
           return Opacity(
             opacity: opacity,
             child: Padding(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
+/// Default divider styling shared across light and dark themes.
 const DividerThemeData kDefaultDividerThemeData = DividerThemeData(
   thickness: 1,
   indent: 0,
@@ -8,6 +9,7 @@ const DividerThemeData kDefaultDividerThemeData = DividerThemeData(
   space: 1,
 );
 
+/// Default styling for primary [ElevatedButton] widgets.
 final ButtonStyle kElevatedButtonStyle = ElevatedButton.styleFrom(
   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
   shape: RoundedRectangleBorder(
@@ -19,6 +21,7 @@ final ButtonStyle kElevatedButtonStyle = ElevatedButton.styleFrom(
   backgroundColor: AppColors.znnColor,
 );
 
+/// Default styling for [OutlinedButton] widgets.
 final ButtonStyle kOutlinedButtonStyle = OutlinedButton.styleFrom(
   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
   shape: RoundedRectangleBorder(
@@ -32,63 +35,75 @@ final ButtonStyle kOutlinedButtonStyle = OutlinedButton.styleFrom(
   textStyle: kOutlinedButtonTextStyle,
 );
 
+/// Small display text style used in compact headers.
 const TextStyle kDisplaySmallTextStyle = TextStyle(
   fontSize: 14,
   fontWeight: FontWeight.w400,
 );
 
+/// Large body text style.
 const TextStyle kBodyLargeTextStyle = TextStyle(
   fontSize: 14,
   fontWeight: FontWeight.w400,
 );
 
+/// Medium body text style.
 const TextStyle kBodyMediumTextStyle = TextStyle(
   fontSize: 12,
   fontWeight: FontWeight.w400,
 );
 
+/// Small body text style.
 const TextStyle kBodySmallTextStyle = TextStyle(
   fontSize: 10,
   fontWeight: FontWeight.w300,
 );
 
+/// Large headline text style.
 const TextStyle kHeadlineLargeTextStyle = TextStyle(
   fontSize: 26,
   fontWeight: FontWeight.w500,
 );
 
+/// Medium headline text style.
 const TextStyle kHeadlineMediumTextStyle = TextStyle(
   fontSize: 24,
   fontWeight: FontWeight.w500,
 );
 
+/// Small headline text style.
 const TextStyle kHeadlineSmallTextStyle = TextStyle(
   fontSize: 16,
   fontWeight: FontWeight.w400,
 );
 
+/// Text style used inside [OutlinedButton] labels.
 const TextStyle kOutlinedButtonTextStyle = TextStyle(
   fontSize: 16,
   fontWeight: FontWeight.w400,
 );
 
+/// Text style used inside [TextButton] labels.
 const TextStyle kTextButtonTextStyle = TextStyle(
   fontSize: 10,
   fontWeight: FontWeight.w400,
 );
 
+/// Medium title text style using the secondary subtitle color.
 const TextStyle kTitleMediumTextStyle = TextStyle(
   fontSize: 12,
   fontWeight: FontWeight.w400,
   color: AppColors.subtitleColor,
 );
 
+/// Small title text style using the secondary subtitle color.
 const TextStyle kTitleSmallTextStyle = TextStyle(
   fontSize: 10,
   fontWeight: FontWeight.w400,
   color: AppColors.subtitleColor,
 );
 
+/// Default theme configuration for [TextButton] widgets.
 final TextButtonThemeData kTextButtonThemeData = TextButtonThemeData(
   style: TextButton.styleFrom(
     textStyle: kTextButtonTextStyle,
@@ -103,22 +118,28 @@ final TextButtonThemeData kTextButtonThemeData = TextButtonThemeData(
   ),
 );
 
+/// Base text style for form input hints.
 const TextStyle kHintTextStyle = TextStyle(
   fontWeight: FontWeight.w400,
   fontSize: 14,
 );
 
+/// Text style for validation errors on text form fields.
 const TextStyle kTextFormFieldErrorStyle = TextStyle(
   color: AppColors.errorColor,
 );
 
+/// Default rounded outline border for text input fields.
 const OutlineInputBorder kOutlineInputBorder = OutlineInputBorder(
   borderRadius: BorderRadius.all(Radius.circular(5)),
 );
 
+/// Light and dark [ThemeData] definitions for Syrius.
 class AppTheme {
 
   AppTheme._();
+
+  /// Light mode application theme.
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     hoverColor: AppColors.lightTextFormFieldFill,
@@ -256,6 +277,7 @@ class AppTheme {
     ).copyWith(surface: AppColors.backgroundLight),
   );
 
+  /// Dark mode application theme.
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     hoverColor: AppColors.darkTextFormFieldFill,
@@ -277,7 +299,7 @@ class AppTheme {
     ),
     scaffoldBackgroundColor: AppColors.backgroundDark,
     textSelectionTheme: TextSelectionThemeData(
-      selectionColor: Colors.white.withOpacity(0.1),
+      selectionColor: Colors.white.withValues(alpha: 0.1),
       cursorColor: AppColors.znnColor,
       selectionHandleColor: AppColors.znnColor,
     ),
@@ -293,7 +315,7 @@ class AppTheme {
       ),
       disabledBorder: kOutlineInputBorder.copyWith(
         borderSide: BorderSide(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
         ),
       ),
       focusedBorder: kOutlineInputBorder.copyWith(
