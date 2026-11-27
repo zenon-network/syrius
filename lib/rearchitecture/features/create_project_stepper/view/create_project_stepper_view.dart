@@ -263,6 +263,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
             ),
             const SizedBox(width: 15),
             StepperButton(
+              key: const Key('create_project_step1_continue_button'),
               onPressed:
                   accountInfo.getBalance(kZnnCoin.tokenStandard) >=
                       projectCreationFeeInZnn
@@ -293,6 +294,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
                 key: _projectNameKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: InputField(
+                  key: const Key('create_project_name_field'),
                   controller: _projectNameController,
                   hintText: context.l10n.projectName,
                   onChanged: (String value) {
@@ -313,6 +315,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
                 key: _projectDescriptionKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: InputField(
+                  key: const Key('create_project_description_field'),
                   controller: _projectDescriptionController,
                   hintText: context.l10n.projectDescription,
                   onChanged: (String value) {
@@ -333,6 +336,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
                 key: _projectUrlKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: InputField(
+                  key: const Key('create_project_url_field'),
                   controller: _projectUrlController,
                   hintText: context.l10n.projectUrl,
                   onChanged: (String value) {
@@ -364,6 +368,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
                 key: _projectZnnKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: InputField(
+                  key: const Key('create_project_znn_amount_field'),
                   inputFormatters: FormatUtils.getAmountTextInputFormatters(
                     _projectZnnAmountController.text,
                   ),
@@ -411,6 +416,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
                 key: _projectQsrKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: InputField(
+                  key: const Key('create_project_qsr_amount_field'),
                   inputFormatters: FormatUtils.getAmountTextInputFormatters(
                     _projectQsrAmountController.text,
                   ),
@@ -461,6 +467,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
             ),
             const SizedBox(width: 15),
             StepperButton(
+              key: const Key('create_project_step2_continue_button'),
               text: context.l10n.continueText,
               onPressed: _areInputDetailsValid()
                   ? () {
@@ -501,23 +508,26 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
               text: context.l10n.goBack,
             ),
             const SizedBox(width: 15),
-            LoadingButton.stepper(
-              onPressed: () {
-                context.read<CreateProjectBloc>().add(
-                  CreateProjectRequested(
-                    address: Address.parse(_addressController.text),
-                    name: _projectNameController.text,
-                    description: _projectDescriptionController.text,
-                    url: _projectUrlController.text,
-                    znnFundsNeeded: _projectZnnAmountController.text
-                        .extractDecimals(coinDecimals),
-                    qsrFundsNeeded: _projectQsrAmountController.text
-                        .extractDecimals(coinDecimals),
-                  ),
-                );
-              },
-              text: context.l10n.submit,
-              key: _submitButtonKey,
+            KeyedSubtree(
+              key: const Key('create_project_submit_button'),
+              child: LoadingButton.stepper(
+                onPressed: () {
+                  context.read<CreateProjectBloc>().add(
+                    CreateProjectRequested(
+                      address: Address.parse(_addressController.text),
+                      name: _projectNameController.text,
+                      description: _projectDescriptionController.text,
+                      url: _projectUrlController.text,
+                      znnFundsNeeded: _projectZnnAmountController.text
+                          .extractDecimals(coinDecimals),
+                      qsrFundsNeeded: _projectQsrAmountController.text
+                          .extractDecimals(coinDecimals),
+                    ),
+                  );
+                },
+                text: context.l10n.submit,
+                key: _submitButtonKey,
+              ),
             ),
           ],
         ),

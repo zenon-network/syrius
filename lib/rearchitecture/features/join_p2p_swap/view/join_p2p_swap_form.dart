@@ -105,6 +105,7 @@ class _JoinP2pSwapFormState extends State<JoinP2pSwapForm> {
                   children: <Widget>[
                     Expanded(
                       child: AmountTextField(
+                        key: const Key('join_p2p_swap_amount_field'),
                         accountInfo: widget.accountInfo,
                         controller: _amountController,
                         enabled: !isSwapLoading,

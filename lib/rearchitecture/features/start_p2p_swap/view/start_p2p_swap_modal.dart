@@ -134,6 +134,9 @@ class _ViewState extends State<_View> {
                     kHorizontalGap16,
                     Expanded(
                       child: TextField(
+                        key: const Key(
+                          'start_p2p_swap_counterparty_address_field',
+                        ),
                         decoration: InputDecoration(
                           errorText: _counterpartyAddress.isNotEmpty
                               ? _counterpartyAddressError
@@ -154,6 +157,7 @@ class _ViewState extends State<_View> {
                   children: <Widget>[
                     Expanded(
                       child: AmountTextField(
+                        key: const Key('start_p2p_swap_amount_field'),
                         accountInfo: accountInfo,
                         controller: _amountController,
                         enabled: !isSwapLoading,
@@ -202,6 +206,7 @@ class _ViewState extends State<_View> {
     required bool isInputValid,
   }) {
     return InstructionButton(
+      key: const Key('start_p2p_swap_submit_button'),
       text: context.l10n.p2pSwapStart,
       instructionText: context.l10n.p2pSwapFillDetails,
       loadingText: context.l10n.sendingTransaction,
