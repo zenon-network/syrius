@@ -298,43 +298,79 @@ class P2pSwapDevnetContext {
     }
     _disposed = true;
 
+    Object? firstError;
+    StackTrace? firstStackTrace;
+    void recordError(Object error, StackTrace stackTrace) {
+      if (firstError == null) {
+        firstError = error;
+        firstStackTrace = stackTrace;
+      }
+    }
+
     try {
-      await _activeSyncService?.stop();
-      _activeSyncService = null;
+      try {
+        await _activeSyncService?.stop();
+      } on Object catch (error, stackTrace) {
+        recordError(error, stackTrace);
+      } finally {
+        _activeSyncService = null;
+      }
+
+      try {
+        await initiatorStorage.close();
+      } on Object catch (error, stackTrace) {
+        recordError(error, stackTrace);
+      }
+
+      try {
+        await counterpartyStorage.close();
+      } on Object catch (error, stackTrace) {
+        recordError(error, stackTrace);
+      }
+
+      try {
+        if (tempDirectory.existsSync()) {
+          tempDirectory.deleteSync(recursive: true);
+        }
+      } on Object catch (error, stackTrace) {
+        recordError(error, stackTrace);
+      }
     } finally {
-      await initiatorStorage.close();
-      await counterpartyStorage.close();
-      if (tempDirectory.existsSync()) {
-        tempDirectory.deleteSync(recursive: true);
-      }
+      try {
+        if (app.sl.isRegistered<HtlcSwapRepository>()) {
+          await app.sl.unregister<HtlcSwapRepository>();
+        }
+        if (_savedHtlcSwapRepository != null) {
+          app.sl.registerSingleton<HtlcSwapRepository>(
+            _savedHtlcSwapRepository,
+          );
+        }
 
-      if (app.sl.isRegistered<HtlcSwapRepository>()) {
-        await app.sl.unregister<HtlcSwapRepository>();
-      }
-      if (_savedHtlcSwapRepository != null) {
-        app.sl.registerSingleton<HtlcSwapRepository>(_savedHtlcSwapRepository);
-      }
+        if (app.sl.isRegistered<HtlcSwapUnlockService>()) {
+          await app.sl.unregister<HtlcSwapUnlockService>();
+        }
+        if (_savedHtlcSwapUnlockService != null) {
+          app.sl.registerSingleton<HtlcSwapUnlockService>(
+            _savedHtlcSwapUnlockService,
+          );
+        }
+      } finally {
+        kWalletFile = _savedWalletFile;
+        kDefaultAddressList = List<String?>.from(_savedDefaultAddressList);
+        kAddressLabelMap = Map<String, String>.from(_savedAddressLabelMap);
+        kSelectedAddress = _savedSelectedAddress;
+        kNodeChainId = _savedNodeChainId;
+        driftRuntimeOptions.dontWarnAboutMultipleDatabases =
+            _savedDontWarnAboutMultipleDatabases;
 
-      if (app.sl.isRegistered<HtlcSwapUnlockService>()) {
-        await app.sl.unregister<HtlcSwapUnlockService>();
+        if (identical(_activeP2pSwapContext, this)) {
+          _activeP2pSwapContext = null;
+        }
       }
-      if (_savedHtlcSwapUnlockService != null) {
-        app.sl.registerSingleton<HtlcSwapUnlockService>(
-          _savedHtlcSwapUnlockService,
-        );
-      }
+    }
 
-      kWalletFile = _savedWalletFile;
-      kDefaultAddressList = List<String?>.from(_savedDefaultAddressList);
-      kAddressLabelMap = Map<String, String>.from(_savedAddressLabelMap);
-      kSelectedAddress = _savedSelectedAddress;
-      kNodeChainId = _savedNodeChainId;
-      driftRuntimeOptions.dontWarnAboutMultipleDatabases =
-          _savedDontWarnAboutMultipleDatabases;
-
-      if (identical(_activeP2pSwapContext, this)) {
-        _activeP2pSwapContext = null;
-      }
+    if (firstError != null) {
+      Error.throwWithStackTrace(firstError!, firstStackTrace!);
     }
   }
 
@@ -587,18 +623,17 @@ bool _isInstructionButtonLoadingOverflow(FlutterErrorDetails details) {
       // Avoid calling Flutter's widget-inspector creator transform on defunct
       // elements, which throws "Looking up a deactivated widget's ancestor is
       // unsafe". Raw DiagnosticsNode values still carry creator/size strings.
-      if (property.name == 'creator' || property.name == 'size') {
+      if (property.name == 'creator') {
         buffer.writeln('${property.name}: ${property.value}');
       }
     }
   }
   final String summary = buffer.toString();
-  final bool isLoadingInfoTextCreator =
-      summary.contains('LoadingInfoText') ||
-      summary.contains('CrossFadeState.showSecond');
-  final bool isDisposedCrossFadeRow =
-      summary.contains('DISPOSED OVERFLOWING') &&
-      summary.contains('Size(') &&
-      summary.contains(', 24.0)');
-  return isLoadingInfoTextCreator || isDisposedCrossFadeRow;
+  // InstructionButton is the only widget in the app that renders
+  // LoadingInfoText inside an AnimatedCrossFade. Require both identifiers so
+  // unrelated AnimatedCrossFade or disposed RenderFlex overflows are never
+  // suppressed.
+  return summary.contains('LoadingInfoText') &&
+      (summary.contains('InstructionButton') ||
+          summary.contains('AnimatedCrossFade'));
 }

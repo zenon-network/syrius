@@ -75,7 +75,8 @@ void configureDesktopTestViewport(WidgetTester tester) {
 }
 
 /// Polls [fetch] every second until [isReady] returns true or [timeout]
-/// elapses.
+/// elapses. Each [fetch] call is bounded by the remaining poll deadline so an
+/// unresponsive RPC cannot hang past [timeout].
 Future<T> pollDevnet<T>(
   Future<T> Function() fetch, {
   required bool Function(T value) isReady,
@@ -85,16 +86,31 @@ Future<T> pollDevnet<T>(
   final DateTime deadline = DateTime.now().add(timeout);
   Object? lastError;
 
-  while (DateTime.now().isBefore(deadline)) {
+  while (true) {
+    final Duration remaining = deadline.difference(DateTime.now());
+    if (remaining <= Duration.zero) {
+      break;
+    }
     try {
-      final T value = await fetch();
+      final T value = await fetch().timeout(remaining);
       if (isReady(value)) {
         return value;
       }
+    } on TimeoutException catch (error) {
+      lastError = error;
+      break;
     } on Object catch (error) {
       lastError = error;
     }
-    await Future<void>.delayed(const Duration(seconds: 1));
+    final Duration remainingAfterAttempt = deadline.difference(DateTime.now());
+    if (remainingAfterAttempt <= Duration.zero) {
+      break;
+    }
+    await Future<void>.delayed(
+      remainingAfterAttempt < const Duration(seconds: 1)
+          ? remainingAfterAttempt
+          : const Duration(seconds: 1),
+    );
   }
 
   throw TimeoutException(
@@ -103,15 +119,23 @@ Future<T> pollDevnet<T>(
 }
 
 /// Pumps frames until [finder] matches a widget.
+///
+/// If [checkFailure] is provided, it is invoked on each frame so callers can
+/// fail immediately when an underlying BLoC emits an error state.
 Future<void> pumpUntilFound(
   WidgetTester tester,
   Finder finder, {
   String? description,
   Duration timeout = const Duration(seconds: 90),
+  void Function()? checkFailure,
 }) async {
   final DateTime deadline = DateTime.now().add(timeout);
   while (finder.evaluate().isEmpty && DateTime.now().isBefore(deadline)) {
+    checkFailure?.call();
     await tester.pump(const Duration(milliseconds: 100));
+  }
+  if (finder.evaluate().isEmpty) {
+    checkFailure?.call();
   }
 
   expect(
@@ -122,11 +146,16 @@ Future<void> pumpUntilFound(
 }
 
 /// Pumps frames while waiting for [future] to complete.
+///
+/// If [checkFailure] is provided, it is invoked on each frame so callers can
+/// fail immediately when an underlying BLoC emits an error state while a modal
+/// stays open.
 Future<T> pumpUntilComplete<T>(
   WidgetTester tester,
   Future<T> future,
   String description, {
   Duration timeout = const Duration(seconds: 90),
+  void Function()? checkFailure,
 }) async {
   T? result;
   Object? error;
@@ -149,10 +178,12 @@ Future<T> pumpUntilComplete<T>(
 
   final DateTime deadline = DateTime.now().add(timeout);
   while (!completed && DateTime.now().isBefore(deadline)) {
+    checkFailure?.call();
     await tester.pump(const Duration(milliseconds: 100));
   }
 
   if (!completed) {
+    checkFailure?.call();
     throw TimeoutException('Timed out waiting for $description');
   }
   if (error != null) {

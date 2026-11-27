@@ -4,6 +4,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
@@ -71,6 +72,10 @@ Future<void> theCounterpartyJoinsTheP2pHtlcSwapWithZnnFromTheJoinP2pSwapModal(
     await tester.ensureVisible(validateButton);
     await tester.pump(const Duration(milliseconds: 100));
 
+    final InitialHtlcValidationBloc validationBloc =
+        BlocProvider.of<InitialHtlcValidationBloc>(
+          tester.element(find.byType(InitialHtlcValidationForm)),
+        );
     final Finder amountField = find.byKey(
       const Key('join_p2p_swap_amount_field'),
     );
@@ -80,6 +85,15 @@ Future<void> theCounterpartyJoinsTheP2pHtlcSwapWithZnnFromTheJoinP2pSwapModal(
         tester,
         amountField,
         description: 'Join P2P Swap amount field after HTLC validation',
+        checkFailure: () {
+          final InitialHtlcValidationState state = validationBloc.state;
+          if (state is InitialHtlcValidationFailure) {
+            fail(
+              'Initial HTLC validation failed for $initialHtlcId: '
+              '${state.exception}',
+            );
+          }
+        },
       );
     });
     await tester.enterText(amountField, counterAmount);
@@ -96,6 +110,9 @@ Future<void> theCounterpartyJoinsTheP2pHtlcSwapWithZnnFromTheJoinP2pSwapModal(
     await tester.ensureVisible(joinButton);
     await tester.pump(const Duration(milliseconds: 100));
 
+    final JoinP2pSwapBloc joinBloc = BlocProvider.of<JoinP2pSwapBloc>(
+      tester.element(find.byType(JoinP2pSwapForm)),
+    );
     final String? returnedSwapId =
         await runIgnoringInstructionButtonCrossFadeOverflow<String?>(() async {
           await tester.tap(joinButton);
@@ -103,6 +120,15 @@ Future<void> theCounterpartyJoinsTheP2pHtlcSwapWithZnnFromTheJoinP2pSwapModal(
             tester,
             dialogResultCompleter.future,
             'JoinP2pSwapModal completion',
+            checkFailure: () {
+              final JoinP2pSwapState state = joinBloc.state;
+              if (state is JoinP2pSwapFailure) {
+                fail(
+                  'JoinP2pSwapBloc failed while joining $initialHtlcId: '
+                  '${state.exception}',
+                );
+              }
+            },
           );
         });
     expect(returnedSwapId, initialHtlcId.toString());
