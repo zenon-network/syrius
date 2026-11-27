@@ -4,9 +4,12 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/models/card/card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Tab content rendering the overview dashboard cards in a fluid grid.
 class DashboardTabChild extends StatefulWidget {
+  /// Creates a [DashboardTabChild].
   const DashboardTabChild({super.key, this.changePage});
 
+  /// Optional callback used by dashboard cards to switch active [Tabs].
   final void Function(Tabs)? changePage;
 
   @override

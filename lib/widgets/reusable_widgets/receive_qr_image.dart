@@ -11,7 +11,9 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Displays a token-branded QR code with actions to share or save it as PNG.
 class ReceiveQrImage extends StatelessWidget {
+  /// Creates a [ReceiveQrImage].
   const ReceiveQrImage({
     required this._data,
     required this._tokenStandard,
@@ -172,7 +174,9 @@ class ReceiveQrImage extends StatelessWidget {
         '${znnDefaultPaths.cache.path}${path.separator}$fileName.png',
       ).create();
       await imagePath.writeAsBytes(imageData);
-      await Share.shareXFiles(<XFile>[XFile(imagePath.path)]);
+      await SharePlus.instance.share(
+        ShareParams(files: <XFile>[XFile(imagePath.path)]),
+      );
     }
   }
 }

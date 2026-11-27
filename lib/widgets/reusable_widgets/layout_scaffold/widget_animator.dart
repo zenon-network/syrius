@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+/// Animates a [child] widget with a delayed fade-in and upward slide.
 class WidgetAnimator extends StatefulWidget {
-
+  /// Creates a [WidgetAnimator].
   const WidgetAnimator({
     required this.child,
     this.animationOffset = const Duration(milliseconds: 100),
@@ -11,9 +12,17 @@ class WidgetAnimator extends StatefulWidget {
     this.curve = Curves.linear,
     super.key,
   });
+
+  /// Widget animated into view.
   final Widget? child;
+
+  /// Duration of the fade and slide animation.
   final Duration duration;
+
+  /// Easing curve applied to the animation.
   final Curve curve;
+
+  /// Delay before starting the entrance animation.
   final Duration animationOffset;
 
   @override
@@ -23,7 +32,7 @@ class WidgetAnimator extends StatefulWidget {
 class _WidgetAnimatorState extends State<WidgetAnimator>
     with SingleTickerProviderStateMixin {
   AnimationController? _animationController;
-  Animation? _animation;
+  late Animation<double> _animation;
   Timer? _timer;
 
   @override
@@ -53,15 +62,15 @@ class _WidgetAnimatorState extends State<WidgetAnimator>
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _animation!,
+      animation: _animation,
       child: widget.child,
       builder: (BuildContext context, Widget? child) {
         return Opacity(
-          opacity: _animation!.value,
+          opacity: _animation.value,
           child: Transform.translate(
             offset: Offset(
               0,
-              (1.0 - _animation!.value) * 20.0,
+              (1.0 - _animation.value) * 20.0,
             ),
             child: child,
           ),

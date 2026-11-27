@@ -2,16 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
+/// Toggle selector for choosing between a 12-word and 24-word mnemonic seed.
 class SeedChoice extends StatefulWidget {
-
+  /// Creates a [SeedChoice].
   const SeedChoice({
     required this.onSeed24Selected,
     required this.onSeed12Selected,
     required this.isSeed12Selected,
     super.key,
   });
+
+  /// Callback invoked when the 24-word seed option is selected.
   final VoidCallback onSeed24Selected;
+
+  /// Callback invoked when the 12-word seed option is selected.
   final VoidCallback onSeed12Selected;
+
+  /// Whether the 12-word seed option is currently selected.
   final bool isSeed12Selected;
 
   @override

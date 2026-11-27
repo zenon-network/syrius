@@ -6,9 +6,18 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-enum ButtonState { busy, idle }
+/// Visual state of a [LoadingButton].
+enum ButtonState {
+  /// The button is actively showing a loading indicator.
+  busy,
 
+  /// The button is idle and ready for interaction.
+  idle,
+}
+
+/// Outlined button that smoothly animates into a circular progress indicator.
 class LoadingButton extends StatefulWidget {
+  /// Creates a [LoadingButton] with either [text] or [child].
   const LoadingButton({
     required this.onPressed,
     required Key key,
@@ -21,9 +30,13 @@ class LoadingButton extends StatefulWidget {
     this.borderWidth = kDefaultBorderOutlineWidth,
     this.circularBorderRadius = 16.0,
     this.textStyle,
-  })  : assert(text != null || child != null),
-        super(key: key);
+  }) : assert(
+         text != null || child != null,
+         'Either text or child must be provided.',
+       ),
+       super(key: key);
 
+  /// Creates a [LoadingButton] with an icon for infinite-scroll tables.
   factory LoadingButton.infiniteScrollTableWithIcon({
     required VoidCallback? onPressed,
     required String text,
@@ -41,6 +54,7 @@ class LoadingButton extends StatefulWidget {
         icon: icon,
       );
 
+  /// Creates a compact [LoadingButton] for infinite-scroll tables.
   factory LoadingButton.infiniteScrollTable({
     required VoidCallback? onPressed,
     required String text,
@@ -57,6 +71,7 @@ class LoadingButton extends StatefulWidget {
         outlineColor: outlineColor,
       );
 
+  /// Creates a [LoadingButton] styled for settings actions.
   factory LoadingButton.settings({
     required VoidCallback? onPressed,
     required String text,
@@ -70,6 +85,7 @@ class LoadingButton extends StatefulWidget {
         textStyle: kBodyMediumTextStyle,
       );
 
+  /// Creates a [LoadingButton] sized for onboarding screens.
   factory LoadingButton.onboarding({
     required VoidCallback? onPressed,
     required String text,
@@ -82,6 +98,7 @@ class LoadingButton extends StatefulWidget {
         key: key,
       );
 
+  /// Creates a [LoadingButton] styled for stepper actions.
   factory LoadingButton.stepper({
     required VoidCallback? onPressed,
     required String text,
@@ -99,6 +116,7 @@ class LoadingButton extends StatefulWidget {
         textStyle: TextStyle(color: textColor),
       );
 
+  /// Creates a [LoadingButton] displaying an [icon] and optional [label].
   factory LoadingButton.icon({
     required VoidCallback? onPressed,
     required Widget icon,
@@ -127,32 +145,57 @@ class LoadingButton extends StatefulWidget {
           ],
         ),
       );
+
+  /// Minimum size of the button in its idle state.
   final Size minimumSize;
+
+  /// Target collapsed width during the loading animation.
   final double minWidth;
+
+  /// Callback invoked when the button is pressed while idle.
   final VoidCallback? onPressed;
+
+  /// Button label text used when [child] is omitted.
   final String? text;
+
+  /// Custom child widget rendered inside the button when idle.
   final Widget? child;
+
+  /// Optional custom border color for the outlined button.
   final Color? outlineColor;
+
+  /// Padding applied around the button child.
   final EdgeInsets paddingAroundChild;
+
+  /// Width of the button outline border.
   final double borderWidth;
+
+  /// Corner radius of the button when idle.
   final double circularBorderRadius;
+
+  /// Optional text style applied to the button label.
   final TextStyle? textStyle;
 
   @override
   LoadingButtonState createState() => LoadingButtonState();
 }
 
+/// State object for [LoadingButton] exposing animation controls.
 class LoadingButtonState extends State<LoadingButton>
     with TickerProviderStateMixin {
+  /// Width of the circular loader when busy.
   double? loaderWidth;
 
   late Animation<double> _animation;
   late AnimationController _animationController;
+
+  /// Current [ButtonState] of the button.
   ButtonState btnState = ButtonState.idle;
 
   final GlobalKey<MyOutlinedButtonState> _outlineButtonKey = GlobalKey();
   double _minWidth = 0;
 
+  /// Effective minimum width used when collapsed into a loader.
   double get minWidth => _minWidth;
 
   set minWidth(double w) {
@@ -210,6 +253,7 @@ class LoadingButtonState extends State<LoadingButton>
     );
   }
 
+  /// Builds the underlying [MyOutlinedButton] for the current animation frame.
   Widget buttonBody() {
     final Color? textColor = widget.textStyle?.color;
 
@@ -243,6 +287,7 @@ class LoadingButtonState extends State<LoadingButton>
     );
   }
 
+  /// Transitions the button from [ButtonState.idle] to [ButtonState.busy].
   void animateForward() {
     if (btnState == ButtonState.idle) {
       setState(() {
@@ -252,12 +297,14 @@ class LoadingButtonState extends State<LoadingButton>
     }
   }
 
+  /// Reverses the animation back toward [ButtonState.idle].
   void animateReverse() {
     if (btnState == ButtonState.busy) {
       _animationController.reverse();
     }
   }
 
+  /// Linearly interpolates between widths [a] and [b] at factor [t].
   double? lerpWidth(double a, double b, double t) {
     if (a == 0.0 || b == 0.0) {
       return null;

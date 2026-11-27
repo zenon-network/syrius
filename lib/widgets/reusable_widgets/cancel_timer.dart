@@ -2,16 +2,23 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+/// Displays a bordered countdown timer that triggers a callback on completion.
 class CancelTimer extends StatefulWidget {
-
+  /// Creates a [CancelTimer].
   const CancelTimer(
     this.timerDuration,
     this.borderColor, {
     required this.onTimeFinishedCallback,
     super.key,
   });
+
+  /// Initial duration to count down from.
   final Duration timerDuration;
+
+  /// Color of the container border around the timer text.
   final Color borderColor;
+
+  /// Callback invoked once the countdown reaches zero.
   final VoidCallback onTimeFinishedCallback;
 
   @override
@@ -33,11 +40,7 @@ class _CancelTimerState extends State<CancelTimer> {
         seconds: 1,
       ),
       (Timer v) {
-        if (mounted &&
-            _currentDuration >
-                const Duration(
-                  
-                )) {
+        if (mounted && _currentDuration > Duration.zero) {
           setState(() {
             _currentDuration = _currentDuration -
                 const Duration(

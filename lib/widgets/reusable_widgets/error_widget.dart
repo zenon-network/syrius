@@ -4,10 +4,15 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/syrius_exception.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/l10n/app_localizations_resolver.dart';
 
+/// Centered error display showing an animation and localized error message.
 class SyriusErrorWidget extends StatelessWidget {
+  /// Creates a [SyriusErrorWidget] for the given [error].
   const SyriusErrorWidget(this.error, {super.key});
+
+  /// Named route identifier for [SyriusErrorWidget].
   static const String route = 'syrius-error-widget';
 
+  /// Error object formatted and displayed to the user.
   final Object error;
 
   @override

@@ -3,10 +3,12 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Custom outlined button with configurable border styling and loading state.
 class MyOutlinedButton extends StatefulWidget {
-
+  /// Creates a [MyOutlinedButton].
   const MyOutlinedButton({
-    required this.onPressed, this.text,
+    required this.onPressed,
+    this.text,
     this.textStyle,
     this.outlineColor,
     this.minimumSize,
@@ -18,6 +20,7 @@ class MyOutlinedButton extends StatefulWidget {
     super.key,
   });
 
+  /// Creates a [MyOutlinedButton] containing an [icon] next to a [label].
   factory MyOutlinedButton.icon({
     required VoidCallback? onPressed,
     required String label,
@@ -32,21 +35,42 @@ class MyOutlinedButton extends StatefulWidget {
         outlineColor: outlineColor,
         key: key,
       );
+
+  /// Optional label text shown when [child] is omitted.
   final String? text;
+
+  /// Optional text style for the button label.
   final TextStyle? textStyle;
+
+  /// Optional custom color for the button border.
   final Color? outlineColor;
+
+  /// Callback invoked when the button is pressed.
   final VoidCallback? onPressed;
+
+  /// Optional minimum size constraint for the button.
   final Size? minimumSize;
+
+  /// Custom child widget displayed when [text] is `null`.
   final Widget? child;
+
+  /// Thickness of the outline border.
   final double borderWidth;
+
+  /// Optional corner radius for the rounded rectangle border.
   final double? circularBorderRadius;
+
+  /// Optional foreground color applied to the button label.
   final Color? textColor;
+
+  /// Optional padding inside the button.
   final EdgeInsets? padding;
 
   @override
   MyOutlinedButtonState createState() => MyOutlinedButtonState();
 }
 
+/// State object for [MyOutlinedButton].
 class MyOutlinedButtonState extends State<MyOutlinedButton> {
   late bool _showLoading;
 
@@ -65,7 +89,7 @@ class MyOutlinedButtonState extends State<MyOutlinedButton> {
         padding: widget.padding,
         minimumSize: widget.minimumSize,
         textStyle: widget.textStyle,
-        //TODO: standardize circular border radius
+        // TODO(syrius): standardize circular border radius.
         shape: widget.circularBorderRadius != null
             ? RoundedRectangleBorder(
                 borderRadius:
@@ -109,6 +133,9 @@ class MyOutlinedButtonState extends State<MyOutlinedButton> {
     );
   }
 
+  /// Toggles whether the button displays a loading indicator.
+  // Preserves the existing public method signature.
+  // ignore: avoid_positional_boolean_parameters
   void showLoadingIndicator(bool showLoading) {
     if (_showLoading != showLoading) {
       setState(() {

@@ -3,7 +3,9 @@ import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Tab content displaying about, update, and community help cards.
 class HelpTabChild extends StatelessWidget {
+  /// Creates a [HelpTabChild].
   const HelpTabChild({super.key});
 
   @override

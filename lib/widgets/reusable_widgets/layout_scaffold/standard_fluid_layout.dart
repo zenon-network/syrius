@@ -3,19 +3,27 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/widget_animator.dart';
 
+/// Default number of columns in a [StandardFluidLayout] staggered grid.
 const int kStaggeredNumOfColumns = 12;
 
+/// Responsive staggered grid layout animating [FluidCell] children into view.
 class StandardFluidLayout extends StatelessWidget {
-  final List<FluidCell> children;
-  final int? defaultCellWidth;
-  final double? defaultCellHeight;
-
+  /// Creates a [StandardFluidLayout].
   const StandardFluidLayout({
     required this.children,
     this.defaultCellWidth,
     this.defaultCellHeight = kStaggeredNumOfColumns / 4,
     super.key,
   });
+
+  /// Grid cells arranged in the staggered layout.
+  final List<FluidCell> children;
+
+  /// Default column span used when a cell omits [FluidCell.width].
+  final int? defaultCellWidth;
+
+  /// Default row span used when a cell omits [FluidCell.height].
+  final double? defaultCellHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -75,14 +83,16 @@ class StandardFluidLayout extends StatelessWidget {
   }
 }
 
+/// Cell descriptor specifying dimensions and content for [StandardFluidLayout].
 class FluidCell {
-
+  /// Creates a [FluidCell] with explicit optional [width] and [height].
   const FluidCell({
     required this.child,
     this.width,
     this.height,
   });
 
+  /// Creates a wide responsive [FluidCell].
   FluidCell.large({
     required Widget child,
     required BuildContext context,
@@ -97,6 +107,7 @@ class FluidCell {
           child: child,
         );
 
+  /// Creates a half-width responsive [FluidCell] on desktop breakpoints.
   FluidCell.medium({required Widget child, required BuildContext context})
       : this(
           width: context.layout.value(
@@ -109,6 +120,7 @@ class FluidCell {
           child: child,
         );
 
+  /// Creates a compact responsive [FluidCell].
   FluidCell.small({required Widget child, required BuildContext context})
       : this(
           width: context.layout.value(
@@ -121,7 +133,12 @@ class FluidCell {
           child: child,
         );
 
+  /// Column span of the cell within the staggered grid.
   final int? width;
+
+  /// Row span of the cell within the staggered grid.
   final double? height;
+
+  /// Widget rendered inside the cell.
   final Widget child;
 }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// Text widget that smoothly animates numeric transitions from [start] to
+/// [end].
 class NumberAnimation extends StatefulWidget {
-
-  /// constructor
+  /// Creates a [NumberAnimation].
   NumberAnimation({
     super.key,
     this.start = 0.0,
@@ -18,11 +19,17 @@ class NumberAnimation extends StatefulWidget {
     this.isLoading = false,
     this.loadingPlaceHolder = '',
   }) {
-    if (isLoading == false) {
-      assert(end != null);
+    if (!isLoading) {
+      assert(end != null, 'end must not be null when isLoading is false.');
       if (isInt) {
-        assert(start.toInt() == start);
-        assert(end!.toInt() == end);
+        assert(
+          start.toInt() == start,
+          'start must be an integer when isInt is true.',
+        );
+        assert(
+          end!.toInt() == end,
+          'end must be an integer when isInt is true.',
+        );
       }
     }
   }
@@ -70,8 +77,8 @@ class NumberAnimation extends StatefulWidget {
 /// state
 class _NumberAnimationState extends State<NumberAnimation>
     with SingleTickerProviderStateMixin {
-  Animation? _animation;
-  late Animation _curve;
+  Animation<double>? _animation;
+  late Animation<double> _curve;
   bool _hasShowNumber = false; // has been show once
   AnimationController? controller;
 
@@ -81,10 +88,11 @@ class _NumberAnimationState extends State<NumberAnimation>
     super.initState();
     controller = AnimationController(duration: widget.duration, vsync: this);
     _curve = CurvedAnimation(parent: controller!, curve: Curves.easeOut);
-    if (widget.isLoading == false) {
+    if (!widget.isLoading) {
       final Animation<double> animation = Tween<double>(
-              begin: widget.start.toDouble(), end: widget.end!.toDouble(),)
-          .animate(_curve as Animation<double>);
+        begin: widget.start.toDouble(),
+        end: widget.end!.toDouble(),
+      ).animate(_curve);
       _animation = animation;
       controller!.forward();
       _hasShowNumber = true;
@@ -101,18 +109,16 @@ class _NumberAnimationState extends State<NumberAnimation>
   // didUpdateWidget
   @override
   void didUpdateWidget(NumberAnimation oldWidget) {
-    if (widget.isLoading == true) {
+    if (widget.isLoading) {
       return;
     }
-    if (oldWidget.end == widget.end && _hasShowNumber == true) {
+    if (oldWidget.end == widget.end && _hasShowNumber) {
       return;
     }
     final Animation<double> animation = Tween<double>(
-            begin: _animation != null
-                ? _animation!.value
-                : widget.start.toDouble(),
-            end: widget.end!.toDouble(),)
-        .animate(_curve as Animation<double>);
+      begin: _animation != null ? _animation!.value : widget.start.toDouble(),
+      end: widget.end!.toDouble(),
+    ).animate(_curve);
     _animation = animation;
     controller!
       ..reset()
@@ -127,7 +133,7 @@ class _NumberAnimationState extends State<NumberAnimation>
     final TextStyle? style = widget.style;
     final TextAlign? textAlign = widget.textAlign;
     final StrutStyle? strutStyle = widget.strutStyle;
-    if (widget.isLoading == true) {
+    if (widget.isLoading) {
       return Text(
         widget.loadingPlaceHolder,
         style: style,
@@ -138,7 +144,7 @@ class _NumberAnimationState extends State<NumberAnimation>
     return AnimatedBuilder(
       animation: _animation!,
       builder: (BuildContext context, Widget? child) {
-        if (widget.isLoading == true) {
+        if (widget.isLoading) {
           return Text(
             widget.loadingPlaceHolder,
             style: style,
@@ -154,8 +160,11 @@ class _NumberAnimationState extends State<NumberAnimation>
             strutStyle: strutStyle,
           );
         } else {
+          final String formattedValue = _animation!.value.toStringAsFixed(
+            widget.decimalPoint,
+          );
           return Text(
-            '${widget.before}${_animation!.value.toStringAsFixed(widget.decimalPoint)}${widget.after}',
+            '${widget.before}$formattedValue${widget.after}',
             style: style,
             textAlign: textAlign,
             strutStyle: strutStyle,

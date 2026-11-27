@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
 
+/// Icon button that copies text to the clipboard and briefly shows a checkmark.
 class CopyToClipboardButton extends StatefulWidget {
+  /// Creates a [CopyToClipboardButton].
   const CopyToClipboardButton(
     this._textToBeCopied, {
     this.iconSize,
@@ -12,6 +14,8 @@ class CopyToClipboardButton extends StatefulWidget {
   });
 
   final String _textToBeCopied;
+
+  /// Optional override for the copy and check icon size.
   final double? iconSize;
 
   @override

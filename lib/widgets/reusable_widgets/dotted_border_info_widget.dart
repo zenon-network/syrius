@@ -1,17 +1,21 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
+/// Informational banner framed with a rounded dotted border.
 class DottedBorderInfoWidget extends StatefulWidget {
-  final String text;
-  final Color borderColor;
-
+  /// Creates a [DottedBorderInfoWidget].
   const DottedBorderInfoWidget({
     required this.text,
     this.borderColor = AppColors.znnColor,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
+
+  /// Informational text displayed inside the banner.
+  final String text;
+
+  /// Color used for both the dotted border and the leading info icon.
+  final Color borderColor;
 
   @override
   State<DottedBorderInfoWidget> createState() => _DottedBorderInfoWidgetState();

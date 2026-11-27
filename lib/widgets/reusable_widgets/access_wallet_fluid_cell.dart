@@ -4,8 +4,9 @@ import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Responsive fluid cell button shown on the wallet access screen.
 class AccessWalletFluidCell extends FluidCell {
-
+  /// Creates an [AccessWalletFluidCell].
   AccessWalletFluidCell({
     required this.onPressed,
     required this.buttonIconLocation,
@@ -20,8 +21,8 @@ class AccessWalletFluidCell extends FluidCell {
             xs: kStaggeredNumOfColumns,
           ),
           child: MaterialButton(
-            disabledColor: Theme.of(context).colorScheme.secondary.withOpacity(
-                  0.7,
+            disabledColor: Theme.of(context).colorScheme.secondary.withValues(
+                  alpha: 0.7,
                 ),
             padding: const EdgeInsets.all(50),
             color: Theme.of(context).colorScheme.secondaryContainer,
@@ -59,8 +60,16 @@ class AccessWalletFluidCell extends FluidCell {
             ),
           ),
         );
+
+  /// Callback invoked when the button is pressed, or `null` if disabled.
   final VoidCallback? onPressed;
+
+  /// Asset path to the SVG icon displayed above [buttonText].
   final String buttonIconLocation;
+
+  /// Label text displayed inside the cell button.
   final String buttonText;
+
+  /// Build context used to resolve theme and responsive layout metrics.
   final BuildContext context;
 }

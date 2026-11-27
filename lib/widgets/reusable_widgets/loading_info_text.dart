@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
 
+/// Inline loading indicator paired with status text and an optional tooltip.
 class LoadingInfoText extends StatelessWidget {
+  /// Creates a [LoadingInfoText].
   const LoadingInfoText({
     required this._text,
     this._tooltipText,

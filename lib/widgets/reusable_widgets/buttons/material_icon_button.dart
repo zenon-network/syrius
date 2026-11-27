@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
+/// Circular raw material button wrapping a configurable [Icon].
 class MaterialIconButton extends StatelessWidget {
-
+  /// Creates a [MaterialIconButton].
   const MaterialIconButton({
     required this.onPressed,
     required this.iconData,
@@ -13,12 +14,26 @@ class MaterialIconButton extends StatelessWidget {
     this.materialTapTargetSize = MaterialTapTargetSize.padded,
     super.key,
   });
+
+  /// Color of the rendered icon.
   final Color iconColor;
+
+  /// Optional background color shown while hovering over the button.
   final Color? hoverColor;
+
+  /// Uniform padding inside the circular button.
   final double padding;
+
+  /// Tap target sizing policy for the button.
   final MaterialTapTargetSize materialTapTargetSize;
+
+  /// Callback invoked when the button is pressed.
   final VoidCallback onPressed;
+
+  /// Icon glyph displayed inside the button.
   final IconData iconData;
+
+  /// Size of the rendered icon in logical pixels.
   final double size;
 
   @override

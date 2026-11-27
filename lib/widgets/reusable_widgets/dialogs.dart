@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
+/// Displays a non-dismissible warning dialog and returns whether the user
+/// confirmed the action.
 Future<bool> showWarningDialog({
   required BuildContext context,
   required String title,
@@ -11,7 +12,7 @@ Future<bool> showWarningDialog({
   VoidCallback? onActionButtonPressed,
 }) async {
   bool isPressed = false;
-  await showDialog(
+  await showDialog<void>(
     context: context,
     builder: (BuildContext context) => AlertDialog(
       icon: const Icon(
@@ -29,7 +30,7 @@ Future<bool> showWarningDialog({
                 Navigator.pop(context);
               },
           style: const ButtonStyle(
-            backgroundColor: WidgetStatePropertyAll(Colors.amber),
+            backgroundColor: WidgetStatePropertyAll<Color>(Colors.amber),
           ),
           child: Text(
             'Cancel',
@@ -44,7 +45,7 @@ Future<bool> showWarningDialog({
                 Navigator.pop(context);
               },
           style: const ButtonStyle(
-            backgroundColor: WidgetStatePropertyAll(Colors.orange),
+            backgroundColor: WidgetStatePropertyAll<Color>(Colors.orange),
           ),
           child: Text(
             buttonText.isEmpty ? 'OK' : buttonText,
@@ -58,6 +59,7 @@ Future<bool> showWarningDialog({
   return isPressed;
 }
 
+/// Displays a confirmation dialog with "No" and "Yes" actions.
 Future<bool?> showDialogWithNoAndYesOptions({
   required BuildContext context,
   required String title,
@@ -101,6 +103,7 @@ Future<bool?> showDialogWithNoAndYesOptions({
   ),
 );
 
+/// Displays a centered card dialog styled with the new application theme.
 Future<T?> showCustomDialog<T>({
   required BuildContext context,
   required Widget content,

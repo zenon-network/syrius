@@ -1,7 +1,9 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+/// Pre-styled [LineChartBarData] with a gradient fill below the line.
 class StandardLineChartBarData extends LineChartBarData {
+  /// Creates a [StandardLineChartBarData] with the given [color] and [spots].
   StandardLineChartBarData({
     required Color color,
     required List<FlSpot>? spots,
@@ -11,7 +13,7 @@ class StandardLineChartBarData extends LineChartBarData {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
+              colors: <Color>[
                 color.withValues(alpha: 0.3),
                 Colors.transparent,
               ],

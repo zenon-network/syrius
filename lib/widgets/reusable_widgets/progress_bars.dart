@@ -4,14 +4,19 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
 
+/// Three-segment strength indicator bar for a wallet password.
 class PasswordProgressBar extends StatefulWidget {
-
+  /// Creates a [PasswordProgressBar].
   const PasswordProgressBar({
     required this.password,
     required this.passwordKey,
     super.key,
   });
+
+  /// Current password text evaluated for strength.
   final String password;
+
+  /// Form key associated with the password input field.
   final GlobalKey<FormState> passwordKey;
 
   @override
@@ -43,12 +48,12 @@ class _PasswordProgressBarState extends State<PasswordProgressBar> {
     );
   }
 
-  List<Widget> _getProgressBars() => List.generate(
+  List<Widget> _getProgressBars() => List<Widget>.generate(
         _colors.length,
         (int index) => _getPasswordProgressBar(_colors[index]),
       );
 
-  List<Widget> _getSpacers() => List.generate(
+  List<Widget> _getSpacers() => List<Widget>.generate(
         _colors.length - 1,
         (int index) => _getSpacer(),
       );
@@ -92,14 +97,19 @@ class _PasswordProgressBarState extends State<PasswordProgressBar> {
   }
 }
 
+/// Segmented horizontal progress bar highlighting up to [currentLevel].
 class ProgressBar extends StatelessWidget {
-
+  /// Creates a [ProgressBar].
   const ProgressBar({
     required this.currentLevel,
     this.numLevels = 5,
     super.key,
   });
+
+  /// Number of completed segments to highlight.
   final int currentLevel;
+
+  /// Total number of segments rendered.
   final int numLevels;
 
   @override
@@ -110,12 +120,12 @@ class ProgressBar extends StatelessWidget {
     );
   }
 
-  List<Widget> _getProgressBars() => List.generate(
+  List<Widget> _getProgressBars() => List<Widget>.generate(
         numLevels,
         (int index) => _getProgressBar(index + 1),
       );
 
-  List<Widget> _getSpacers() => List.generate(
+  List<Widget> _getSpacers() => List<Widget>.generate(
         numLevels - 1,
         (int index) => _getSpacer(),
       );
@@ -137,16 +147,23 @@ class ProgressBar extends StatelessWidget {
   }
 }
 
+/// Proportional colored segment inside an [AcceleratorProgressBar].
 class AcceleratorProgressBarSpan extends StatelessWidget {
-
+  /// Creates an [AcceleratorProgressBarSpan].
   const AcceleratorProgressBarSpan({
     required this.value,
     required this.color,
     required this.tooltipMessage,
     super.key,
   });
+
+  /// Fraction of the total progress bar width represented by this span.
   final double value;
+
+  /// Fill color of this span.
   final Color color;
+
+  /// Tooltip text describing this span's value.
   final String tooltipMessage;
 
   @override
@@ -164,11 +181,19 @@ class AcceleratorProgressBarSpan extends StatelessWidget {
   }
 }
 
+/// Rounded container framing spans for an Accelerator-Z voting progress bar.
 class AcceleratorProgressBar extends StatelessWidget {
+  /// Creates an [AcceleratorProgressBar].
+  const AcceleratorProgressBar({
+    required this.child,
+    required this.context,
+    super.key,
+  });
 
-  const AcceleratorProgressBar(
-      {required this.child, required this.context, super.key,});
+  /// Content widget (typically a row of [AcceleratorProgressBarSpan]s).
   final Widget child;
+
+  /// Build context associated with the caller.
   final BuildContext context;
 
   @override

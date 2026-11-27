@@ -2,7 +2,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// Compact [MyOutlinedButton] styled for settings actions.
 class SettingsButton extends MyOutlinedButton {
+  /// Creates a [SettingsButton].
   const SettingsButton({
     required super.onPressed,
     required String super.text,

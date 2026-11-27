@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
+/// Column displaying a token symbol stacked above its formatted amount.
 class AmountInfoColumn extends Column {
+  /// Creates an [AmountInfoColumn].
   AmountInfoColumn({
     required BuildContext context,
     required String amount,
