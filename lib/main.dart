@@ -20,8 +20,6 @@ import 'package:provider/provider.dart';
 import 'package:retry/retry.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_auto_unlock_service.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart';
 import 'package:zenon_syrius_wallet_flutter/hive/hive_registrar.g.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -37,23 +35,33 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Global Zenon SDK client instance registered during app startup.
 Zenon? zenon;
+
+/// Global Hive-backed shared preferences service instance.
 SharedPrefsService? sharedPrefsService;
+
+/// Global WalletConnect Web3 wallet service instance.
 IWeb3WalletService? web3WalletService;
 
 const String _znnDataDirectoryName = String.fromEnvironment(
   'ZNN_DATA_DIRECTORY',
 );
 
+/// Global service locator used for dependency injection across the app.
 final GetIt sl = GetIt.instance;
+
+/// Plugin instance used to display native desktop notifications.
 final FlutterLocalNotificationsPlugin desktopNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
+/// Root navigator key used for global navigation outside build contexts.
 final GlobalKey<NavigatorState> globalNavigatorKey =
     GlobalKey<NavigatorState>();
 
 TrayIcon? _trayIcon;
 
+/// Initializes platform-specific desktop notification settings.
 Future<void> initializeDesktopNotifications() async {
   if (!isDesktopPlatform()) {
     return;
@@ -82,7 +90,7 @@ Future<void> initializeDesktopNotifications() async {
   );
 }
 
-main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Bloc.observer = CustomBlocObserver();
   if (Platform.isWindows) {
@@ -115,25 +123,28 @@ main() async {
     syriusLogDir.createSync(recursive: true);
   }
   final File logFile = File(
-    '${syriusLogDir.path}${path.separator}syrius-${DateTime.now().millisecondsSinceEpoch}.log',
+    '${syriusLogDir.path}${path.separator}'
+    'syrius-${DateTime.now().millisecondsSinceEpoch}.log',
   );
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord record) {
     if (kDebugMode) {
       print(
-        '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
-        '${record.error} ${record.stackTrace}\n',
+        '${record.level.name} ${record.loggerName} ${record.message} '
+        '${record.time}: ${record.error} ${record.stackTrace}\n',
       );
     }
-    logFile.writeAsString(
-      '${record.level.name} ${record.loggerName} ${record.message} ${record.time}: '
-      '${record.error} ${record.stackTrace}\n',
-      mode: FileMode.append,
-      flush: true,
+    unawaited(
+      logFile.writeAsString(
+        '${record.level.name} ${record.loggerName} ${record.message} '
+        '${record.time}: ${record.error} ${record.stackTrace}\n',
+        mode: FileMode.append,
+        flush: true,
+      ),
     );
   });
 
-  windowManager.ensureInitialized();
+  await windowManager.ensureInitialized();
   await windowManager.setPreventClose(true);
 
   web3WalletService = Web3WalletService();
@@ -142,10 +153,12 @@ main() async {
   // Setup services
   setup();
 
-  retry(
-    () => web3WalletService!.init(),
-    retryIf: (e) => e is SocketException || e is TimeoutException,
-    maxAttempts: 0x7FFFFFFFFFFFFFFF,
+  unawaited(
+    retry(
+      () => web3WalletService!.init(),
+      retryIf: (Exception e) => e is SocketException || e is TimeoutException,
+      maxAttempts: 0x7FFFFFFFFFFFFFFF,
+    ),
   );
 
   await initializeDesktopNotifications();
@@ -165,45 +178,47 @@ main() async {
     await sharedPrefsService!.checkIfBoxIsOpen();
   }
 
-  windowManager.waitUntilReadyToShow().then((_) async {
-    await windowManager.setTitle('s y r i u s');
-    await windowManager.setMinimumSize(const Size(1200, 600));
-    await windowManager.show();
+  unawaited(
+    windowManager.waitUntilReadyToShow().then((_) async {
+      await windowManager.setTitle('s y r i u s');
+      await windowManager.setMinimumSize(const Size(1200, 600));
+      await windowManager.show();
 
-    if (sharedPrefsService != null) {
-      final double? windowSizeWidth = sharedPrefsService!.get(
-        kWindowSizeWidthKey,
-      );
-      final double? windowSizeHeight = sharedPrefsService!.get(
-        kWindowSizeHeightKey,
-      );
-      if (windowSizeWidth != null &&
-          windowSizeWidth >= 1200 &&
-          windowSizeHeight != null &&
-          windowSizeHeight >= 600) {
-        await windowManager.setSize(Size(windowSizeWidth, windowSizeHeight));
-      } else {
-        await windowManager.setSize(const Size(1200, 600));
-      }
-
-      double? windowPositionX = sharedPrefsService!.get(kWindowPositionXKey);
-      double? windowPositionY = sharedPrefsService!.get(kWindowPositionYKey);
-      if (windowPositionX != null && windowPositionY != null) {
-        windowPositionX = windowPositionX >= 0 ? windowPositionX : 100;
-        windowPositionY = windowPositionY >= 0 ? windowPositionY : 100;
-        await windowManager.setPosition(
-          Offset(windowPositionX, windowPositionY),
+      if (sharedPrefsService != null) {
+        final double? windowSizeWidth = sharedPrefsService!.get(
+          kWindowSizeWidthKey,
         );
-      }
+        final double? windowSizeHeight = sharedPrefsService!.get(
+          kWindowSizeHeightKey,
+        );
+        if (windowSizeWidth != null &&
+            windowSizeWidth >= 1200 &&
+            windowSizeHeight != null &&
+            windowSizeHeight >= 600) {
+          await windowManager.setSize(Size(windowSizeWidth, windowSizeHeight));
+        } else {
+          await windowManager.setSize(const Size(1200, 600));
+        }
 
-      final bool? windowMaximized = sharedPrefsService!.get(
-        kWindowMaximizedKey,
-      );
-      if (windowMaximized == true) {
-        await windowManager.maximize();
+        double? windowPositionX = sharedPrefsService!.get(kWindowPositionXKey);
+        double? windowPositionY = sharedPrefsService!.get(kWindowPositionYKey);
+        if (windowPositionX != null && windowPositionY != null) {
+          windowPositionX = windowPositionX >= 0 ? windowPositionX : 100;
+          windowPositionY = windowPositionY >= 0 ? windowPositionY : 100;
+          await windowManager.setPosition(
+            Offset(windowPositionX, windowPositionY),
+          );
+        }
+
+        final bool? windowMaximized = sharedPrefsService!.get(
+          kWindowMaximizedKey,
+        );
+        if (windowMaximized == true) {
+          await windowManager.maximize();
+        }
       }
-    }
-  });
+    }),
+  );
 
   runApp(
     const MyApp(),
@@ -297,20 +312,22 @@ Future<void> _minimizeWindow() async {
 
 Future<void> _loadDefaultCommunityNodes() async {
   try {
-    final List nodes =
+    final List<dynamic> nodes =
         await loadJsonFromAssets('assets/community-nodes.json')
             as List<dynamic>;
     kDefaultCommunityNodes = nodes
-        .map((node) => node.toString())
+        .map((dynamic node) => node.toString())
         .where((String node) => InputValidators.node(node) == null)
         .toList();
-  } catch (e, stackTrace) {
+  } on Object catch (e, stackTrace) {
     Logger(
       'main',
     ).log(Level.WARNING, '_loadDefaultCommunityNodes', e, stackTrace);
   }
 }
 
+/// Registers core services, repositories, and BLoCs in the [sl] service
+/// locator.
 void setup() {
   sl.registerSingleton<Zenon>(Zenon());
   zenon = sl<Zenon>();
@@ -323,7 +340,7 @@ void setup() {
     ),
   );
   sl.registerLazySingleton<HtlcSwapLocalStorageApi>(
-    () => HtlcSwapLocalStorageApi(),
+    HtlcSwapLocalStorageApi.new,
   );
   sl.registerLazySingleton<HtlcSwapRepository>(
     () => HtlcSwapRepository(
@@ -346,19 +363,22 @@ void setup() {
     );
   }
 
-  sl.registerSingleton<LatestTransactionsBloc>(
-    LatestTransactionsBloc(
-      zenon: zenon!,
-    ),
-  );
-  sl.registerSingleton<PendingTransactionsBloc>(
-    PendingTransactionsBloc(
-      zenon: zenon!,
-    ),
-  );
-  sl.registerSingleton<MultipleBalanceBloc>(MultipleBalanceBloc(zenon: zenon!));
-  sl.registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker());
-  sl.registerSingleton<NotificationsBloc>(NotificationsBloc());
+  sl
+    ..registerSingleton<LatestTransactionsBloc>(
+      LatestTransactionsBloc(
+        zenon: zenon!,
+      ),
+    )
+    ..registerSingleton<PendingTransactionsBloc>(
+      PendingTransactionsBloc(
+        zenon: zenon!,
+      ),
+    )
+    ..registerSingleton<MultipleBalanceBloc>(
+      MultipleBalanceBloc(zenon: zenon!),
+    )
+    ..registerSingleton<AutoReceiveTxWorker>(AutoReceiveTxWorker())
+    ..registerSingleton<NotificationsBloc>(NotificationsBloc());
   sl.registerSingleton<HtlcSwapUnlockService>(
     HtlcSwapUnlockService(
       accountBlockUtils: AccountBlockUtils(
@@ -387,7 +407,7 @@ void setup() {
     ReceivePort(),
     instanceName: 'embeddedStoppedPort',
   );
-  sl.registerSingleton<Stream>(
+  sl.registerSingleton<Stream<dynamic>>(
     sl<ReceivePort>(instanceName: 'embeddedStoppedPort').asBroadcastStream(),
     instanceName: 'embeddedStoppedStream',
   );
@@ -427,7 +447,9 @@ List<SingleChildWidget> buildMyAppBlocProviders() => <SingleChildWidget>[
   ),
 ];
 
+/// Root widget of the Syrius desktop wallet application.
 class MyApp extends StatefulWidget {
+  /// Creates the root [MyApp] widget.
   const MyApp({super.key});
 
   @override
@@ -440,7 +462,7 @@ class _MyAppState extends State<MyApp> with WindowListener {
   @override
   void initState() {
     windowManager.addListener(this);
-    initPlatformState();
+    unawaited(initPlatformState());
     super.initState();
   }
 
@@ -484,7 +506,7 @@ class _MyAppState extends State<MyApp> with WindowListener {
             child: Builder(
               builder: (BuildContext context) {
                 return Consumer<AppThemeNotifier>(
-                  builder: (_, AppThemeNotifier appThemeNotifier, __) {
+                  builder: (_, AppThemeNotifier appThemeNotifier, _) {
                     final LockBloc lockBloc = context.read<LockBloc>();
                     return OverlaySupport(
                       child: Listener(
@@ -546,7 +568,7 @@ class _MyAppState extends State<MyApp> with WindowListener {
                                     args =
                                         settings.arguments!
                                             as CustomSyriusErrorWidgetArguments;
-                                    return MaterialPageRoute(
+                                    return MaterialPageRoute<dynamic>(
                                       builder: (BuildContext context) =>
                                           SyriusErrorWidget(args.errorText),
                                     );
@@ -577,7 +599,7 @@ class _MyAppState extends State<MyApp> with WindowListener {
       windowMaximized,
     );
 
-    if (windowMaximized != true) {
+    if (!windowMaximized) {
       final Size windowSize = await windowManager.getSize();
       await sharedPrefsService!.put(
         kWindowSizeWidthKey,
@@ -600,7 +622,9 @@ class _MyAppState extends State<MyApp> with WindowListener {
     }
 
     sl<Zenon>().wsClient.stop();
-    Future.delayed(const Duration(seconds: 60)).then((value) => exit(0));
+    unawaited(
+      Future<void>.delayed(const Duration(seconds: 60), () => exit(0)),
+    );
     await sl<HtlcSwapSyncService>().stop();
     await sl<HtlcSwapLocalStorageApi>().close();
     await NodeUtils.closeEmbeddedNode();

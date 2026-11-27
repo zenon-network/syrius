@@ -34,12 +34,16 @@ void main() {
       expect(json['mode'], 'htlc');
       expect(json['fromAmount'], '100');
       expect(json['toAmount'], '200');
+      final Map<String, dynamic> fromTokenJson =
+          json['fromToken'] as Map<String, dynamic>;
+      final Map<String, dynamic> toTokenJson =
+          json['toToken'] as Map<String, dynamic>;
       expect(
-        json['fromToken']['tokenStandard'],
+        fromTokenJson['tokenStandard'],
         kZnnCoin.tokenStandard.toString(),
       );
       expect(
-        json['toToken']['tokenStandard'],
+        toTokenJson['tokenStandard'],
         kQsrCoin.tokenStandard.toString(),
       );
       expect(decodedSwap, isA<HtlcSwap>());

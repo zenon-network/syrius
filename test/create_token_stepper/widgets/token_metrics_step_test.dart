@@ -96,7 +96,7 @@ Future<void> _pumpTokenMetricsStep(
           height: 500,
           child: ValueListenableBuilder<NewTokenData>(
             valueListenable: tokenData,
-            builder: (_, __, ___) {
+            builder: (_, _, _) {
               return TokenMetricsStep(
                 maxSupplyController: maxSupplyController,
                 onBackPressed: () {},

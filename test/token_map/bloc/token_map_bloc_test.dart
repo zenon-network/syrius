@@ -73,7 +73,6 @@ void main() {
       verify: (_) {
         verify(
           () => tokenApi.getAll(
-            pageIndex: 0,
             pageSize: pageSize,
           ),
         ).called(1);

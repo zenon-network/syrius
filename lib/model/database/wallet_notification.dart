@@ -3,7 +3,9 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
+/// Persisted wallet notification shown in the notifications feed.
 class WalletNotification {
+  /// Creates a [WalletNotification] entry.
   WalletNotification({
     required this.title,
     required this.timestamp,
@@ -11,16 +13,23 @@ class WalletNotification {
     required this.type,
     this.id,
   });
+
+  /// Short headline describing the notification.
   final String? title;
 
+  /// Unix timestamp in milliseconds when the notification was created.
   final int? timestamp;
 
+  /// Detailed description of the notification event.
   final String? details;
 
+  /// Category used to style and render the notification.
   final NotificationType? type;
 
+  /// Optional storage identifier for the notification.
   final int? id;
 
+  /// Returns the accent color associated with [type].
   Color getColor() {
     switch (type) {
       case NotificationType.error:
@@ -32,6 +41,7 @@ class WalletNotification {
     }
   }
 
+  /// Builds the icon widget associated with [type].
   Widget getIcon() {
     switch (type) {
       case NotificationType.stakingDeactivated:

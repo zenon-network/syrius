@@ -1,5 +1,7 @@
 // BDD Usage comments intentionally mirror Gherkin placeholders.
-// ignore_for_file: unintended_html_in_doc_comment, non_constant_identifier_names
+// ignore_for_file: lines_longer_than_80_chars
+// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: unintended_html_in_doc_comment
 
 import 'dart:async';
 

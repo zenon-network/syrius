@@ -63,7 +63,7 @@ Future<String> _gitReference(String workingDirectory) async {
       'HEAD';
 }
 
-Future<String> _gitOriginUrl(String workingDirectory) async {
+Future<String> _gitOriginUrl(String workingDirectory) {
   final String? serverUrl = _nonEmpty(
     Platform.environment['GITHUB_SERVER_URL'],
   );
@@ -71,7 +71,7 @@ Future<String> _gitOriginUrl(String workingDirectory) async {
     Platform.environment['GITHUB_REPOSITORY'],
   );
   if (serverUrl != null && repository != null) {
-    return '$serverUrl/$repository';
+    return Future<String>.value('$serverUrl/$repository');
   }
 
   return _runGit(

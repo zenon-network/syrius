@@ -1,5 +1,7 @@
 // BDD Usage comments intentionally mirror Gherkin placeholders.
-// ignore_for_file: unintended_html_in_doc_comment, non_constant_identifier_names
+// ignore_for_file: lines_longer_than_80_chars
+// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: unintended_html_in_doc_comment
 
 import 'dart:async';
 
@@ -105,10 +107,9 @@ Future<void> _selectDuration(WidgetTester tester, String durationMonths) async {
   await tester.tap(dropdown);
   await tester.pumpAndSettle();
 
+  final String unitSuffix = durationMonths == '1' ? '' : 's';
   final Finder durationOption = find
-      .text(
-        '$durationMonths $stakeUnitDurationName${durationMonths == '1' ? '' : 's'}',
-      )
+      .text('$durationMonths $stakeUnitDurationName$unitSuffix')
       .last;
   await _pumpUntilFound(tester, durationOption);
   await tester.tap(durationOption);
