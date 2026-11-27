@@ -9,8 +9,10 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../support/devnet_bdd_helpers.dart';
 import '../support/p2p_swap_devnet_helpers.dart';
 
 /// Usage: the counterparty joins the P2P HTLC swap with <counter_amount> ZNN from the Join P2P Swap modal
@@ -30,8 +32,10 @@ Future<void> theCounterpartyJoinsTheP2pHtlcSwapWithZnnFromTheJoinP2pSwapModal(
   final Completer<String?> dialogResultCompleter = Completer<String?>();
 
   try {
+    configureDesktopTestViewport(tester);
     await tester.pumpWidget(
       MaterialApp(
+        theme: AppTheme.darkTheme,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: _JoinSwapDialogHost(
@@ -66,6 +70,7 @@ Future<void> theCounterpartyJoinsTheP2pHtlcSwapWithZnnFromTheJoinP2pSwapModal(
     );
     await tester.ensureVisible(validateButton);
     await tester.pump(const Duration(milliseconds: 100));
+
     final Finder amountField = find.byKey(
       const Key('join_p2p_swap_amount_field'),
     );
@@ -167,11 +172,9 @@ class _JoinSwapDialogHostState extends State<_JoinSwapDialogHost> {
         return;
       }
       unawaited(
-        showDialog<String>(
+        showCustomDialog<String>(
           context: context,
-          builder: (BuildContext _) => const Dialog(
-            child: SizedBox(width: 680, child: JoinP2pSwapModal()),
-          ),
+          content: const JoinP2pSwapModal(),
         ).then(widget.onDialogResult),
       );
     });

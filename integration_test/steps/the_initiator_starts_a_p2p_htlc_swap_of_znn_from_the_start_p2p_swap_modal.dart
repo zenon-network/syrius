@@ -11,8 +11,10 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../support/devnet_bdd_helpers.dart';
 import '../support/p2p_swap_devnet_helpers.dart';
 
 /// Usage: the initiator starts a P2P HTLC swap of <initial_amount> ZNN from the Start P2P Swap modal
@@ -43,6 +45,7 @@ Future<void> theInitiatorStartsAP2pHtlcSwapOfZnnFromTheStartP2pSwapModal(
       });
 
   try {
+    configureDesktopTestViewport(tester);
     await tester.pumpWidget(
       MultiBlocProvider(
         providers: <SingleChildWidget>[
@@ -51,10 +54,11 @@ Future<void> theInitiatorStartsAP2pHtlcSwapOfZnnFromTheStartP2pSwapModal(
           ),
           BlocProvider<StartP2pSwapBloc>.value(value: startP2pSwapBloc),
         ],
-        child: const MaterialApp(
+        child: MaterialApp(
+          theme: AppTheme.darkTheme,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: _StartSwapDialogHost(),
+          home: const _StartSwapDialogHost(),
         ),
       ),
     );
@@ -85,6 +89,7 @@ Future<void> theInitiatorStartsAP2pHtlcSwapOfZnnFromTheStartP2pSwapModal(
     );
     await tester.ensureVisible(submitButton);
     await tester.pump(const Duration(milliseconds: 100));
+
     final HtlcSwap createdSwap =
         await runIgnoringInstructionButtonCrossFadeOverflow<HtlcSwap>(() async {
           await tester.tap(submitButton);
@@ -127,11 +132,9 @@ class _StartSwapDialogHostState extends State<_StartSwapDialogHost> {
         return;
       }
       unawaited(
-        showDialog<void>(
+        showCustomDialog<void>(
           context: context,
-          builder: (BuildContext _) => const Dialog(
-            child: SizedBox(width: 680, child: StartP2pSwapModal()),
-          ),
+          content: const StartP2pSwapModal(),
         ),
       );
     });

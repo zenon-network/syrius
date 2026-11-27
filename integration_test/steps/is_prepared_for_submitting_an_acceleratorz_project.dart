@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../support/accelerator_devnet_helpers.dart';
+import '../support/devnet_bdd_helpers.dart';
 import '../support/devnet_test_context.dart';
 
 /// Usage: <owner_address> is prepared for submitting an Accelerator-Z project
@@ -13,7 +14,7 @@ Future<void> isPreparedForSubmittingAnAcceleratorzProject(
   WidgetTester tester,
   String ownerAddress,
 ) async {
-  AcceleratorDevnetContext.create();
+  AcceleratorDevnetContext.create().ownerAddress = ownerAddress;
   selectDevnetSender(ownerAddress);
 
   final Address parsedOwner = Address.parse(ownerAddress);
@@ -37,6 +38,6 @@ Future<void> isPreparedForSubmittingAnAcceleratorzProject(
     reason: 'Devnet must have active Pillars for Accelerator-Z voting',
   );
 
-  await ensureAcceleratorPlasma(ownerAddress);
+  await ensureDevnetPlasma(ownerAddress);
   selectDevnetSender(ownerAddress);
 }

@@ -13,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../support/accelerator_devnet_helpers.dart';
+import '../support/devnet_bdd_helpers.dart';
 import '../support/devnet_test_context.dart';
 
 /// Usage: <owner_address> submits Accelerator-Z project <name>, <description>, <url>, <znn_funds>, and <qsr_funds> from the Create Project stepper
@@ -48,7 +49,7 @@ Future<void> submitsAcceleratorzProjectAndFromTheCreateProjectStepper(
     final Finder step1Continue = find.byKey(
       const Key('create_project_step1_continue_button'),
     );
-    await pumpUntilAcceleratorFound(
+    await pumpUntilFound(
       tester,
       step1Continue,
       description: 'Create Project step 1 Continue button',
@@ -59,7 +60,7 @@ Future<void> submitsAcceleratorzProjectAndFromTheCreateProjectStepper(
     await tester.pump(const Duration(milliseconds: 200));
 
     final Finder nameField = find.byKey(const Key('create_project_name_field'));
-    await pumpUntilAcceleratorFound(
+    await pumpUntilFound(
       tester,
       nameField,
       description: 'Create Project name input field',
@@ -86,7 +87,7 @@ Future<void> submitsAcceleratorzProjectAndFromTheCreateProjectStepper(
     final Finder step2Continue = find.byKey(
       const Key('create_project_step2_continue_button'),
     );
-    await pumpUntilAcceleratorFound(
+    await pumpUntilFound(
       tester,
       step2Continue,
       description: 'Create Project step 2 Continue button',
@@ -99,7 +100,7 @@ Future<void> submitsAcceleratorzProjectAndFromTheCreateProjectStepper(
     final Finder submitContainer = find.byKey(
       const Key('create_project_submit_button'),
     );
-    await pumpUntilAcceleratorFound(
+    await pumpUntilFound(
       tester,
       submitContainer,
       description: 'Create Project Submit button',
@@ -126,13 +127,14 @@ Future<void> submitsAcceleratorzProjectAndFromTheCreateProjectStepper(
 
     await tester.tap(submitButton);
     final AccountBlockTemplate publishedBlock =
-        await pumpUntilAcceleratorComplete<AccountBlockTemplate>(
+        await pumpUntilComplete<AccountBlockTemplate>(
           tester,
           completer.future,
           'CreateProjectBloc submission',
         );
 
     acceleratorContext
+      ..ownerAddress = ownerAddress
       ..createProjectBlock = publishedBlock
       ..projectId = publishedBlock.hash;
   } finally {

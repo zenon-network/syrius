@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../support/accelerator_devnet_helpers.dart';
+import '../support/devnet_bdd_helpers.dart';
 
 /// Usage: the blockchain should record the yes vote from <producer_pillar> and no vote from <owner_pillar> on the submitted Accelerator-Z project
 Future<void>
@@ -24,14 +25,12 @@ theBlockchainShouldRecordTheYesVoteFromAndNoVoteFromOnTheSubmittedAcceleratorzPr
   final AccountBlockTemplate ownerVoteBlock =
       acceleratorContext.ownerVoteBlock!;
 
-  final AccountBlock? confirmedProducerVote =
-      await pollAccelerator<AccountBlock?>(
-        () => app.zenon!.ledger.getAccountBlockByHash(producerVoteBlock.hash),
-        isReady: (AccountBlock? block) =>
-            block?.confirmationDetail?.momentumTimestamp != null,
-        description:
-            'confirmed VoteByProdAddress block ${producerVoteBlock.hash}',
-      );
+  final AccountBlock? confirmedProducerVote = await pollDevnet<AccountBlock?>(
+    () => app.zenon!.ledger.getAccountBlockByHash(producerVoteBlock.hash),
+    isReady: (AccountBlock? block) =>
+        block?.confirmationDetail?.momentumTimestamp != null,
+    description: 'confirmed VoteByProdAddress block ${producerVoteBlock.hash}',
+  );
   expect(confirmedProducerVote, isNotNull);
   expect(confirmedProducerVote!.toAddress, acceleratorAddress);
 
@@ -47,7 +46,7 @@ theBlockchainShouldRecordTheYesVoteFromAndNoVoteFromOnTheSubmittedAcceleratorzPr
     AcceleratorProjectVote.yes.index,
   );
 
-  final AccountBlock? confirmedOwnerVote = await pollAccelerator<AccountBlock?>(
+  final AccountBlock? confirmedOwnerVote = await pollDevnet<AccountBlock?>(
     () => app.zenon!.ledger.getAccountBlockByHash(ownerVoteBlock.hash),
     isReady: (AccountBlock? block) =>
         block?.confirmationDetail?.momentumTimestamp != null,
@@ -69,7 +68,7 @@ theBlockchainShouldRecordTheYesVoteFromAndNoVoteFromOnTheSubmittedAcceleratorzPr
     AcceleratorProjectVote.no.index,
   );
 
-  final VoteBreakdown voteBreakdown = await pollAccelerator<VoteBreakdown>(
+  final VoteBreakdown voteBreakdown = await pollDevnet<VoteBreakdown>(
     () => app.zenon!.embedded.accelerator.getVoteBreakdown(projectId),
     isReady: (VoteBreakdown breakdown) =>
         breakdown.yes == 1 && breakdown.no == 1 && breakdown.total == 2,

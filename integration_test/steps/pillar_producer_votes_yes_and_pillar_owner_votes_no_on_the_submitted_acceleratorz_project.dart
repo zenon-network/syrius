@@ -12,6 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../support/accelerator_devnet_helpers.dart';
+import '../support/devnet_bdd_helpers.dart';
 import '../support/devnet_test_context.dart';
 
 /// Usage: Pillar producer <producer_address> votes yes and Pillar owner <pillar_owner_address> votes no on the submitted Accelerator-Z project
@@ -55,7 +56,7 @@ Future<AccountBlockTemplate> _castVoteThroughAcceleratorUi({
   required Key voteButtonKey,
   required bool expectedProducerRole,
 }) async {
-  await ensureAcceleratorPlasma(voterAddress);
+  await ensureDevnetPlasma(voterAddress);
   selectDevnetSender(voterAddress);
 
   final Address parsedVoter = Address.parse(voterAddress);
@@ -81,7 +82,7 @@ Future<AccountBlockTemplate> _castVoteThroughAcceleratorUi({
     pillarBloc.add(AcceleratorPillarRequested(address: parsedVoter));
 
     final AcceleratorPillarPopulated resolvedPillar =
-        await pumpUntilAcceleratorComplete<AcceleratorPillarPopulated>(
+        await pumpUntilComplete<AcceleratorPillarPopulated>(
           tester,
           pillarFuture,
           'AcceleratorPillarBloc resolution for $voterAddress',
@@ -124,7 +125,7 @@ Future<AccountBlockTemplate> _castVoteThroughAcceleratorUi({
     final Finder projectItemFinder = find.byKey(
       ValueKey<String>(projectId.toString()),
     );
-    await pumpUntilAcceleratorFound(
+    await pumpUntilFound(
       tester,
       projectItemFinder,
       description: 'AcceleratorProjectListItem for $projectId',
@@ -134,7 +135,7 @@ Future<AccountBlockTemplate> _castVoteThroughAcceleratorUi({
       of: projectItemFinder,
       matching: find.byKey(voteButtonKey),
     );
-    await pumpUntilAcceleratorFound(
+    await pumpUntilFound(
       tester,
       voteButtonFinder,
       description: 'Vote button $voteButtonKey for project $projectId',
@@ -156,7 +157,7 @@ Future<AccountBlockTemplate> _castVoteThroughAcceleratorUi({
     });
 
     await tester.tap(voteButtonFinder);
-    return await pumpUntilAcceleratorComplete<AccountBlockTemplate>(
+    return await pumpUntilComplete<AccountBlockTemplate>(
       tester,
       voteCompleter.future,
       'VoteProjectBloc confirmation for $voterAddress',

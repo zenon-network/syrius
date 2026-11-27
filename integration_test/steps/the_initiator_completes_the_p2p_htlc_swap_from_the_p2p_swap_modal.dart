@@ -5,8 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../support/devnet_bdd_helpers.dart';
 import '../support/p2p_swap_devnet_helpers.dart';
 
 /// Usage: the initiator completes the P2P HTLC swap from the P2P Swap modal
@@ -34,18 +37,13 @@ Future<void> theInitiatorCompletesTheP2pHtlcSwapFromTheP2pSwapModal(
 
   StreamSubscription<CompleteSwapState>? subscription;
   try {
+    configureDesktopTestViewport(tester);
     await tester.pumpWidget(
       MaterialApp(
+        theme: AppTheme.darkTheme,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: Center(
-            child: SizedBox(
-              width: 680,
-              child: P2pSwapModal(swapId: initialSwap.id),
-            ),
-          ),
-        ),
+        home: _P2pSwapDialogHost(swapId: initialSwap.id),
       ),
     );
     await tester.pump();
@@ -104,4 +102,34 @@ Future<void> theInitiatorCompletesTheP2pHtlcSwapFromTheP2pSwapModal(
     await subscription?.cancel();
     await tester.pumpWidget(const SizedBox.shrink());
   }
+}
+
+class _P2pSwapDialogHost extends StatefulWidget {
+  const _P2pSwapDialogHost({required this.swapId});
+
+  final String swapId;
+
+  @override
+  State<_P2pSwapDialogHost> createState() => _P2pSwapDialogHostState();
+}
+
+class _P2pSwapDialogHostState extends State<_P2pSwapDialogHost> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      unawaited(
+        showCustomDialog<void>(
+          context: context,
+          content: P2pSwapModal(swapId: widget.swapId),
+        ),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(body: SizedBox.shrink());
 }

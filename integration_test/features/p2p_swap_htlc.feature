@@ -7,6 +7,7 @@ Feature: P2P Swap HTLC
     Then the blockchain should contain the created initial HTLC with the submitted swap parameters
     When the counterparty joins the P2P HTLC swap with <counter_amount> ZNN from the Join P2P Swap modal
     And the initiator completes the P2P HTLC swap from the P2P Swap modal
+    And the counterparty wallet automatically unlocks the initial HTLC
     Then the blockchain should record the unlocked HTLC swap for both participants
 
     Examples:

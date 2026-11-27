@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../support/devnet_bdd_helpers.dart';
 import '../support/p2p_swap_devnet_helpers.dart';
 
 /// Usage: the blockchain should record the unlocked HTLC swap for both participants
@@ -21,6 +22,10 @@ Future<void> theBlockchainShouldRecordTheUnlockedHtlcSwapForBothParticipants(
   final BigInt initialSwapAmount = swapContext.initialSwapAmount!;
   final BigInt counterSwapAmount = swapContext.counterSwapAmount!;
   final AccountBlockTemplate unlockBlock = swapContext.initiatorUnlockBlock!;
+  final AccountBlock initiatorUnlockReceive =
+      swapContext.initiatorUnlockContractReceive!;
+  final HtlcSwap completedCounterpartySwap =
+      swapContext.completedCounterpartySwap!;
 
   final AccountBlock? confirmedUnlockBlock = await pollDevnet<AccountBlock?>(
     () => app.zenon!.ledger.getAccountBlockByHash(unlockBlock.hash),
@@ -46,41 +51,29 @@ Future<void> theBlockchainShouldRecordTheUnlockedHtlcSwapForBothParticipants(
     initialSwap.preimage,
   );
 
-  await waitForConfirmedHtlcContractReceive(
-    unlockBlock.hash,
-    description:
-        'confirmed HTLC contract receive block for initiator unlock '
-        '${unlockBlock.hash}',
-  );
   await waitForHtlcRemoved(counterHtlcId);
   await waitForHtlcPayoutUnreceivedBlock(
     recipient: Address.parse(swapContext.initiatorAddress),
     expectedToken: znnZts,
     expectedAmount: counterSwapAmount,
+    unlockContractReceive: initiatorUnlockReceive,
   );
 
-  // Run the counterparty's real sync + auto-unlock service so it discovers the
-  // revealed preimage on-chain and claims the initial HTLC automatically.
-  await swapContext.activateCounterpartyWallet();
-  final HtlcSwap completedCounterpartySwap = await swapContext
-      .syncUntilSwapReady(
-        repository: swapContext.counterpartyRepository,
-        swapId: initialSwap.id,
-        isReady: (HtlcSwap? swap) =>
-            swap != null &&
-            swap.state == P2pSwapState.completed &&
-            swap.preimage == initialSwap.preimage,
-        description:
-            'counterparty HtlcSwapSyncService to auto-unlock initial HTLC '
-            '$initialHtlcId',
-      );
   expect(completedCounterpartySwap.state, P2pSwapState.completed);
   expect(completedCounterpartySwap.preimage, initialSwap.preimage);
 
+  final AccountBlock counterpartyUnlockReceive =
+      await waitForConfirmedHtlcUnlockReceiveByHtlcId(
+        initialHtlcId,
+        description:
+            'confirmed HTLC contract receive block for counterparty unlock of '
+            'initial HTLC $initialHtlcId',
+      );
   await waitForHtlcRemoved(initialHtlcId);
   await waitForHtlcPayoutUnreceivedBlock(
     recipient: Address.parse(swapContext.counterpartyAddress),
     expectedToken: znnZts,
     expectedAmount: initialSwapAmount,
+    unlockContractReceive: counterpartyUnlockReceive,
   );
 }

@@ -7,6 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../support/devnet_bdd_helpers.dart';
 import '../support/p2p_swap_devnet_helpers.dart';
 
 /// Usage: the blockchain should contain the created initial HTLC with the submitted swap parameters

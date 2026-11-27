@@ -7,11 +7,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import '../../integration_test/bdd_hooks/hooks.dart';
-import '../../integration_test/steps/is_prepared_for_submitting_an_acceleratorz_project.dart';
-import '../../integration_test/steps/submits_acceleratorz_project_and_from_the_create_project_stepper.dart';
-import '../../integration_test/steps/the_blockchain_should_contain_the_submitted_acceleratorz_project_with_and.dart';
-import '../../integration_test/steps/pillar_producer_votes_yes_and_pillar_owner_votes_no_on_the_submitted_acceleratorz_project.dart';
-import '../../integration_test/steps/the_blockchain_should_record_the_yes_vote_from_and_no_vote_from_on_the_submitted_acceleratorz_project.dart';
+import './../steps/is_prepared_for_submitting_an_acceleratorz_project.dart';
+import './../steps/submits_acceleratorz_project_and_from_the_create_project_stepper.dart';
+import './../steps/the_blockchain_should_contain_the_submitted_acceleratorz_project_with_and.dart';
+import './../steps/pillar_producer_votes_yes_and_pillar_owner_votes_no_on_the_submitted_acceleratorz_project.dart';
+import './../steps/the_blockchain_should_record_the_yes_vote_from_and_no_vote_from_on_the_submitted_acceleratorz_project.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

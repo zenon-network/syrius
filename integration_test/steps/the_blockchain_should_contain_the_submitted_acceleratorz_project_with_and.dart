@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../support/accelerator_devnet_helpers.dart';
+import '../support/devnet_bdd_helpers.dart';
 
 /// Usage: the blockchain should contain the submitted Accelerator-Z project with <name>, <description>, <url>, <znn_funds>, and <qsr_funds>
 Future<void> theBlockchainShouldContainTheSubmittedAcceleratorzProjectWithAnd(
@@ -20,13 +21,14 @@ Future<void> theBlockchainShouldContainTheSubmittedAcceleratorzProjectWithAnd(
 ) async {
   final AcceleratorDevnetContext acceleratorContext =
       requireAcceleratorDevnetContext();
+  final Address expectedOwner = Address.parse(acceleratorContext.ownerAddress!);
   final AccountBlockTemplate expectedBlock =
       acceleratorContext.createProjectBlock!;
   final Hash projectId = acceleratorContext.projectId!;
   final BigInt expectedZnn = znnFunds.extractDecimals(coinDecimals);
   final BigInt expectedQsr = qsrFunds.extractDecimals(coinDecimals);
 
-  final AccountBlock? confirmedBlock = await pollAccelerator<AccountBlock?>(
+  final AccountBlock? confirmedBlock = await pollDevnet<AccountBlock?>(
     () => app.zenon!.ledger.getAccountBlockByHash(expectedBlock.hash),
     isReady: (AccountBlock? block) =>
         block?.confirmationDetail?.momentumTimestamp != null,
@@ -35,6 +37,7 @@ Future<void> theBlockchainShouldContainTheSubmittedAcceleratorzProjectWithAnd(
 
   expect(confirmedBlock, isNotNull);
   expect(confirmedBlock!.hash, expectedBlock.hash);
+  expect(confirmedBlock.address, expectedOwner);
   expect(confirmedBlock.toAddress, acceleratorAddress);
   expect(confirmedBlock.tokenStandard, znnZts);
   expect(confirmedBlock.amount, projectCreationFeeInZnn);
@@ -57,14 +60,14 @@ Future<void> theBlockchainShouldContainTheSubmittedAcceleratorzProjectWithAnd(
     expectedQsr,
   );
 
-  final Project onChainProject = await pollAccelerator<Project>(
+  final Project onChainProject = await pollDevnet<Project>(
     () => app.zenon!.embedded.accelerator.getProjectById(projectId.toString()),
     isReady: (Project project) => project.id == projectId,
     description: 'Accelerator-Z project $projectId on-chain',
   );
 
   expect(onChainProject.id, projectId);
-  expect(onChainProject.owner, confirmedBlock.address);
+  expect(onChainProject.owner, expectedOwner);
   expect(onChainProject.name, name);
   expect(onChainProject.description, description);
   expect(onChainProject.url, url);

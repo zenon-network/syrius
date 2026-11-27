@@ -1,11 +1,15 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:flutter/foundation.dart'
-    show FlutterError, FlutterErrorDetails, FlutterExceptionHandler;
+    show
+        DiagnosticsNode,
+        FlutterError,
+        FlutterErrorDetails,
+        FlutterExceptionHandler;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -13,22 +17,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import 'devnet_bdd_helpers.dart';
 import 'devnet_test_context.dart';
-
-/// Address index 9 from the devnet mnemonic, unused by earlier chain tests.
-const String kP2pSwapInitiatorAddress =
-    'z1qqcam4ycu0ta8333hx38r5j2z3ry9jjfxkc7t5';
-
-/// Genesis Pillar 1 owner address with pre-fused devnet plasma for setup.
-const String kP2pSwapPlasmaFuserAddress =
-    'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d';
-
-/// Minimum plasma target for fast devnet HTLC transactions without slow PoW.
-const int kP2pSwapMinPlasma = 84000;
-
-/// QSR amount fused to test participants when plasma setup is required
-/// (50 QSR = 105,000 plasma on Zenon).
-const String kP2pSwapSetupQsrFuseAmount = '50';
 
 /// ZNN amount sent to fund the freshly generated counterparty wallet.
 const String kP2pSwapCounterpartyFundingZnn = '1';
@@ -71,7 +61,7 @@ class P2pSwapDevnetContext {
   /// Isolated temp directory storing the encrypted Drift SQLite databases.
   final Directory tempDirectory;
 
-  /// Devnet address of the swap initiator (Wallet A).
+  /// Devnet address of the swap initiator (Wallet A, index 9).
   final String initiatorAddress;
 
   /// Freshly generated address of the swap counterparty (Wallet B).
@@ -124,6 +114,13 @@ class P2pSwapDevnetContext {
 
   /// Published unlock account block created by the initiator Complete UI.
   AccountBlockTemplate? initiatorUnlockBlock;
+
+  /// Confirmed `contractReceive` block for the initiator's unlock of the
+  /// counter-HTLC.
+  AccountBlock? initiatorUnlockContractReceive;
+
+  /// Completed incoming swap persisted after the counterparty auto-unlocks.
+  HtlcSwap? completedCounterpartySwap;
 
   /// Initializes a fresh two-party [P2pSwapDevnetContext] and registers
   /// teardown cleanup.
@@ -208,7 +205,7 @@ class P2pSwapDevnetContext {
 
     final P2pSwapDevnetContext context = P2pSwapDevnetContext._(
       tempDirectory: tempDirectory,
-      initiatorAddress: kP2pSwapInitiatorAddress,
+      initiatorAddress: DevnetTestContext.fundedDevAddresses[9]!,
       counterpartyAddress: counterpartyAddress,
       counterpartyWalletFile: counterpartyWalletFile,
       initiatorStorage: initiatorStorage,
@@ -359,42 +356,16 @@ class P2pSwapDevnetContext {
   }
 }
 
-/// Ensures [targetAddress] has at least [requiredPlasma] on devnet by fusing
-/// QSR from [kP2pSwapPlasmaFuserAddress] when needed.
+/// Ensures [targetAddress] has sufficient plasma for P2P swap transactions.
 Future<void> ensureP2pSwapPlasma({
   required P2pSwapDevnetContext swapContext,
   required String targetAddress,
-  int requiredPlasma = kP2pSwapMinPlasma,
-  String fuseAmountQsr = kP2pSwapSetupQsrFuseAmount,
-}) async {
-  final Address parsedTarget = Address.parse(targetAddress);
-  final PlasmaInfo currentPlasma = await app.zenon!.embedded.plasma.get(
-    parsedTarget,
-  );
-  if (currentPlasma.currentPlasma >= requiredPlasma) {
-    return;
-  }
-
-  final BigInt fuseAmount = fuseAmountQsr.extractDecimals(coinDecimals);
-  await swapContext.activateInitiatorWallet(
-    selectedAddress: kP2pSwapPlasmaFuserAddress,
-  );
-  final AccountBlockUtils accountBlockUtils = AccountBlockUtils(
-    publishSuccessNotification: false,
-  );
-  await accountBlockUtils.createAccountBlock(
-    app.zenon!.embedded.plasma.fuse(parsedTarget, fuseAmount),
-    'fuse plasma for p2p swap test',
-    address: Address.parse(kP2pSwapPlasmaFuserAddress),
-    waitForRequiredPlasma: true,
-  );
-
-  await pollDevnet<PlasmaInfo>(
-    () => app.zenon!.embedded.plasma.get(parsedTarget),
-    isReady: (PlasmaInfo info) => info.currentPlasma >= requiredPlasma,
-    description: '$targetAddress plasma to reach $requiredPlasma',
-  );
-}
+}) => ensureDevnetPlasma(
+  targetAddress,
+  prepareFuserWallet: () => swapContext.activateInitiatorWallet(
+    selectedAddress: kDevnetPlasmaFuserAddress,
+  ),
+);
 
 /// Sends [amountZnn] from the initiator to the counterparty and receives it on
 /// the counterparty's account chain so the counterparty has confirmed funds.
@@ -471,16 +442,51 @@ Future<AccountBlock> waitForConfirmedHtlcContractReceive(
   return match!;
 }
 
-/// Polls until [app.zenon!.embedded.htlc.getById] fails for [htlcId], proving
-/// the HTLC has been unlocked or reclaimed on-chain.
+/// Polls until the HTLC embedded contract has a confirmed `contractReceive`
+/// block for an `Unlock` call targeting [htlcId].
+Future<AccountBlock> waitForConfirmedHtlcUnlockReceiveByHtlcId(
+  Hash htlcId, {
+  required String description,
+}) async {
+  final AccountBlock? match = await pollDevnet<AccountBlock?>(
+    () async {
+      final AccountBlockList page = await app.zenon!.ledger
+          .getAccountBlocksByPage(htlcAddress, pageSize: 50);
+      for (final AccountBlock block in page.list ?? const <AccountBlock>[]) {
+        final AccountBlock? paired = block.pairedAccountBlock;
+        if (block.blockType != BlockTypeEnum.contractReceive.index ||
+            paired == null ||
+            block.confirmationDetail?.momentumTimestamp == null) {
+          continue;
+        }
+        final BlockData? data = decodeHtlcBlockData(paired.data);
+        if (data?.function == 'Unlock' &&
+            data?.params['id'].toString() == htlcId.toString()) {
+          return block;
+        }
+      }
+      return null;
+    },
+    isReady: (AccountBlock? block) => block != null,
+    description: description,
+  );
+  return match!;
+}
+
+/// Polls until [app.zenon!.embedded.htlc.getById] fails with the node's
+/// `data non existent` RPC error for [htlcId], proving the HTLC has been
+/// removed on-chain without mistaking transport errors for removal.
 Future<void> waitForHtlcRemoved(Hash htlcId) async {
   await pollDevnet<bool>(
     () async {
       try {
         await app.zenon!.embedded.htlc.getById(htlcId);
         return false;
-      } on Object {
-        return true;
+      } on RpcException catch (error) {
+        if (error.message.toLowerCase().contains('data non existent')) {
+          return true;
+        }
+        rethrow;
       }
     },
     isReady: (bool removed) => removed,
@@ -488,19 +494,33 @@ Future<void> waitForHtlcRemoved(Hash htlcId) async {
   );
 }
 
-/// Polls until [recipient] has an unreceived payout block from [htlcAddress]
-/// matching [expectedToken] and [expectedAmount].
+/// Polls until [recipient] has an unreceived payout block matching one of the
+/// descendant blocks of [unlockContractReceive] with [expectedToken] and
+/// [expectedAmount].
 Future<AccountBlock> waitForHtlcPayoutUnreceivedBlock({
   required Address recipient,
   required TokenStandard expectedToken,
   required BigInt expectedAmount,
+  required AccountBlock unlockContractReceive,
 }) async {
+  final Set<Hash> descendantHashes = unlockContractReceive.descendantBlocks
+      .map((AccountBlock block) => block.hash)
+      .toSet();
+  expect(
+    descendantHashes,
+    isNotEmpty,
+    reason:
+        'Expected unlock contractReceive block '
+        '${unlockContractReceive.hash} to emit a payout descendant block',
+  );
+
   final AccountBlock? payout = await pollDevnet<AccountBlock?>(
     () async {
       final AccountBlockList list = await app.zenon!.ledger
           .getUnreceivedBlocksByAddress(recipient);
       for (final AccountBlock block in list.list ?? const <AccountBlock>[]) {
-        if (block.address == htlcAddress &&
+        if (descendantHashes.contains(block.hash) &&
+            block.address == htlcAddress &&
             block.toAddress == recipient &&
             block.tokenStandard == expectedToken &&
             block.amount == expectedAmount) {
@@ -511,8 +531,8 @@ Future<AccountBlock> waitForHtlcPayoutUnreceivedBlock({
     },
     isReady: (AccountBlock? block) => block != null,
     description:
-        'unreceived HTLC payout of $expectedAmount ($expectedToken) to '
-        '$recipient',
+        'unreceived HTLC payout descendant of ${unlockContractReceive.hash} '
+        'for $expectedAmount ($expectedToken) to $recipient',
   );
   return payout!;
 }
@@ -521,67 +541,19 @@ Future<AccountBlock> waitForHtlcPayoutUnreceivedBlock({
 BlockData? decodeHtlcBlockData(List<int> encodedData) =>
     AccountBlockUtils.getDecodedBlockData(Definitions.htlc, encodedData);
 
-/// Polls [fetch] every second until [isReady] returns true or [timeout]
-/// elapses.
-Future<T> pollDevnet<T>(
-  Future<T> Function() fetch, {
-  required bool Function(T value) isReady,
-  required String description,
-  Duration timeout = const Duration(seconds: 90),
-}) async {
-  final DateTime deadline = DateTime.now().add(timeout);
-  Object? lastError;
-
-  while (DateTime.now().isBefore(deadline)) {
-    try {
-      final T value = await fetch();
-      if (isReady(value)) {
-        return value;
-      }
-    } on Object catch (error) {
-      lastError = error;
-    }
-    await Future<void>.delayed(const Duration(seconds: 1));
-  }
-
-  throw TimeoutException(
-    'Timed out waiting for $description. Last error: $lastError',
-  );
-}
-
-/// Pumps frames until [finder] matches at least one widget.
-Future<void> pumpUntilFound(
-  WidgetTester tester,
-  Finder finder, {
-  String? description,
-  Duration timeout = const Duration(seconds: 90),
-}) async {
-  final DateTime deadline = DateTime.now().add(timeout);
-  while (finder.evaluate().isEmpty && DateTime.now().isBefore(deadline)) {
-    await tester.pump(const Duration(milliseconds: 100));
-  }
-
-  expect(
-    finder,
-    findsOneWidget,
-    reason: description ?? 'Expected widget $finder to appear',
-  );
-}
-
-/// Runs [action] while ignoring the known debug-mode `RenderFlex` overflow
-/// emitted by `InstructionButton`'s `AnimatedCrossFade` when its loading
-/// label (`LoadingInfoText`) is wider than its idle label.
+/// Runs [action] while ignoring only the known debug-mode `RenderFlex`
+/// overflow emitted by `InstructionButton`'s `AnimatedCrossFade` when its
+/// `LoadingInfoText` (`Row`, height 24) is constrained to the narrower idle
+/// label width.
 ///
-/// All other Flutter errors are forwarded unchanged to the active handler.
+/// All other Flutter errors (including overflows from any other widget) are
+/// forwarded unchanged to the active handler.
 Future<T> runIgnoringInstructionButtonCrossFadeOverflow<T>(
   Future<T> Function() action,
 ) async {
   final FlutterExceptionHandler? previousHandler = FlutterError.onError;
   FlutterError.onError = (FlutterErrorDetails details) {
-    final bool isRenderingOverflow =
-        details.library == 'rendering library' &&
-        details.exceptionAsString().startsWith('A RenderFlex overflowed by ');
-    if (isRenderingOverflow) {
+    if (_isInstructionButtonLoadingOverflow(details)) {
       return;
     }
     if (previousHandler != null) {
@@ -597,42 +569,36 @@ Future<T> runIgnoringInstructionButtonCrossFadeOverflow<T>(
   }
 }
 
-/// Pumps frames while waiting for [future] to complete.
-Future<T> pumpUntilComplete<T>(
-  WidgetTester tester,
-  Future<T> future,
-  String description, {
-  Duration timeout = const Duration(seconds: 90),
-}) async {
-  T? result;
-  Object? error;
-  StackTrace? stackTrace;
-  bool completed = false;
-
-  unawaited(
-    future.then(
-      (T value) {
-        result = value;
-        completed = true;
-      },
-      onError: (Object e, StackTrace s) {
-        error = e;
-        stackTrace = s;
-        completed = true;
-      },
-    ),
-  );
-
-  final DateTime deadline = DateTime.now().add(timeout);
-  while (!completed && DateTime.now().isBefore(deadline)) {
-    await tester.pump(const Duration(milliseconds: 100));
+bool _isInstructionButtonLoadingOverflow(FlutterErrorDetails details) {
+  if (details.library != 'rendering library' ||
+      !details.exceptionAsString().startsWith('A RenderFlex overflowed by ')) {
+    return false;
   }
 
-  if (!completed) {
-    throw TimeoutException('Timed out waiting for $description');
+  final Iterable<DiagnosticsNode>? nodes = details.informationCollector?.call();
+  if (nodes == null) {
+    return false;
   }
-  if (error != null) {
-    Error.throwWithStackTrace(error!, stackTrace!);
+
+  final StringBuffer buffer = StringBuffer();
+  for (final DiagnosticsNode node in nodes) {
+    buffer.writeln(node.toDescription());
+    for (final DiagnosticsNode property in node.getProperties()) {
+      // Avoid calling Flutter's widget-inspector creator transform on defunct
+      // elements, which throws "Looking up a deactivated widget's ancestor is
+      // unsafe". Raw DiagnosticsNode values still carry creator/size strings.
+      if (property.name == 'creator' || property.name == 'size') {
+        buffer.writeln('${property.name}: ${property.value}');
+      }
+    }
   }
-  return result as T;
+  final String summary = buffer.toString();
+  final bool isLoadingInfoTextCreator =
+      summary.contains('LoadingInfoText') ||
+      summary.contains('CrossFadeState.showSecond');
+  final bool isDisposedCrossFadeRow =
+      summary.contains('DISPOSED OVERFLOWING') &&
+      summary.contains('Size(') &&
+      summary.contains(', 24.0)');
+  return isLoadingInfoTextCreator || isDisposedCrossFadeRow;
 }

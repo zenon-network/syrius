@@ -8,10 +8,11 @@ import 'package:integration_test/integration_test.dart';
 
 import '../../integration_test/bdd_hooks/hooks.dart';
 import './../steps/two_funded_devnet_participants_are_prepared_for_a_p2p_htlc_swap.dart';
-import '../../integration_test/steps/the_initiator_starts_a_p2p_htlc_swap_of_znn_from_the_start_p2p_swap_modal.dart';
+import './../steps/the_initiator_starts_a_p2p_htlc_swap_of_znn_from_the_start_p2p_swap_modal.dart';
 import './../steps/the_blockchain_should_contain_the_created_initial_htlc_with_the_submitted_swap_parameters.dart';
-import '../../integration_test/steps/the_counterparty_joins_the_p2p_htlc_swap_with_znn_from_the_join_p2p_swap_modal.dart';
+import './../steps/the_counterparty_joins_the_p2p_htlc_swap_with_znn_from_the_join_p2p_swap_modal.dart';
 import './../steps/the_initiator_completes_the_p2p_htlc_swap_from_the_p2p_swap_modal.dart';
+import './../steps/the_counterparty_wallet_automatically_unlocks_the_initial_htlc.dart';
 import './../steps/the_blockchain_should_record_the_unlocked_htlc_swap_for_both_participants.dart';
 
 void main() {
@@ -58,6 +59,7 @@ void main() {
             '0.15',
           );
           await theInitiatorCompletesTheP2pHtlcSwapFromTheP2pSwapModal(tester);
+          await theCounterpartyWalletAutomaticallyUnlocksTheInitialHtlc(tester);
           await theBlockchainShouldRecordTheUnlockedHtlcSwapForBothParticipants(
             tester,
           );
