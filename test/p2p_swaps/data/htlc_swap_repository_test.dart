@@ -39,7 +39,7 @@ void main() {
   tearDown(() async {
     await dataProvider.close();
     kNodeChainId = originalChainId;
-    if (await temporaryDirectory.exists()) {
+    if (temporaryDirectory.existsSync()) {
       await temporaryDirectory.delete(recursive: true);
     }
   });
@@ -225,7 +225,7 @@ void main() {
     await dataProvider.open(encryptionKey);
 
     expect(await repository.getAllSwaps(), <HtlcSwap>[swap]);
-    expect(await File('${databaseFile.path}.rekey-backup').exists(), isFalse);
+    expect(File('${databaseFile.path}.rekey-backup').existsSync(), isFalse);
   });
 
   test('rolls back a prepared password change', () async {

@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Exception thrown when the native `libznn` shared library cannot be found.
 ZnnSdkException invalidZnnLibPathException =
     ZnnSdkException('Library libznn could not be found');
 
@@ -18,28 +19,34 @@ _StopNodeFunc? _stopNodeFunction;
 typedef _RunNodeFunc = Pointer<Utf8> Function();
 _RunNodeFunc? _runNodeFunction;
 
+/// Manages loading, running, and stopping the embedded Zenon node library.
 class EmbeddedNode {
+  /// Locates and loads the native `libznn` dynamic library and its symbols.
   static void initializeNodeLib() {
-    final String insideSdk = path.join('syrius', 'lib', 'embedded_node', 'blobs');
-    final List<String> currentPathListParts = path.split(Directory.current.path);
-    currentPathListParts.removeLast();
-    final List<String> executablePathListParts = path.split(Platform.resolvedExecutable);
-    executablePathListParts.removeLast();
-    final List<String> possiblePaths = List<String>.empty(growable: true);
-    possiblePaths.add(Directory.current.path);
-    possiblePaths.add(
+    final String insideSdk = path.join(
+      'syrius',
+      'lib',
+      'embedded_node',
+      'blobs',
+    );
+    final List<String> currentPathListParts =
+        path.split(Directory.current.path)..removeLast();
+    final List<String> executablePathListParts =
+        path.split(Platform.resolvedExecutable)..removeLast();
+    final List<String> possiblePaths = <String>[
+      Directory.current.path,
       path.join(
         Directory.current.path,
         'lib',
         'embedded_node',
         'blobs',
       ),
-    );
-    possiblePaths.add(path.joinAll(executablePathListParts));
+      path.joinAll(executablePathListParts),
+    ];
     executablePathListParts.removeLast();
     possiblePaths
-        .add(path.join(path.joinAll(executablePathListParts), 'Resources'));
-    possiblePaths.add(path.join(path.joinAll(currentPathListParts), insideSdk));
+      ..add(path.join(path.joinAll(executablePathListParts), 'Resources'))
+      ..add(path.join(path.joinAll(currentPathListParts), insideSdk));
 
     String libraryPath = '';
     bool found = false;
@@ -75,13 +82,16 @@ class EmbeddedNode {
 
     final Pointer<NativeFunction<_StopNodeFunc>> stopNodeFunctionPointer =
         dylib.lookup<NativeFunction<_StopNodeFunc>>('StopNode');
-    _stopNodeFunction = stopNodeFunctionPointer.asFunction<Pointer<Utf8> Function()>();
+    _stopNodeFunction =
+        stopNodeFunctionPointer.asFunction<Pointer<Utf8> Function()>();
 
     final Pointer<NativeFunction<_RunNodeFunc>> runNodeFunctionPointer =
         dylib.lookup<NativeFunction<_RunNodeFunc>>('RunNode');
-    _runNodeFunction = runNodeFunctionPointer.asFunction<Pointer<Utf8> Function()>();
+    _runNodeFunction =
+        runNodeFunctionPointer.asFunction<Pointer<Utf8> Function()>();
   }
 
+  /// Starts the embedded node inside an isolate and awaits a stop signal.
   static Future<void> runNode(List<String> args) async {
     final ReceivePort commandsPort = ReceivePort();
     final SendPort sendPort = commandsPort.sendPort;
@@ -93,8 +103,8 @@ class EmbeddedNode {
     }
     _runNodeFunction!();
 
-    final Completer embeddedIsolateCompleter = Completer();
-    commandsPort.listen((event) {
+    final Completer<void> embeddedIsolateCompleter = Completer<void>();
+    commandsPort.listen((dynamic event) {
       _stopNodeFunction!();
       IsolateNameServer.removePortNameMapping('embeddedIsolate');
       commandsPort.close();
@@ -103,6 +113,7 @@ class EmbeddedNode {
     await embeddedIsolateCompleter.future;
   }
 
+  /// Invokes the native stop function directly in the current isolate.
   static void stopNodeIsolate() {
     if (_stopNodeFunction == null) {
       initializeNodeLib();
@@ -110,6 +121,9 @@ class EmbeddedNode {
     _stopNodeFunction!();
   }
 
+  /// Signals the running embedded node isolate to stop.
+  ///
+  /// Returns `true` if a registered isolate port was found and signaled.
   static bool stopNode() {
     final SendPort? embeddedIsolate =
         IsolateNameServer.lookupPortByName('embeddedIsolate');

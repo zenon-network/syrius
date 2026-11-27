@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/exchange_rate.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
 void main() {
   testWidgets('formats and toggles a fractional exchange rate', (
