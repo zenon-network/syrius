@@ -142,29 +142,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Set variables
+        env:
+          SYRIUS_VERSION: ${{ github.ref_name }}
+          GITHUB_REF_VALUE: ${{ github.ref }}
+          GITHUB_REPO_URL: ${{ github.repositoryUrl }}
+          GITHUB_RUN_ID_VALUE: ${{ github.run_id }}
+          GITHUB_SHA_VALUE: ${{ github.sha }}
+          GITHUB_WORKFLOW_SHA_VALUE: ${{ github.workflow_sha }}
         run: |
-          echo "SYRIUS_VERSION=${{ github.ref }}" >> $GITHUB_ENV
-          echo "Syrius Version: $SYRIUS_VERSION"
-          GOZENON=$(curl -s https://raw.githubusercontent.com/zenon-network/go-zenon/master/metadata/version.go | grep Version | awk -F '"' '{print $2}')
-          echo "Go-Zenon Version: $GOZENON"
+          set -euo pipefail
+          echo "SYRIUS_VERSION=${SYRIUS_VERSION}" >> "${GITHUB_ENV}"
+          echo "Syrius Version: ${SYRIUS_VERSION}"
+          GOZENON="$(python3 -c 'import json; r = json.load(open("lib/embedded_node/blobs/libznn.manifest.json"))["release"]; print(r.get("name") or r["tag"])')"
+          echo "Go-Zenon Version: ${GOZENON}"
           BODY=$(cat <<EOF
-          Syrius $SYRIUS_VERSION features the pre-release version of the [go-zenon](https://github.com/zenon-network/go-zenon) $GOZENON full node.
+          Syrius ${SYRIUS_VERSION} features the pre-release version of the [go-zenon](https://github.com/zenon-network/go-zenon) ${GOZENON} full node.
 
           Syrius for Windows requires Microsoft Visual C++ to be installed.
           [Download Microsoft Visual C++](https://aka.ms/vs/16/release/vc_redist.x64.exe)
 
           Github Action Context information
-          Git reference: ${{ github.ref }}
-          Repository URL:  ${{ github.repositoryUrl }}
-          Run ID: ${{ github.run_id }}
-          Commit hash: ${{ github.sha }}
-          Workflow hash: ${{ github.workflow_sha }}
+          Git reference: ${GITHUB_REF_VALUE}
+          Repository URL:  ${GITHUB_REPO_URL}
+          Run ID: ${GITHUB_RUN_ID_VALUE}
+          Commit hash: ${GITHUB_SHA_VALUE}
+          Workflow hash: ${GITHUB_WORKFLOW_SHA_VALUE}
           EOF
           )
-          echo "$BODY"
-          echo "BODY<<EOFMARKER" >> ${GITHUB_ENV}
-          echo "${BODY}" >> ${GITHUB_ENV}
-          echo "EOFMARKER" >> ${GITHUB_ENV}
+          echo "${BODY}"
+          {
+            echo "BODY<<EOFMARKER"
+            echo "${BODY}"
+            echo "EOFMARKER"
+          } >> "${GITHUB_ENV}"
       - name: Prepare releases directory
         run: mkdir releases
       - name: Download macOS artifacts
