@@ -661,7 +661,19 @@ void main() {
           }
         }
 
-        expect(seenOps, isNotEmpty);
+        expect(
+          seenOps,
+          equals(<String>{
+            'sync_info_status',
+            'sync_cubit_hysteresis',
+            'node_mgmt_confirm_flow',
+            'node_mgmt_edit_validation',
+            'about_reduce',
+            'notif_repo_fifo_load',
+            'notif_bloc_lifecycle',
+            'wallet_opt_desktop_notifs',
+          }),
+        );
       },
     );
 
@@ -744,12 +756,7 @@ void main() {
             ),
           );
         await Future<void>.delayed(Duration.zero);
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'node_mgmt_busy_drops_concurrent_confirm',
-          actual: connectCalls,
-          expected: 1,
-        );
+        expect(connectCalls, 1);
         pendingConnect.complete(true);
         await Future<void>.delayed(const Duration(milliseconds: 10));
 
@@ -768,12 +775,7 @@ void main() {
             ),
           );
         await Future<void>.delayed(const Duration(milliseconds: 10));
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'node_mgmt_rename_updates_selected',
-          actual: bloc.state.selectedNode,
-          expected: renamedNode,
-        );
+        expect(bloc.state.selectedNode, renamedNode);
 
         bloc.add(
           const NodeManagementDeleteNodeRequested(
@@ -782,12 +784,7 @@ void main() {
           ),
         );
         await Future<void>.delayed(const Duration(milliseconds: 10));
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'node_mgmt_delete_falls_back_to_confirmed',
-          actual: bloc.state.selectedNode,
-          expected: bloc.state.confirmedNode,
-        );
+        expect(bloc.state.selectedNode, bloc.state.confirmedNode);
 
         // 3. Auto-receive toggle rolls back on persistence failure.
         bloc.add(
@@ -799,12 +796,7 @@ void main() {
           ),
         );
         await Future<void>.delayed(const Duration(milliseconds: 10));
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'node_mgmt_auto_receive_rollback_on_save_fail',
-          actual: bloc.state.autoReceive,
-          expected: true,
-        );
+        expect(bloc.state.autoReceive, isTrue);
       },
     );
   });

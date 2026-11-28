@@ -155,11 +155,11 @@ class _PopulatedState extends State<_Populated> {
     l10n: context.l10n,
   );
 
-  bool get _isInputValid =>
-      _qsrAmountController.text.isNotEmpty &&
-      _qsrAmountError == null &&
-      _beneficiaryAddressController.text.isNotEmpty &&
-      _beneficiaryAddressError == null;
+  bool get _isInputValid => canFusePlasma(
+    amountText: _qsrAmountController.text,
+    maxQsrBalance: _maxQsrAmount,
+    beneficiaryAddress: _beneficiaryAddressController.text,
+  );
 
   @override
   void initState() {

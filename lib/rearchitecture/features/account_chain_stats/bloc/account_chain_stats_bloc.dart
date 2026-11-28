@@ -8,11 +8,16 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// Fetches account-chain block statistics for a given wallet address.
 class AccountChainStatsBloc extends FetchBloc<AccountChainStats> {
   /// Creates an [AccountChainStatsBloc].
-  AccountChainStatsBloc({required super.zenon, Stream<bool>? wsRestartedStream})
-    : super(
-        fromJsonT: AccountChainStats.fromJson,
-        toJsonT: (AccountChainStats data) => data.toJson(),
-      ) {
+  AccountChainStatsBloc({
+    required super.zenon,
+    Stream<bool>? wsRestartedStream,
+    int pageSize = rpcMaxPageSize,
+  }) : assert(pageSize > 0, 'pageSize must be positive'),
+       _pageSize = pageSize,
+       super(
+         fromJsonT: AccountChainStats.fromJson,
+         toJsonT: (AccountChainStats data) => data.toJson(),
+       ) {
     _wsRestartSubscription = wsRestartedStream?.listen((bool restarted) {
       final Address? address = _lastRequestedAddress;
       if (restarted && address != null && !isClosed) {
@@ -21,6 +26,7 @@ class AccountChainStatsBloc extends FetchBloc<AccountChainStats> {
     });
   }
 
+  final int _pageSize;
   StreamSubscription<bool>? _wsRestartSubscription;
   Address? _lastRequestedAddress;
 
@@ -37,12 +43,12 @@ class AccountChainStatsBloc extends FetchBloc<AccountChainStats> {
       throw EmptyAccountChainException();
     }
 
-    final int pageCount = (blockCount / rpcMaxPageSize).ceil();
+    final int pageCount = (blockCount / _pageSize).ceil();
     final List<AccountBlock> allBlocks = <AccountBlock>[];
 
     for (int i = 0; i < pageCount; i++) {
       final AccountBlockList response = await zenon.ledger
-          .getAccountBlocksByHeight(address, (rpcMaxPageSize * i) + 1);
+          .getAccountBlocksByHeight(address, (_pageSize * i) + 1);
       allBlocks.addAll(response.list ?? <AccountBlock>[]);
     }
 

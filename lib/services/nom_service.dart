@@ -310,6 +310,12 @@ class NoMService extends IChain {
     required int? requestId,
     required bool requireActiveChainMatch,
   }) {
+    if (kCurrentPage == Tabs.lock) {
+      // ReownCoreError does not implement Error/Exception upstream.
+      // ignore: only_throw_errors
+      throw _walletLockedError;
+    }
+
     final SessionData liveSession = _sessionByTopic(topic);
 
     if (requestId != null) {

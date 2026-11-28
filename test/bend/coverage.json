@@ -218,7 +218,11 @@
           "file": "test/exchange_rate_widget_test.dart",
           "kind": "unit"
         }
-      ]
+      ],
+      "model_only_or_normative_laws": {
+        "amounts.exchange_rate_zero_guard": "widget-bound ExchangeRate (tested via exchange_rate_widget_test.dart; model-only in Bend conformance)",
+        "amounts.exchange_rate_positive_defined": "widget-bound ExchangeRate (tested via exchange_rate_widget_test.dart; model-only in Bend conformance)"
+      }
     },
     {
       "area": "wallet_lifecycle",
@@ -291,7 +295,8 @@
         "lib/rearchitecture/features/splash/view/splash_screen.dart",
         "lib/rearchitecture/utils/cubits/hide_widget/hide_widget_cubit.dart",
         "lib/rearchitecture/features/onboarding/view/new_wallet/new_wallet_confirm_seed_screen.dart",
-        "lib/main.dart"
+        "lib/main.dart",
+        "lib/rearchitecture/features/lock/utils/auto_lock_utils.dart"
       ],
       "evidence": [
         {
@@ -322,7 +327,15 @@
           "file": "test/hide_widget/hide_widget_cubit_test.dart",
           "kind": "unit"
         }
-      ]
+      ],
+      "model_only_or_normative_laws": {
+        "wallet_lifecycle.seed_drop_conserves_multiset": "widget-bound NewWalletConfirmSeedScreen drag-drop state (model-only in Bend conformance)",
+        "wallet_lifecycle.seed_verify_mismatch_clears_all": "widget-bound NewWalletConfirmSeedScreen drag-drop state (model-only in Bend conformance)",
+        "wallet_lifecycle.seed_verify_iff_all_matched": "widget-bound NewWalletConfirmSeedScreen drag-drop state (model-only in Bend conformance)",
+        "wallet_lifecycle.window_size_meets_minimums": "main.dart startup windowManager restore (model-only in Bend conformance)",
+        "wallet_lifecycle.window_coord_nonneg_fallback": "main.dart startup windowManager restore (model-only in Bend conformance)",
+        "wallet_lifecycle.window_geometry_idempotent": "main.dart startup windowManager restore (model-only in Bend conformance)"
+      }
     },
     {
       "area": "tx_pipeline",
@@ -784,7 +797,11 @@
         "lib/rearchitecture/features/staking/cubit/staking_cubit.dart",
         "lib/rearchitecture/features/stakes/view/stakes_card.dart",
         "lib/widgets/reusable_widgets/cancel_timer.dart",
-        "lib/utils/constants.dart"
+        "lib/utils/constants.dart",
+        "lib/rearchitecture/features/fused_plasma/utils/fusion_expiration_utils.dart",
+        "lib/rearchitecture/features/fuse_plasma/utils/fuse_plasma_validation_utils.dart",
+        "lib/rearchitecture/features/create_stake/utils/stake_duration_utils.dart",
+        "lib/rearchitecture/features/stake_collect/utils/stake_reward_utils.dart"
       ],
       "evidence": [
         {
@@ -811,7 +828,14 @@
           "file": "test/cancel_stake/bloc/cancel_stake_bloc_test.dart",
           "kind": "unit"
         }
-      ]
+      ],
+      "model_only_or_normative_laws": {
+        "plasma_staking.cancel_timer_stopped_idempotent": "normative target for CancelTimer post-zero countdown behavior",
+        "plasma_staking.cancel_timer_terminates_cleanly": "normative target for CancelTimer post-zero countdown behavior",
+        "plasma_staking.cancel_timer_no_storm_after_zero": "normative target for CancelTimer post-zero countdown behavior",
+        "plasma_staking.stake_lock_expired_at_or_past": "normative target for StakesCard exact-zero expiration boundary",
+        "plasma_staking.stake_lock_positive_countdown_before_exp": "normative target for StakesCard exact-zero expiration boundary"
+      }
     },
     {
       "area": "pillars_sentinels",
@@ -870,7 +894,8 @@
         "lib/rearchitecture/features/pillar_deposit_qsr/bloc/pillar_deposit_qsr_bloc.dart",
         "lib/rearchitecture/features/sentinel_deposit_qsr/bloc/sentinel_deposit_qsr_bloc.dart",
         "lib/rearchitecture/features/delegation/bloc/delegation_bloc.dart",
-        "lib/rearchitecture/features/update_pillar/bloc/update_pillar_bloc.dart"
+        "lib/rearchitecture/features/update_pillar/bloc/update_pillar_bloc.dart",
+        "lib/rearchitecture/features/pillars/utils/pillar_rules_utils.dart"
       ],
       "evidence": [
         {
@@ -905,7 +930,11 @@
           "file": "test/deploy_sentinel/bloc/deploy_sentinel_bloc_test.dart",
           "kind": "unit"
         }
-      ]
+      ],
+      "model_only_or_normative_laws": {
+        "pillars_sentinels.deposit_confirm_rejects_zero_amount": "normative target for Pillar/SentinelDepositQsrBloc zero-amount defense-in-depth",
+        "pillars_sentinels.deposit_confirm_strictly_increases": "normative target for Pillar/SentinelDepositQsrBloc deposit confirmation"
+      }
     },
     {
       "area": "tokens_zts",
@@ -965,7 +994,8 @@
         "lib/rearchitecture/features/create_token_stepper/bloc/issue_token_bloc.dart",
         "lib/rearchitecture/features/mint_token/bloc/mint_token_bloc.dart",
         "lib/rearchitecture/features/burn_token/bloc/burn_token_bloc.dart",
-        "lib/utils/zts_utils.dart"
+        "lib/utils/zts_utils.dart",
+        "lib/rearchitecture/features/create_token_stepper/utils/token_validation_utils.dart"
       ],
       "evidence": [
         {
@@ -1063,7 +1093,8 @@
         "lib/rearchitecture/features/reclaim_deposit/bloc/reclaim_deposit_bloc.dart",
         "lib/rearchitecture/features/start_p2p_swap/bloc/start_p2p_swap_bloc.dart",
         "lib/rearchitecture/features/join_p2p_swap/bloc/join_p2p_swap_bloc.dart",
-        "lib/rearchitecture/features/complete_swap/bloc/complete_swap_bloc.dart"
+        "lib/rearchitecture/features/complete_swap/bloc/complete_swap_bloc.dart",
+        "lib/rearchitecture/features/initial_htlc_validation/bloc/initial_htlc_validation_bloc.dart"
       ],
       "evidence": [
         {
@@ -1102,7 +1133,10 @@
           "file": "test/complete_swap/bloc/complete_swap_bloc_test.dart",
           "kind": "unit"
         }
-      ]
+      ],
+      "model_only_or_normative_laws": {
+        "p2p_htlc.completed_is_terminal_absorbing": "normative target documenting HtlcSwapSyncService._getReclaimUpdate completed-state guard gap"
+      }
     },
     {
       "area": "accelerator",
@@ -1160,7 +1194,8 @@
         "lib/rearchitecture/features/accelerator_donation_stepper/bloc/submit_donation_bloc.dart",
         "lib/rearchitecture/features/create_project_stepper/bloc/create_project_bloc.dart",
         "lib/rearchitecture/features/create_phase_stepper/bloc/create_phase_bloc.dart",
-        "lib/rearchitecture/features/accelerator_projects/bloc/vote_project_bloc.dart"
+        "lib/rearchitecture/features/accelerator_projects/bloc/vote_project_bloc.dart",
+        "lib/rearchitecture/features/accelerator_projects/utils/accelerator_lifecycle_utils.dart"
       ],
       "evidence": [
         {

@@ -328,7 +328,7 @@ class _PopulatedState extends State<_Populated> {
       mainAxisSize: .min,
       children: <Widget>[
         Visibility(
-          visible: _accountInfo!.znn()! >= kMinDelegationAmount,
+          visible: canDelegateWithZnnBalance(_accountInfo!.znn()!),
           child: LoadingButton(
             onPressed: () {
               delegateButtonKey.currentState?.animateForward();

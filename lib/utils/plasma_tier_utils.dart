@@ -1,10 +1,11 @@
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Minimum plasma required for average-tier transactions (e.g. token issuance).
-const int kPlasmaAverageThreshold = 189000;
+const int kPlasmaAverageThreshold = kIssueTokenPlasmaAmountNeeded;
 
 /// Minimum plasma required for high-tier transactions (e.g. Pillar operations).
-const int kPlasmaHighThreshold = 252000;
+const int kPlasmaHighThreshold = kPillarPlasmaAmountNeeded;
 
 /// Discrete plasma sufficiency tiers displayed across Syrius UI indicators.
 enum PlasmaTier {

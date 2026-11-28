@@ -311,7 +311,7 @@ void main() {
   group('HTLC window and expiration helpers', () {
     test('evaluates exact cutoff boundaries', () {
       const int cutoff = 100000;
-      const int exp = cutoff + kDefaultMinSafeJoinSeconds;
+      final int exp = cutoff + kDefaultMinSafeJoinSeconds;
 
       final HtlcWindowDecision before = evaluateHtlcJoinWindow(
         expirationTime: exp,

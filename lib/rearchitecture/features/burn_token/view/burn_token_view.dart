@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/burn_token/bloc/burn_token_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/notifications.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/utils/token_capabilities.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -112,9 +113,20 @@ class _ViewState extends State<_View> {
   }
 
   Widget _buildBurnButton() {
+    final bool canBurn =
+        _amount.isNotEmpty &&
+        _amountError == null &&
+        canBurnTokenAmount(
+          amount: _amount.extractDecimals(widget._token.decimals),
+          balance: _maxAmount,
+          totalSupply: widget._token.totalSupply,
+          isBurnable: widget._token.isBurnable,
+          isSelectedOwner: kSelectedAddress == widget._token.owner.toString(),
+        );
+
     return LoadingButton.stepper(
       text: context.l10n.burn,
-      onPressed: _amountError == null ? _burnToken : null,
+      onPressed: canBurn ? _burnToken : null,
       key: _buttonKey,
     );
   }

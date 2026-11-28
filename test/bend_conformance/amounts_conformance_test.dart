@@ -525,7 +525,22 @@ void main() {
           }
         }
 
-        expect(seenOps, isNotEmpty);
+        expect(
+          seenOps,
+          equals(const <String>{
+            'asset_cmp',
+            'big_min_max',
+            'correct_value',
+            'extract_decimals',
+            'password_match',
+            'password_strength',
+            'plasma_tier',
+            'resolve_max_amount',
+            'roundtrip_decimals',
+            'validate_address_label',
+            'validate_protocol_args',
+          }),
+        );
       },
     );
 
@@ -540,11 +555,9 @@ void main() {
           ztsB,
           kZnnCoin,
         ]);
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'sort_assets_znn_qsr_zts',
-          actual: sorted.map((Token t) => t.symbol).toList(),
-          expected: <String>['ZNN', 'QSR', 'T1', 'T2'],
+        expect(
+          sorted.map((Token t) => t.symbol).toList(),
+          equals(<String>['ZNN', 'QSR', 'T1', 'T2']),
         );
 
         final String? negativeClamped = resolveMaxAmountText(
@@ -552,24 +565,14 @@ void main() {
           decimals: 0,
           currentAmount: BigInt.from(10),
         );
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'resolve_max_negative_clamps_to_zero',
-          actual: negativeClamped,
-          expected: '0',
-        );
+        expect(negativeClamped, equals('0'));
 
         final String? alreadyMax = resolveMaxAmountText(
           maxBalance: BigInt.from(42),
           decimals: 0,
           currentAmount: BigInt.from(42),
         );
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'resolve_max_noop_when_equal',
-          actual: alreadyMax,
-          expected: null,
-        );
+        expect(alreadyMax, isNull);
       },
     );
   });

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pillars/utils/pillar_rules_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -55,7 +56,11 @@ class SentinelZnnManagementStep extends StatelessWidget {
         KeyedSubtree(
           key: const Key('sentinel_znn_next_button'),
           child: OutlinedButton(
-            onPressed: accountInfo.znn()! >= sentinelRegisterZnnAmount
+            onPressed:
+                hasSufficientSpawnZnn(
+                  znnBalance: accountInfo.znn()!,
+                  requiredZnn: sentinelRegisterZnnAmount,
+                )
                 ? onNextPressed
                 : null,
             child: Text(context.l10n.next),

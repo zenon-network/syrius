@@ -86,21 +86,16 @@ void main() {
               expected: expected,
             );
             // Conservation and bounded-fraction sanity checks.
-            expectBendMatch(
-              domain: _kDomain,
-              caseId: '$caseId/pie_conservation',
-              actual: (summary.clampedDeposit + summary.remaining).toInt(),
-              expected: cost.toInt(),
+            expect(
+              (summary.clampedDeposit + summary.remaining).toInt(),
+              equals(cost.toInt()),
             );
-            expectBendMatch(
-              domain: _kDomain,
-              caseId: '$caseId/fractions_bounded',
-              actual:
-                  summary.depositedFraction >= 0.0 &&
+            expect(
+              summary.depositedFraction >= 0.0 &&
                   summary.remainingFraction >= 0.0 &&
                   summary.depositedFraction + summary.remainingFraction <=
                       1.0 + 1e-12,
-              expected: true,
+              isTrue,
             );
           case 'safe_uptime_pct':
             final int produced = requireInt(args, 'produced');
@@ -135,8 +130,8 @@ void main() {
             );
           case 'reward_pct':
             final int pct = requireInt(args, 'pct');
-            final bool valid = pct >= 0 && pct <= 100;
-            final int ownerPct = valid ? 100 - pct : 0;
+            final bool valid = isValidPillarRewardPercentage(pct);
+            final int ownerPct = computeOwnerRewardPercentage(pct);
             expectBendMatch(
               domain: _kDomain,
               caseId: caseId,
@@ -148,8 +143,9 @@ void main() {
             );
           case 'can_delegate':
             final int znnBal = requireInt(args, 'znn_bal');
-            final bool actual =
-                BigInt.from(znnBal) * _kBaseUnit >= kMinDelegationAmount;
+            final bool actual = canDelegateWithZnnBalance(
+              BigInt.from(znnBal) * _kBaseUnit,
+            );
             expectBendMatch(
               domain: _kDomain,
               caseId: caseId,
@@ -168,10 +164,8 @@ void main() {
               },
             );
             final bool actual = switch (role) {
-              'pillar' => reward.znnAmount > BigInt.zero,
-              'sentinel' =>
-                reward.znnAmount > BigInt.zero ||
-                    reward.qsrAmount > BigInt.zero,
+              'pillar' => canCollectPillarRewards(reward),
+              'sentinel' => canCollectSentinelRewards(reward),
               _ => fail('Unknown role "$role"'),
             };
             expectBendMatch(
@@ -181,20 +175,20 @@ void main() {
               expected: expected,
             );
           case 'parallel_spawn_readiness':
-            final int plasma = requireInt(args, 'plasma');
-            final int plasmaReq = requireInt(args, 'plasma_req');
-            final int deposit = requireInt(args, 'deposit');
-            final int qsrCost = requireInt(args, 'qsr_cost');
-            final int znnBal = requireInt(args, 'znn_bal');
-            final int znnReq = requireInt(args, 'znn_req');
-            final PillarQsrDepositSummary qsrSummary =
+            final bool actual =
+                hasSufficientSpawnPlasma(
+                  currentPlasma: requireInt(args, 'plasma'),
+                  requiredPlasma: requireInt(args, 'plasma_req'),
+                ) &&
                 computePillarQsrDepositSummary(
                   qsrBalance: BigInt.zero,
-                  qsrCost: BigInt.from(qsrCost),
-                  qsrDeposit: BigInt.from(deposit),
+                  qsrCost: BigInt.from(requireInt(args, 'qsr_cost')),
+                  qsrDeposit: BigInt.from(requireInt(args, 'deposit')),
+                ).isCovered &&
+                hasSufficientSpawnZnn(
+                  znnBalance: BigInt.from(requireInt(args, 'znn_bal')),
+                  requiredZnn: BigInt.from(requireInt(args, 'znn_req')),
                 );
-            final bool actual =
-                plasma >= plasmaReq && qsrSummary.isCovered && znnBal >= znnReq;
             expectBendMatch(
               domain: _kDomain,
               caseId: caseId,
@@ -206,28 +200,27 @@ void main() {
         }
       }
 
-      expect(seenOps, isNotEmpty);
+      expect(
+        seenOps,
+        equals(const <String>{
+          'role_constants',
+          'qsr_deposit_summary',
+          'safe_uptime_pct',
+          'valid_pillar_producer',
+          'reward_pct',
+          'can_delegate',
+          'can_collect_rewards',
+          'parallel_spawn_readiness',
+        }),
+      );
     });
 
     test('Validations.pillarName enforces protocol length and grammar', () {
-      expectBendMatch(
-        domain: _kDomain,
-        caseId: 'pillar_name_empty',
-        actual: Validations.pillarName('') == null,
-        expected: false,
-      );
-      expectBendMatch(
-        domain: _kDomain,
-        caseId: 'pillar_name_max_40',
-        actual: Validations.pillarName('A' * pillarNameMaxLength) == null,
-        expected: true,
-      );
-      expectBendMatch(
-        domain: _kDomain,
-        caseId: 'pillar_name_over_40',
-        actual:
-            Validations.pillarName('A' * (pillarNameMaxLength + 1)) == null,
-        expected: false,
+      expect(Validations.pillarName(''), isNotNull);
+      expect(Validations.pillarName('A' * pillarNameMaxLength), isNull);
+      expect(
+        Validations.pillarName('A' * (pillarNameMaxLength + 1)),
+        isNotNull,
       );
     });
   });

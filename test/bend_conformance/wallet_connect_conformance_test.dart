@@ -321,55 +321,56 @@ int _realRevalidateInteractiveRequest({
   required int activeChainId,
   required _MockWeb3WalletService walletService,
 }) {
-  kCurrentPage = walletLocked ? Tabs.lock : Tabs.walletConnect;
-  if (kCurrentPage == Tabs.lock) {
-    return 9000;
-  }
-
-  setChainIdentifier(chainIdentifier: activeChainId);
-  final String sessionCaip2 = _parseNoMChainId(sessionChain).chain();
-  when(walletService.getActiveSessions).thenReturn(
-    sessionActive
-        ? <String, SessionData>{
-            'topic-reval': _buildSession(
-              topic: 'topic-reval',
-              caip2Chain: sessionCaip2,
-            ),
-          }
-        : <String, SessionData>{},
-  );
-  when(walletService.getPendingSessionRequests).thenReturn(
-    requestStillPending
-        ? <String, SessionRequest>{
-            '55': SessionRequest(
-              id: 55,
-              topic: 'topic-reval',
-              method: method,
-              chainId: sessionCaip2,
-              params: const <String, dynamic>{},
-              verifyContext: const VerifyContext(
-                origin: 'https://dapp.example',
-                validation: Validation.VALID,
-                verifyUrl: '',
-              ),
-            ),
-          }
-        : <String, SessionRequest>{},
-  );
-
-  final NoMService nom = NoMService(
-    reference: _parseNoMChainId(serviceChain),
-    web3WalletService: walletService,
-  );
+  final Tabs? savedPage = kCurrentPage;
+  kCurrentPage = walletLocked ? Tabs.lock : Tabs.transfer;
   try {
-    nom.revalidateInteractiveRequest(
-      topic: 'topic-reval',
-      requestId: hasRequestId ? 55 : null,
-      requireActiveChainMatch: method != 'znn_info',
+    setChainIdentifier(chainIdentifier: activeChainId);
+    final String sessionCaip2 = _parseNoMChainId(sessionChain).chain();
+    when(walletService.getActiveSessions).thenReturn(
+      sessionActive
+          ? <String, SessionData>{
+              'topic-reval': _buildSession(
+                topic: 'topic-reval',
+                caip2Chain: sessionCaip2,
+              ),
+            }
+          : <String, SessionData>{},
     );
-    return 0;
-  } on ReownCoreError catch (error) {
-    return error.code;
+    when(walletService.getPendingSessionRequests).thenReturn(
+      requestStillPending
+          ? <String, SessionRequest>{
+              '55': SessionRequest(
+                id: 55,
+                topic: 'topic-reval',
+                method: method,
+                chainId: sessionCaip2,
+                params: const <String, dynamic>{},
+                verifyContext: const VerifyContext(
+                  origin: 'https://dapp.example',
+                  validation: Validation.VALID,
+                  verifyUrl: '',
+                ),
+              ),
+            }
+          : <String, SessionRequest>{},
+    );
+
+    final NoMService nom = NoMService(
+      reference: _parseNoMChainId(serviceChain),
+      web3WalletService: walletService,
+    );
+    try {
+      nom.revalidateInteractiveRequest(
+        topic: 'topic-reval',
+        requestId: hasRequestId ? 55 : null,
+        requireActiveChainMatch: method != 'znn_info',
+      );
+      return 0;
+    } on ReownCoreError catch (error) {
+      return error.code;
+    }
+  } finally {
+    kCurrentPage = savedPage;
   }
 }
 
@@ -437,21 +438,11 @@ void main() {
               actual: actual,
               expected: expected,
             );
-            expectBendMatch(
-              domain: _kDomain,
-              caseId: '$caseId/is_wc_uri',
-              actual: isWalletConnectUri(rawLink, isWindows: isWindows),
-              expected: actual,
-            );
+            expect(isWalletConnectUri(rawLink, isWindows: isWindows), actual);
             if (extracted != null) {
-              expectBendMatch(
-                domain: _kDomain,
-                caseId: '$caseId/idempotent',
-                actual: extractWalletConnectUri(
-                  extracted,
-                  isWindows: isWindows,
-                ),
-                expected: extracted,
+              expect(
+                extractWalletConnectUri(extracted, isWindows: isWindows),
+                extracted,
               );
             }
 
@@ -769,7 +760,25 @@ void main() {
         }
       }
 
-      expect(seenOps, isNotEmpty);
+      expect(
+        seenOps,
+        equals(<String>{
+          'extract_wc_uri',
+          'interactive_request_key_eq',
+          'wc_error_to_json_rpc_code',
+          'is_verify_scam',
+          'describe_verify_context',
+          'sanitize_http_url',
+          'display_value',
+          'unsupported_required_namespace_reason',
+          'build_approved_namespaces',
+          'encode_signed_message_payload',
+          'validate_send_account_block',
+          'resolve_signer_address',
+          'revalidate_interactive_request',
+          'parallel_send_preflight',
+        }),
+      );
     });
   });
 }

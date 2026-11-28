@@ -53,28 +53,50 @@ actually detect regressions.
    `oracle_<domain>_<offset>.bend` files inside `.bend-work/run-<id>/oracles/`
    (explicitly `0755`/`0644` for non-root Linux container UID `10001`), using
    Bend parallel-let (`c0 c1 c2 c3 = _chunk_0() _chunk_1() _chunk_2() _chunk_3()`)
-   over balanced binary `++` trees, and runs all chunks concurrently through
-   real Bend to emit `.bend-work/run-<id>/vectors.json`. No Python or Dart
-   substitute model supplies expected values.
+   over balanced binary `++` trees, and runs all 39 chunks concurrently via
+   `ThreadPoolExecutor` through real Bend to emit
+   `.bend-work/run-<id>/vectors.json`. No Python or Dart substitute model
+   supplies expected values.
 4. **Dart <-> Bend differential conformance (`Stage 4`)**: Invokes
    `flutter test --no-pub --tags bend --machine` with `BEND_VECTORS` pointing to
-   the freshly generated `vectors.json`. Strictly parses `--machine` NDJSON
-   events and fails on any test failure, error, skipped test, 0-test run, or
-   missing required conformance suite.
+   the freshly generated `vectors.json`. Every conformance op across all 11
+   suites exercises real production `lib/` code, verifies the exact expected
+   `seenOps` set (catching missing/unexecuted ops), and emits `BEND_MISMATCH`
+   strictly when real `lib/` output disagrees with Bend `vectors.json`
+   `expected`. Strictly parses `--machine` NDJSON events and fails on any test
+   failure, error, skipped test, 0-test run, or missing required conformance
+   suite.
 5. **Parallel Bend model fault injection (`Stage 5`)**: Copies domain models
    into `.bend-work/run-<id>/mut-model-<name>/`, injects exact single-hit
-   semantic faults into `model.bend`, and asserts that (a) the mutated
-   `model.bend` still typechecks cleanly, and (b) `PROOF.bend` fails with
-   `SOME PROOFS FAIL` and `Location: Laws.<expected_law>`.
+   semantic faults into `model.bend`, asserts that (a) the mutated `model.bend`
+   still typechecks cleanly, and (b) `PROOF.bend` fails with
+   `SOME PROOFS FAIL` and `Location: Laws.<expected_law>`, and cleans up each
+   temporary mutation tree in a `finally:` block.
 6. **Parallel real Dart source fault injection (`Stage 6`)**: Stages an
    isolated symlink-overlay workspace under `.bend-work/run-<id>/mut-dart-<name>/`
    (copying `pubspec.*`, `dart_test.yaml`, `l10n.yaml`, and
    `.dart_tool/{package_config.json,package_graph.json,version}`, symlinking
    `assets/`, `test/`, `drift_schemas/`, and all untouched `lib/` siblings so
-   large embedded node binaries are never copied), mutates only the single copied target `lib/.../*.dart` file, and asserts the
-   matching conformance test fails with `BEND_MISMATCH`. Compile/load/timeout
-   errors are classified as `ERROR`, never `caught`. Live working tree files are
-   never modified.
+   large embedded node binaries are never copied), mutates only the single
+   copied target `lib/.../*.dart` file across all **31** deliberate Dart faults,
+   and asserts the matching conformance test fails with `BEND_MISMATCH`.
+   Compile/load/timeout errors are classified as `ERROR`, never `caught`. Live
+   working tree files are never modified.
+
+### Parallelism Model (Host Concurrency vs Bend Parallel-Let)
+
+- **Actual wall-clock parallelism**: comes from Python's `ThreadPoolExecutor`
+  in `test/bend/run.py`, running containerized Bend processes and isolated
+  Flutter test overlays concurrently across 13 proof/verdict targets, 39 oracle
+  chunks, 22 Bend model mutations, and 31 real Dart source mutations (~3x
+  wall-clock speedup over serial execution).
+- **Bend parallel-let (`a b = f(x) g(y)`)**: Oracle `main() -> String` modules
+  are normalized by the Bend checker rather than compiled to native/GPU
+  parallel executables. Domain models and root `LAWS.bend` include Bend
+  parallel-let evaluators and prove `--verdict`-verified fork-join equivalence
+  to their sequential counterparts (`*_par_equiv_seq` / `parallel_*_equiv`),
+  ensuring the pure specifications are ready for compiled parallel Bend targets
+  without overclaiming GPU/native parallel execution during checking.
 
 ### Toolchain Pinning & Container Hardening
 
@@ -110,11 +132,42 @@ Reviewers and maintainers must keep these boundaries explicit:
 
 ### What Differential Conformance & Mutation Tests Demonstrate
 - Bounded agreement between real Syrius Dart production code (`lib/`) and fresh
-  Bend oracle outputs across representative, boundary, exhaustive short-sequence,
-  and seeded-history inputs.
+  Bend oracle outputs across representative, boundary, exhaustive short-sequence
+  (`--depth`), and deterministic seeded-history (`--seed`) inputs. Every op in
+  all 11 conformance suites exercises live production `lib/` code, verifies
+  exact `seenOps` coverage, and emits `BEND_MISMATCH` strictly on Bend oracle
+  mismatches (never on hardcoded Dart literals).
 - Sensitivity of both Bend laws and Dart conformance suites to realistic
-  semantic bugs via deliberate model mutations (`Stage 5`) and real Dart source
-  mutations (`Stage 6`).
+  semantic bugs via **22** deliberate Bend model mutations (`Stage 5`) and
+  **31** deliberate real Dart source mutations (`Stage 6`).
+
+### Model-Only & Normative Laws (Not Differentially Conformance-Tested Against `lib/`)
+
+While all 445 laws are mechanically checked by Bend and Lean `--verdict`, a
+small set of laws intentionally formalize normative invariants or widget/OS-edge
+behaviors that are NOT differentially conformance-tested against `lib/`:
+
+- **`CancelTimer` clean post-zero termination** (`cancel_timer_*` in
+  `plasma_staking`): normative contract for `lib/widgets/reusable_widgets/cancel_timer.dart`,
+  whose periodic timer fix is deferred to a dedicated widget PR.
+- **`StakesCard` exact-zero countdown UI formatting** (`stake_lock_*` in
+  `plasma_staking`): widget-bound countdown presentation.
+- **`HtlcSwapSyncService._getReclaimUpdate` terminal `completed` state guard**
+  (`completed_is_terminal_absorbing` in `p2p_htlc`): normative contract; real
+  `htlc_swap_sync_service.dart` lacks an explicit `completed` guard and is
+  tracked below for dedicated hardening.
+- **`NewWalletConfirmSeedScreen` drag-drop multiset reducer**
+  (`seed_drop_conserves_multiset`, `seed_verify_*` in `wallet_lifecycle`):
+  Flutter widget drag-and-drop state.
+- **Desktop window geometry clamping** (`window_size_meets_minimums`,
+  `window_coord_nonneg_fallback`, `window_geometry_idempotent` in
+  `wallet_lifecycle`): `lib/main.dart` desktop `window_manager` startup boundary.
+- **`DepositQsrBloc` / `WithdrawQsrBloc` zero-amount & snapshot polling guards**
+  (`deposit_confirm_*`, `withdraw_confirm_*` in `pillars_sentinels`): async RPC
+  confirmation polling boundary.
+- **`ExchangeRate` zero-guard model laws** (`exchange_rate_zero_guard`,
+  `exchange_rate_positive_defined` in `amounts`): UI exchange-rate formatting
+  boundary.
 
 ### What Is NOT Formally Proved
 - **Flutter UI rendering, layout, focus, and animation**: Widget trees, pixel
@@ -203,16 +256,21 @@ preserved and documented below.
     `_buildSearchToken(...)` and compared `state.query != searchQuery.trim()`,
     preventing whitespace-only or padded search input from stalling on an
     indefinite loading spinner.
+11. **`NoMService.revalidateInteractiveRequest` authoritative lock guard**
+    (`lib/services/nom_service.dart`): Enforced `kCurrentPage == Tabs.lock`
+    (`code: 9000`) directly inside `revalidateInteractiveRequest(...)` so the
+    post-confirmation revalidation entrypoint itself blocks locked-wallet
+    execution rather than relying solely on caller pre-checks.
 
-### Pure Flutter-Free UI-Edge Helpers Extracted
+### Pure Flutter-Free Production Helpers Extracted (18 Modules)
 
-To let Dart conformance tests exercise real `lib/` edge logic without Flutter
-rendering dependencies, the following pure helpers were extracted and wired into
-their existing widgets/utils:
+To let both production widgets/BLoCs and Dart conformance tests execute the
+exact same pure `lib/` logic without Flutter rendering dependencies, **18**
+pure helpers are wired live into Syrius production code:
 
-- `lib/utils/plasma_tier_utils.dart`: `PlasmaTier`, `classifyPlasmaTier` (used
-  by both `ColorUtils.getPlasmaColor` and `WidgetUtils.getPlasmaToolTipMessage`,
-  guaranteeing tier-color-tooltip bijection)
+- `lib/utils/plasma_tier_utils.dart`: `PlasmaTier`, `classifyPlasmaTier` (derives
+  thresholds from `constants.dart`; used by `ColorUtils.getPlasmaColor` and
+  `WidgetUtils.getPlasmaToolTipMessage`)
 - `lib/utils/password_strength_utils.dart`: `PasswordStrengthTier`,
   `classifyPasswordStrength`
 - `lib/rearchitecture/utils/functions/tokens.dart`: `compareAssets`, `sortAssets`
@@ -221,18 +279,44 @@ their existing widgets/utils:
 - `lib/rearchitecture/utils/functions/pillar_qsr_deposit_utils.dart`:
   `PillarQsrDepositSummary`, `computePillarQsrDepositSummary` (shared by
   `PillarQsrManagementStep` and `SentinelQsrManagementStep`)
+- `lib/rearchitecture/features/lock/utils/auto_lock_utils.dart`:
+  `shouldAutoLockOnTimer` (used by `_MainAppContainerState._createAutoLockTimer`)
 - `lib/rearchitecture/features/pillars/utils/pillar_momentum_utils.dart`:
   `computeMomentumUptimePercentage`
+- `lib/rearchitecture/features/pillars/utils/pillar_rules_utils.dart`:
+  `canDelegateWithZnnBalance`, `isValidPillarRewardPercentage`,
+  `computeOwnerRewardPercentage`, `canCollectPillarRewards`,
+  `canCollectSentinelRewards`, `hasPillarRewardHistory`,
+  `hasSentinelRewardHistory`, `hasSufficientSpawnPlasma`,
+  `hasSufficientSpawnZnn`
+- `lib/rearchitecture/features/fused_plasma/utils/fusion_expiration_utils.dart`:
+  `isFusionRevocable`, `computeFusionCountdownSeconds`
+- `lib/rearchitecture/features/fuse_plasma/utils/fuse_plasma_validation_utils.dart`:
+  `isIntegerQsrAmount`, `canFusePlasma`
+- `lib/rearchitecture/features/create_stake/utils/stake_duration_utils.dart`:
+  `stakeDurationForMonths`, `isValidStakeMonths`, `buildValidStakeDurations`,
+  `canCreateStake`
+- `lib/rearchitecture/features/stake_collect/utils/stake_reward_utils.dart`:
+  `canCollectStakeRewards`
 - `lib/rearchitecture/features/tokens/utils/token_capabilities.dart`:
-  `TokenCapabilities`, `evaluateTokenCapabilities` (used by `TokenCard`)
+  `TokenCapabilities`, `evaluateTokenCapabilities`, `canMintTokenAmount`,
+  `canBurnTokenAmount`
+- `lib/rearchitecture/features/create_token_stepper/utils/token_validation_utils.dart`:
+  `kTokenDomainMaxLength`, `isValidTokenDecimals`, `isValidTokenDomainLength`,
+  `validateTokenNameError`, `validateTokenSymbolError`,
+  `validateTokenDomainError`, `resolveEffectiveTokenMaxSupply`,
+  `validateTokenSupplyMetrics`
 - `lib/rearchitecture/features/accelerator_projects/utils/accelerator_vote_summary.dart`:
-  `AcceleratorVoteSummary`, `computeAcceleratorVoteSummary` (used by
-  `AcceleratorProjectListItem`)
+  `AcceleratorVoteSummary`, `computeAcceleratorVoteSummary`
+- `lib/rearchitecture/features/accelerator_projects/utils/accelerator_lifecycle_utils.dart`:
+  `hasSufficientProjectCreationFee`, `isValidAcceleratorProjectBudget`,
+  `canCreateAcceleratorPhase`, `canUpdateAcceleratorPhase`
 - `lib/rearchitecture/features/accelerator_donation_stepper/bloc/submit_donation_bloc.dart`:
   `isValidDonationAmounts`
 - `lib/rearchitecture/features/initial_htlc_validation/utils/htlc_window_utils.dart`:
-  `HtlcWindowDecision`, `evaluateHtlcJoinWindow`, `evaluateHtlcExpiration`
-  (delegated to by `HtlcInfoExtension`)
+  `HtlcWindowDecision`, `evaluateHtlcJoinWindow`, `evaluateHtlcExpiration`,
+  `exceedsMaxInitialHtlcDuration` (used live by `HtlcInfoExtension`,
+  `InitialHtlcValidationBloc`, and `ReclaimDepositBloc`)
 
 ### Preserved Behaviors & Follow-Up Hardening Candidates
 
@@ -320,14 +404,15 @@ python3 -B -m unittest discover -s test/bend -p 'test_*.py' -v
 
 # Ordinary Syrius analysis & unit/widget suite (Docker-free; excludes chain & bend)
 flutter analyze --no-pub
-flutter test --no-pub test --exclude-tags chain --exclude-tags bend
+flutter test --no-pub --exclude-tags chain,bend
 ```
 
 ### CI Integration
 
 - **`.github/workflows/bend.yml`** runs on pull requests to `develop`/`master`,
   pushes to `develop`, and `workflow_dispatch` (with configurable `depth` and
-  `seed` inputs). It runs `flutter pub get --enforce-lockfile`, the Python
+  `seed` inputs; PR and push runs deterministically default to `BEND_DEPTH=3`
+  and `BEND_SEED=1`). It runs `flutter pub get --enforce-lockfile`, the Python
   harness unit tests, and the full `./test/bend/run.sh` gate, uploading
   `.bend-work/run-*/*.log` for 7 days on failure.
 - **`.github/workflows/pr-validation.yml`** runs fast offline checks
@@ -339,7 +424,7 @@ flutter test --no-pub test --exclude-tags chain --exclude-tags bend
 
 ## 5. Domain Law Catalog
 
-### Summary Table (445 Total Lean-Verified Laws, 810 Real Bend Oracle Vectors at Default `depth=3, seed=1`, 44 Fault Injections)
+### Summary Table (445 Total Lean-Verified Laws, 810 Real Bend Oracle Vectors at Default `depth=3, seed=1`, 53 Fault Injections)
 
 Stage 1 audits **398 laws across 12 proof suites** (root `LAWS.bend` + 11 domain
 `LAWS.bend` files across **36 audited `.bend` files**), and Stage 2 also checks
@@ -353,17 +438,17 @@ seeded histories scale with `--depth` and `--seed`).
 | Root `LAWS.bend` / `PROOF.bend` | 17 | Pass | — | All 11 suites + `test/bend/test_harness.py` | — | Cross-cutting invariants composing all 11 domains |
 | `test/bend/common/nat.bend` | 47 | Pass | — | Imported by all 11 domain `PROOF.bend` suites | — | Shared constructive `Bool`/`Nat` algebra, order & refutation lemmas |
 | `test/bend/amounts/` | 39 | Pass | 84 | `amounts_conformance_test.dart` | 2 / 2 | `math_utils`, `extensions`, `input_validators`, `format_utils`, `plasma_tier_utils`, `password_strength_utils`, `amount_max_utils`, `tokens` (`compareAssets`/`sortAssets`), `url_protocol`, `exchange_rate` |
-| `test/bend/wallet_lifecycle/` | 39 | Pass | 94 | `wallet_lifecycle_conformance_test.dart` | 2 / 2 | `wallet_file`, `wallet_service`, `wallet_unlock_bloc`, `lock`, `splash`, `hide_widget_cubit`, `onboarding` seed verification, `window_geometry` |
+| `test/bend/wallet_lifecycle/` | 39 | Pass | 94 | `wallet_lifecycle_conformance_test.dart` | 2 / 3 | `wallet_file`, `wallet_service`, `wallet_unlock_bloc`, `lock`, `auto_lock_utils`, `splash`, `hide_widget_cubit`, `onboarding` seed verification, `window_geometry` |
 | `test/bend/tx_pipeline/` | 43 | Pass | 84 | `tx_pipeline_conformance_test.dart` | 2 / 2 | `account_block_utils`, `pow_generating_status`, `auto_receive_tx`, `poll_until_confirmed`, `infinite_list_bloc`, `fetch_bloc`, `timer_cubit`, `balance`, `account_chain_stats` |
 | `test/bend/node_sync/` | 42 | Pass | 63 | `node_sync_conformance_test.dart` | 2 / 2 | `node_management`, `sync_info_extension`, `node_sync_status_cubit`, `node_utils`, `about`, `notifications`, `settings_wallet_options` |
-| `test/bend/wallet_connect/` | 38 | Pass | 91 | `wallet_connect_conformance_test.dart` | 2 / 2 | `wallet_connect_uri_utils`, `wallet_connect_request_utils`, `wallet_connect_metadata_utils`, `web3wallet_service` namespaces/revalidation, `nom_service` send/signer/sign-payload guards |
+| `test/bend/wallet_connect/` | 38 | Pass | 91 | `wallet_connect_conformance_test.dart` | 2 / 3 | `wallet_connect_uri_utils`, `wallet_connect_request_utils`, `wallet_connect_metadata_utils`, `web3wallet_service` namespaces/revalidation, `nom_service` lock/send/signer/sign-payload guards |
 | `test/bend/wc_crash_safety/` | 36 | Pass | 58 | `wc_crash_safety_conformance_test.dart` | 2 / 2 | `sticky_fallback_secure_store`, `ConfirmingRelayClient`, `web3wallet_service` reset barriers, generation fencing, topic epochs & idempotent delivery |
-| `test/bend/plasma_staking/` | 27 | Pass | 77 | `plasma_staking_conformance_test.dart` | 2 / 2 | `fuse_plasma`, `fused_plasma`, `cancel_plasma`, `plasma_stats`, `create_stake`, `stakes`, `staking`, `stake_collect`, `staking_rewards_history`, `cancel_timer` |
-| `test/bend/pillars_sentinels/` | 26 | Pass | 70 | `pillars_sentinels_conformance_test.dart` | 2 / 2 | `pillars`, `create_pillar_*`, `deploy_pillar`, `update_pillar*`, `revoke_pillar`, `delegation*`, `undelegate`, `sentinels*`, `pillar_qsr_deposit_utils`, `pillar_momentum_utils` |
-| `test/bend/tokens_zts/` | 28 | Pass | 78 | `tokens_zts_conformance_test.dart` | 2 / 2 | `tokens`, `create_token*`, `mint_token`, `burn_token`, `transfer_token`, `token_favorite`, `search_token`, `token_capabilities`, `zts_utils` |
-| `test/bend/p2p_htlc/` | 35 | Pass | 59 | `p2p_htlc_conformance_test.dart` | 2 / 2 | `p2p_swap`, `initial_htlc_validation`, `htlc_window_utils`, `reclaim_htlc`, `htlc_swaps_dao`, 2-phase SQLCipher rekey, legacy migrator, `swap_storage_error_sanitizer` |
-| `test/bend/accelerator/` | 28 | Pass | 52 | `accelerator_conformance_test.dart` | 2 / 2 | `accelerator_pillar`, `accelerator_projects`, `accelerator_project_details`, `accelerator_vote_summary`, `accelerator_donation_stepper`, `create_project_stepper`, `create_phase_stepper`, `update_phase_stepper` |
-| **Total** | **445** | **13/13 Pass** | **810** | **11 suites** | **22 / 22** | **All 11 wallet domains + root + shared Nat library** |
+| `test/bend/plasma_staking/` | 27 | Pass | 77 | `plasma_staking_conformance_test.dart` | 2 / 4 | `fuse_plasma`, `fused_plasma`, `fusion_expiration_utils`, `fuse_plasma_validation_utils`, `cancel_plasma`, `plasma_stats`, `create_stake`, `stake_duration_utils`, `stakes`, `staking`, `stake_collect`, `stake_reward_utils`, `staking_rewards_history`, `cancel_timer` |
+| `test/bend/pillars_sentinels/` | 26 | Pass | 70 | `pillars_sentinels_conformance_test.dart` | 2 / 4 | `pillars`, `pillar_rules_utils`, `create_pillar_*`, `deploy_pillar`, `update_pillar*`, `revoke_pillar`, `delegation*`, `undelegate`, `sentinels*`, `pillar_qsr_deposit_utils`, `pillar_momentum_utils` |
+| `test/bend/tokens_zts/` | 28 | Pass | 78 | `tokens_zts_conformance_test.dart` | 2 / 3 | `tokens`, `create_token*`, `token_validation_utils`, `mint_token`, `burn_token`, `transfer_token`, `token_favorite`, `search_token`, `token_capabilities`, `zts_utils` |
+| `test/bend/p2p_htlc/` | 35 | Pass | 59 | `p2p_htlc_conformance_test.dart` | 2 / 3 | `p2p_swap`, `initial_htlc_validation`, `htlc_window_utils`, `reclaim_deposit`, `htlc_swaps_dao`, 2-phase SQLCipher rekey, legacy migrator, `swap_storage_error_sanitizer` |
+| `test/bend/accelerator/` | 28 | Pass | 52 | `accelerator_conformance_test.dart` | 2 / 3 | `accelerator_pillar`, `accelerator_projects`, `accelerator_lifecycle_utils`, `accelerator_project_details`, `accelerator_vote_summary`, `accelerator_donation_stepper`, `create_project_stepper`, `create_phase_stepper`, `update_phase_stepper` |
+| **Total** | **445** | **13/13 Pass** | **810** | **11 suites** | **22 / 31** | **All 11 wallet domains + root + shared Nat library** |
 
 ---
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/accelerator_projects/accelerator_projects.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_project_stepper/create_project_stepper.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/multiple_balance/multiple_balance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -209,7 +210,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
           ),
           StepperUtils.getMaterialStep(
             stepTitle: context.l10n.projectDetails,
-            stepContent: _buildProjectDetailsStepContent(context),
+            stepContent: _buildProjectDetailsStepContent(context, accountInfo),
             stepSubtitle:
                 '${_projectNameController.text} ● '
                 '${_projectZnnAmountController.text} ${kZnnCoin.symbol} ● '
@@ -265,8 +266,9 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
             StepperButton(
               key: const Key('create_project_step1_continue_button'),
               onPressed:
-                  accountInfo.getBalance(kZnnCoin.tokenStandard) >=
-                      projectCreationFeeInZnn
+                  hasSufficientProjectCreationFee(
+                    accountInfo.getBalance(kZnnCoin.tokenStandard),
+                  )
                   ? () {
                       setState(() {
                         _lastCompletedStep =
@@ -283,7 +285,10 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
     );
   }
 
-  Widget _buildProjectDetailsStepContent(BuildContext context) {
+  Widget _buildProjectDetailsStepContent(
+    BuildContext context,
+    AccountInfo accountInfo,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -469,7 +474,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
             StepperButton(
               key: const Key('create_project_step2_continue_button'),
               text: context.l10n.continueText,
-              onPressed: _areInputDetailsValid()
+              onPressed: _areInputDetailsValid(accountInfo)
                   ? () {
                       setState(() {
                         _lastCompletedStep =
@@ -535,7 +540,7 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
     );
   }
 
-  bool _areInputDetailsValid() =>
+  bool _areInputDetailsValid(AccountInfo accountInfo) =>
       Validations.projectName(_projectNameController.text) == null &&
       Validations.projectDescription(_projectDescriptionController.text) ==
           null &&
@@ -555,7 +560,16 @@ class _CreateProjectStepperViewState extends State<CreateProjectStepperView> {
             kQsrProjectMinimumFunds,
             canBeEqualToMin: true,
           ) ==
-          null;
+          null &&
+      isValidAcceleratorProjectBudget(
+        ownerZnnBalance: accountInfo.getBalance(kZnnCoin.tokenStandard),
+        znnNeeded: _projectZnnAmountController.text.extractDecimals(
+          coinDecimals,
+        ),
+        qsrNeeded: _projectQsrAmountController.text.extractDecimals(
+          coinDecimals,
+        ),
+      );
 
   @override
   void dispose() {

@@ -139,11 +139,12 @@ class _Populated extends StatelessWidget {
   }) {
     final int lastMomentumHeight =
         context.read<FusedPlasmaBloc>().lastMomentumHeight ?? 0;
-    final int heightUntilCancellation =
-        fusionEntry.expirationHeight - lastMomentumHeight;
-
-    final Duration durationUntilCancellation =
-        kIntervalBetweenMomentums * heightUntilCancellation;
+    final Duration durationUntilCancellation = Duration(
+      seconds: computeFusionCountdownSeconds(
+        lastMomentumHeight: lastMomentumHeight,
+        expirationHeight: fusionEntry.expirationHeight,
+      ),
+    );
 
     return Tooltip(
       message: context.l10n.untilRevocationWindowOpens,

@@ -9,7 +9,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hex/hex.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/lock/lock.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_backup/settings_backup.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/splash/splash.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/cubits/hide_widget/hide_widget_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
@@ -566,7 +568,11 @@ void main() {
                   nextHandle = false;
                   nextTimer = false;
                 case 'timer_fired':
-                  if (!hasActiveIncomingSwaps && !isLocked && timerActive) {
+                  if (shouldAutoLockOnTimer(
+                    hasActiveIncomingSwaps: hasActiveIncomingSwaps,
+                    isLocked: isLocked,
+                    timerActive: timerActive,
+                  )) {
                     final Future<WalletLockState> next = bloc.stream.first;
                     bloc.add(const LockNavigateToLockRequested());
                     await next;
@@ -657,9 +663,6 @@ void main() {
                 args,
                 'fail_during_clear',
               );
-              final bool isDestructive =
-                  flow == SplashFlow.resetWallet ||
-                  flow == SplashFlow.deleteCache;
               final SplashBloc bloc = SplashBloc(
                 setWalletInitIncomplete: () {},
                 clearLastNotification: () async {},
@@ -704,7 +707,7 @@ void main() {
                   ),
                 );
                 final SplashFailure failure = (await failed) as SplashFailure;
-                canRetry = failure.failedWhileClearing && isDestructive;
+                canRetry = failure.failedWhileClearing;
               }
               await bloc.close();
 
@@ -772,7 +775,20 @@ void main() {
           }
         }
 
-        expect(seenOps, isNotEmpty);
+        expect(
+          seenOps,
+          equals(const <String>{
+            'can_backup_wallet',
+            'dispatch_wallet_type',
+            'hide_widget_step',
+            'lock_step',
+            'splash_can_retry',
+            'splash_destination',
+            'unlock_step',
+            'validate_keystore_schema',
+            'wallet_file_lifecycle',
+          }),
+        );
       },
     );
 
@@ -802,39 +818,19 @@ void main() {
         });
         await Future<void>.delayed(Duration.zero);
 
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'wallet_file_concurrent_second_blocked',
-          actual: secondEntered,
-          expected: false,
-        );
+        expect(secondEntered, isFalse);
 
         final Future<void> closing = file.close();
         await Future<void>.delayed(Duration.zero);
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'wallet_file_closing_while_active',
-          actual: _observeWalletFileState(file),
-          expected: 'closing',
-        );
+        expect(_observeWalletFileState(file), equals('closing'));
 
         firstGate.complete();
         await first;
         await expectLater(second, throwsA(isA<WalletException>()));
         await closing;
 
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'wallet_file_permanently_closed',
-          actual: _observeWalletFileState(file),
-          expected: 'closed',
-        );
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'wallet_file_second_never_ran_after_close',
-          actual: secondEntered,
-          expected: false,
-        );
+        expect(_observeWalletFileState(file), equals('closed'));
+        expect(secondEntered, isFalse);
       },
     );
   });

@@ -25,7 +25,9 @@ List<Map<String, dynamic>> loadBendVectors(String domain) {
   if (path == null || path.isEmpty) {
     fail(
       'BEND_VECTORS environment variable is required to run Bend '
-      'conformance tests.',
+      'conformance tests. Run `./test/bend/run.sh` to execute Bend '
+      'conformance tests, or `flutter test --exclude-tags chain,bend` for '
+      'regular unit tests.',
     );
   }
 

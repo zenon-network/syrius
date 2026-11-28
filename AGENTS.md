@@ -9,7 +9,7 @@
 - Install deps: `flutter pub get`
 - Run locally: `flutter run -d <macos|windows|linux>`
 - Build desktop artifact: `flutter build <macos|windows|linux> --release`
-- Run tests: `flutter test`
+- Run tests: `flutter test --exclude-tags chain,bend` (use `./test/bend/run.sh` for Bend proofs, Lean `--verdict`, and Bend conformance suites)
 - Run one test file: `flutter test test/path/to/file_test.dart`
 - Static analysis: `flutter analyze`
 

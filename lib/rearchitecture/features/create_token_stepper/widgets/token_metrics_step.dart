@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/utils/token_validation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -76,9 +77,9 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
         CustomSlider(
           activeColor: AppColors.ztsColor,
           description: context.l10n.numberOfDecimals(_decimals),
-          startValue: 0,
-          min: 0,
-          maxValue: 18,
+          startValue: kTokenDecimalsMin.toDouble(),
+          min: kTokenDecimalsMin.toDouble(),
+          maxValue: kTokenDecimalsMax.toDouble(),
           sliderKey: const Key('token_decimals_slider'),
           callback: (double value) {
             widget.tokenData.value = widget.tokenData.value.copyWith(
@@ -144,16 +145,26 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
     );
   }
 
-  bool _areTokenMetricsCorrect() =>
-      (!_isMintable || _maxSupplyError == null) && _totalSupplyError == null;
+  bool _areTokenMetricsCorrect() => validateTokenSupplyMetrics(
+    isMintable: _isMintable,
+    totalSupplyText: _totalSupply,
+    maxSupplyText: _maxSupply,
+    decimals: _decimals,
+  ).isValid;
 
   void _onContinuePressed() {
+    final BigInt totalSupply = _totalSupply.extractDecimals(_decimals);
+    final BigInt maxSupply = resolveEffectiveTokenMaxSupply(
+      isMintable: _isMintable,
+      totalSupply: totalSupply,
+      maxSupplyInput: _isMintable
+          ? _maxSupply.extractDecimals(_decimals)
+          : BigInt.zero,
+    );
     widget.tokenData.value = widget.tokenData.value.copyWith(
       decimals: _decimals,
-      maxSupply: _isMintable
-          ? _maxSupply.extractDecimals(_decimals)
-          : _totalSupply.extractDecimals(_decimals),
-      totalSupply: _totalSupply.extractDecimals(_decimals),
+      maxSupply: maxSupply,
+      totalSupply: totalSupply,
     );
     widget.onContinuePressed();
   }

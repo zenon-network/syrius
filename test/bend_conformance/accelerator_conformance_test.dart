@@ -516,12 +516,7 @@ void main() {
                   barSum >= 0.0 &&
                   barSum <= 1.0 + 1e-12;
 
-              expectBendMatch(
-                domain: _kDomain,
-                caseId: '$caseId/bar_conserved',
-                actual: barConserved,
-                expected: true,
-              );
+              expect(barConserved, isTrue);
               expectBendMatch(
                 domain: _kDomain,
                 caseId: caseId,
@@ -543,50 +538,30 @@ void main() {
               final BigInt balZnnBase = BigInt.from(balZnn) * _kBaseUnit;
               final BigInt balQsrBase = BigInt.from(balQsr) * _kBaseUnit;
 
+              final bool actual = areDonationInputsValid(
+                znnInput: znn.toString(),
+                qsrInput: qsr.toString(),
+                znnBalance: balZnnBase,
+                qsrBalance: balQsrBase,
+              );
               final bool blocAmountsValid = isValidDonationAmounts(
                 znnAmount: znnBase,
                 qsrAmount: qsrBase,
               );
-              final bool actual =
-                  blocAmountsValid &&
-                  znnBase <= balZnnBase &&
-                  qsrBase <= balQsrBase;
-
-              if (znn >= 0 && qsr >= 0) {
-                final String? znnErr = validateAcceleratorAmount(
-                  value: znn.toString(),
-                  maxValue: balZnnBase,
-                  decimals: coinDecimals,
-                  minValue: BigInt.zero,
-                  canBeBlank: true,
-                  l10n: l10n,
-                );
-                final String? qsrErr = validateAcceleratorAmount(
-                  value: qsr.toString(),
-                  maxValue: balQsrBase,
-                  decimals: coinDecimals,
-                  minValue: BigInt.zero,
-                  canBeBlank: true,
-                  l10n: l10n,
-                );
-                final bool formValid =
-                    znnErr == null &&
-                    qsrErr == null &&
-                    (znn > 0 || qsr > 0);
-                expectBendMatch(
-                  domain: _kDomain,
-                  caseId: '$caseId/form_agrees_with_bloc',
-                  actual: formValid,
-                  expected: actual,
-                );
-              }
-
               expectBendMatch(
                 domain: _kDomain,
                 caseId: caseId,
                 actual: actual,
                 expected: expected,
               );
+              if (znnBase <= balZnnBase && qsrBase <= balQsrBase) {
+                expectBendMatch(
+                  domain: _kDomain,
+                  caseId: '$caseId/bloc_guard',
+                  actual: blocAmountsValid,
+                  expected: expected,
+                );
+              }
 
             case 'donation_partial_retry':
               final int znn = requireInt(args, 'znn');
@@ -660,12 +635,11 @@ void main() {
               final BigInt paidZnnBase = BigInt.from(paidZnn) * _kBaseUnit;
               final BigInt paidQsrBase = BigInt.from(paidQsr) * _kBaseUnit;
 
-              final bool validProject =
-                  ownerBalBase >= projectCreationFeeInZnn &&
-                  totalZnnBase >= kZnnProjectMinimumFunds &&
-                  totalZnnBase <= kZnnProjectMaximumFunds &&
-                  totalQsrBase >= kQsrProjectMinimumFunds &&
-                  totalQsrBase <= kQsrProjectMaximumFunds;
+              final bool validProject = isValidAcceleratorProjectBudget(
+                ownerZnnBalance: ownerBalBase,
+                znnNeeded: totalZnnBase,
+                qsrNeeded: totalQsrBase,
+              );
 
               final Hash projId = _hash(88);
               final List<Phase> phases = (paidZnn > 0 || paidQsr > 0)
@@ -691,26 +665,22 @@ void main() {
               final BigInt remZnnBase = project.getRemainingZnnFunds();
               final BigInt remQsrBase = project.getRemainingQsrFunds();
               final int remZnn = (remZnnBase <= BigInt.zero
-                  ? BigInt.zero
-                  : remZnnBase ~/ _kBaseUnit)
+                      ? BigInt.zero
+                      : remZnnBase ~/ _kBaseUnit)
                   .toInt();
               final int remQsr = (remQsrBase <= BigInt.zero
-                  ? BigInt.zero
-                  : remQsrBase ~/ _kBaseUnit)
+                      ? BigInt.zero
+                      : remQsrBase ~/ _kBaseUnit)
                   .toInt();
 
               if (paidZnn <= znnNeeded && paidQsr <= qsrNeeded) {
-                expectBendMatch(
-                  domain: _kDomain,
-                  caseId: '$caseId/znn_conservation',
-                  actual: (project.getPaidZnnFunds() + remZnnBase).toString(),
-                  expected: totalZnnBase.toString(),
+                expect(
+                  (project.getPaidZnnFunds() + remZnnBase).toString(),
+                  equals(totalZnnBase.toString()),
                 );
-                expectBendMatch(
-                  domain: _kDomain,
-                  caseId: '$caseId/qsr_conservation',
-                  actual: (project.getPaidQsrFunds() + remQsrBase).toString(),
-                  expected: totalQsrBase.toString(),
+                expect(
+                  (project.getPaidQsrFunds() + remQsrBase).toString(),
+                  equals(totalQsrBase.toString()),
                 );
               }
 
@@ -756,6 +726,10 @@ void main() {
                 requireString(args, 'phase_status'),
               );
 
+              final Address ownerAddr = _addr(1);
+              final String selectedAddr = isOwner
+                  ? ownerAddr.toString()
+                  : _addr(2).toString();
               final Hash projId = _hash(91);
               final List<Phase> phases = lastPhaseStr == 'none'
                   ? const <Phase>[]
@@ -770,7 +744,7 @@ void main() {
                     ];
               final Project project = _buildProject(
                 seed: 91,
-                owner: _addr(1),
+                owner: ownerAddr,
                 status: projStatus,
                 znnFunds: BigInt.from(100) * _kBaseUnit,
                 qsrFunds: BigInt.from(1000) * _kBaseUnit,
@@ -784,15 +758,15 @@ void main() {
                 qsrFunds: BigInt.zero,
               );
 
-              final bool canCreate =
-                  isOwner &&
-                  project.status == AcceleratorProjectStatus.active &&
-                  (project.phases.isEmpty ||
-                      project.phases.last.status ==
-                          AcceleratorProjectStatus.paid);
-              final bool canUpdate =
-                  isOwner &&
-                  targetPhase.status == AcceleratorProjectStatus.voting;
+              final bool canCreate = canCreateAcceleratorPhase(
+                project,
+                selectedAddr,
+              );
+              final bool canUpdate = canUpdateAcceleratorPhase(
+                project: project,
+                phase: targetPhase,
+                selectedAddress: selectedAddr,
+              );
 
               expectBendMatch(
                 domain: _kDomain,
@@ -809,7 +783,18 @@ void main() {
           }
         }
 
-        expect(seenOps, isNotEmpty);
+        expect(
+          seenOps,
+          equals(const <String>{
+            'pillar_resolve',
+            'vote_summary',
+            'donation_valid',
+            'donation_partial_retry',
+            'project_list_filter',
+            'project_budget_and_phase',
+            'phase_gate',
+          }),
+        );
       },
     );
   });

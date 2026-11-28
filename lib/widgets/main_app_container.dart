@@ -693,10 +693,15 @@ class _MainAppContainerState extends State<MainAppContainer>
     return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (
       Timer timer,
     ) async {
-      if (!await sl<HtlcSwapSyncService>().hasActiveIncomingSwaps() &&
-          mounted &&
-          timer.isActive &&
-          identical(_navigateToLockTimer, timer)) {
+      final bool hasActiveIncomingSwaps = await sl<HtlcSwapSyncService>()
+          .hasActiveIncomingSwaps();
+      if (mounted &&
+          identical(_navigateToLockTimer, timer) &&
+          shouldAutoLockOnTimer(
+            hasActiveIncomingSwaps: hasActiveIncomingSwaps,
+            isLocked: kCurrentPage == Tabs.lock,
+            timerActive: timer.isActive,
+          )) {
         _lockBloc.add(const LockNavigateToLockRequested());
       }
     });

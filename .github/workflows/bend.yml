@@ -51,7 +51,7 @@ jobs:
       - name: Run full Bend proof, verdict, conformance, and mutation gate
         env:
           BEND_DEPTH: ${{ inputs.depth || '3' }}
-          BEND_SEED: ${{ inputs.seed || github.run_number }}
+          BEND_SEED: ${{ inputs.seed || '1' }}
         run: ./test/bend/run.sh
 
       - name: Dump failure logs

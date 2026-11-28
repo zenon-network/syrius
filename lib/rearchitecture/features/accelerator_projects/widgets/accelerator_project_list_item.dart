@@ -491,9 +491,11 @@ class _ViewState extends State<_View> {
             ],
           ),
         if (acceleratorProject is Phase &&
-            acceleratorProject.status == AcceleratorProjectStatus.voting &&
-            widget._project != null &&
-            widget._project!.owner.toString() == kSelectedAddress)
+            canUpdateAcceleratorPhase(
+              project: widget._project,
+              phase: acceleratorProject,
+              selectedAddress: kSelectedAddress,
+            ))
           Row(
             children: <Widget>[
               const SizedBox(width: 10),

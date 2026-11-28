@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive_ce.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/create_token_stepper.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_favorite/token_favorite.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -19,10 +20,6 @@ final BigInt _kBaseUnit = BigInt.from(100000000);
 final TokenStandard _kCustomZts = TokenStandard.fromBytes(
   List<int>.filled(10, 7),
 );
-final RegExp _kTokenNameRegExp = RegExp(
-  r'^[a-zA-Z0-9]+([-._][a-zA-Z0-9]+)*$',
-);
-const int _kTokenDomainMaxLength = 128;
 
 class _InMemoryFavoriteTokensRepository implements FavoriteTokensRepository {
   _InMemoryFavoriteTokensRepository({
@@ -58,7 +55,24 @@ class _InMemoryFavoriteTokensRepository implements FavoriteTokensRepository {
   }
 }
 
-bool _realValidTokenMetadata({
+/// Builds a syntactically valid domain of exact length [domLen] for
+/// `domLen >= 5` (with every DNS label within `[2, 63]` chars) so
+/// [validateTokenDomainError] exercises both `tokenDomainRegExp` and
+/// [kTokenDomainMaxLength].
+String _buildDomainCandidate(int domLen) {
+  if (domLen <= 4) {
+    return 'a' * domLen;
+  }
+  if (domLen <= 66) {
+    return '${'a' * (domLen - 3)}.io';
+  }
+  if (domLen <= 69) {
+    return 'aa.${'b' * (domLen - 6)}.io';
+  }
+  return '${'a' * (domLen - 67)}.${'b' * 63}.io';
+}
+
+bool _evalRealTokenMetadata({
   required int nameLen,
   required int symLen,
   required String symKind,
@@ -72,70 +86,15 @@ bool _realValidTokenMetadata({
     'custom' => 'X' * symLen,
     _ => fail('Unknown symKind "$symKind"'),
   };
-  final String domain = domLen <= 4
-      ? 'a' * domLen
-      : '${'a' * (domLen - 4)}.com';
+  final String domain = _buildDomainCandidate(domLen);
 
-  final bool nameOk =
-      name.isNotEmpty &&
-      name.length <= tokenNameMaxLength &&
-      _kTokenNameRegExp.hasMatch(name);
-  final bool symbolOk =
-      symbol.isNotEmpty &&
-      symbol.length <= tokenSymbolMaxLength &&
-      tokenSymbolRegExp.hasMatch(symbol) &&
-      !tokenSymbolExceptions.contains(symbol);
-  final bool domainOk =
-      domain.isNotEmpty && domain.length <= _kTokenDomainMaxLength;
-  final bool decOk = dec >= 0 && dec <= 18;
+  final bool nameOk = validateTokenNameError(name) == null;
+  final bool symbolOk = validateTokenSymbolError(symbol) == null;
+  final bool domainOk = domLen >= 1 && domLen <= 4
+      ? isValidTokenDomainLength(domain)
+      : validateTokenDomainError(domain) == null;
+  final bool decOk = isValidTokenDecimals(dec);
   return nameOk && symbolOk && domainOk && decOk;
-}
-
-Map<String, Object> _realValidateTokenSupply({
-  required bool isMintable,
-  required int total,
-  required int maxIn,
-  required int cap,
-  required int dec,
-}) {
-  final bool decOk = dec >= 0 && dec <= 18;
-  final BigInt maxInBi = BigInt.from(maxIn);
-  final BigInt capBi = BigInt.from(cap);
-
-  if (isMintable) {
-    final String? maxErr = InputValidators.correctValue(
-      '$maxIn',
-      capBi,
-      0,
-      BigInt.one,
-      canBeEqualToMin: true,
-    );
-    final String? totalErr = maxErr == null
-        ? InputValidators.correctValue(
-            '$total',
-            maxInBi,
-            0,
-            BigInt.zero,
-            canBeEqualToMin: true,
-          )
-        : 'invalid';
-    return <String, Object>{
-      'valid': decOk && maxErr == null && totalErr == null,
-      'effective_max': maxIn,
-    };
-  }
-
-  final String? totalErr = InputValidators.correctValue(
-    '$total',
-    capBi,
-    0,
-    BigInt.one,
-    canBeEqualToMin: true,
-  );
-  return <String, Object>{
-    'valid': decOk && totalErr == null,
-    'effective_max': total,
-  };
 }
 
 void main() {
@@ -202,12 +161,31 @@ void main() {
                 expected: expected,
               );
             case 'valid_token_supply':
-              final Map<String, Object> actual = _realValidateTokenSupply(
+              final TokenSupplyMetricsValidation validation =
+                  validateTokenSupplyMetrics(
+                    isMintable: requireBool(args, 'is_mintable'),
+                    totalSupplyText: '${requireInt(args, 'total')}',
+                    maxSupplyText: '${requireInt(args, 'max_in')}',
+                    decimals: requireInt(args, 'dec'),
+                    maxSupplyCap: BigInt.from(requireInt(args, 'cap')),
+                    scaleDecimals: 0,
+                  );
+              expectBendMatch(
+                domain: _kDomain,
+                caseId: caseId,
+                actual: <String, Object>{
+                  'valid': validation.isValid,
+                  'effective_max': validation.effectiveMaxSupply.toInt(),
+                },
+                expected: expected,
+              );
+            case 'can_mint_amount':
+              final bool actual = canMintTokenAmount(
+                amount: BigInt.from(requireInt(args, 'amt')),
+                totalSupply: BigInt.from(requireInt(args, 'total')),
+                maxSupply: BigInt.from(requireInt(args, 'max_sup')),
                 isMintable: requireBool(args, 'is_mintable'),
-                total: requireInt(args, 'total'),
-                maxIn: requireInt(args, 'max_in'),
-                cap: requireInt(args, 'cap'),
-                dec: requireInt(args, 'dec'),
+                isSelectedOwner: requireBool(args, 'is_sel_owner'),
               );
               expectBendMatch(
                 domain: _kDomain,
@@ -215,67 +193,22 @@ void main() {
                 actual: actual,
                 expected: expected,
               );
-            case 'can_mint_amount':
-              final int amt = requireInt(args, 'amt');
-              final int total = requireInt(args, 'total');
-              final int maxSup = requireInt(args, 'max_sup');
-              final bool isMintable = requireBool(args, 'is_mintable');
-              final bool isSelOwner = requireBool(args, 'is_sel_owner');
-              final TokenCapabilities caps = evaluateTokenCapabilities(
-                isMintable: isMintable,
-                isBurnable: false,
-                totalSupply: BigInt.from(total),
-                maxSupply: BigInt.from(maxSup),
-                isSelectedOwner: isSelOwner,
-                isWalletOwner: isSelOwner,
-              );
-              final BigInt remaining = maxSup >= total
-                  ? BigInt.from(maxSup - total)
-                  : BigInt.zero;
-              final bool amountOk =
-                  InputValidators.correctValue(
-                    '$amt',
-                    remaining,
-                    0,
-                    BigInt.zero,
-                  ) ==
-                  null;
-              expectBendMatch(
-                domain: _kDomain,
-                caseId: caseId,
-                actual: caps.canMint && amountOk,
-                expected: expected,
-              );
             case 'can_burn_amount':
-              final int amt = requireInt(args, 'amt');
-              final int balance = requireInt(args, 'balance');
-              final int total = requireInt(args, 'total');
-              final bool isBurnable = requireBool(args, 'is_burnable');
-              final bool isSelOwner = requireBool(args, 'is_sel_owner');
-              final TokenCapabilities caps = evaluateTokenCapabilities(
-                isMintable: false,
-                isBurnable: isBurnable,
-                totalSupply: BigInt.from(total),
-                maxSupply: BigInt.from(total),
-                isSelectedOwner: isSelOwner,
-                isWalletOwner: isSelOwner,
+              final bool actual = canBurnTokenAmount(
+                amount: BigInt.from(requireInt(args, 'amt')),
+                balance: BigInt.from(requireInt(args, 'balance')),
+                totalSupply: BigInt.from(requireInt(args, 'total')),
+                isBurnable: requireBool(args, 'is_burnable'),
+                isSelectedOwner: requireBool(args, 'is_sel_owner'),
               );
-              final bool amountOk =
-                  InputValidators.correctValue(
-                    '$amt',
-                    BigInt.from(balance),
-                    0,
-                    BigInt.zero,
-                  ) ==
-                  null;
               expectBendMatch(
                 domain: _kDomain,
                 caseId: caseId,
-                actual: caps.canBurn && amountOk && amt <= total,
+                actual: actual,
                 expected: expected,
               );
             case 'valid_token_metadata':
-              final bool actual = _realValidTokenMetadata(
+              final bool actual = _evalRealTokenMetadata(
                 nameLen: requireInt(args, 'name_len'),
                 symLen: requireInt(args, 'sym_len'),
                 symKind: requireString(args, 'sym_kind'),
@@ -361,7 +294,19 @@ void main() {
           }
         }
 
-        expect(seenOps, isNotEmpty);
+        expect(
+          seenOps,
+          equals(const <String>{
+            'issue_constants',
+            'token_caps',
+            'valid_token_supply',
+            'can_mint_amount',
+            'can_burn_amount',
+            'valid_token_metadata',
+            'is_trusted_token',
+            'fav_transition',
+          }),
+        );
       },
     );
 
@@ -381,19 +326,9 @@ void main() {
       );
       final List<Token> tokens = <Token>[kZnnCoin, kQsrCoin, customA];
       for (final Token a in tokens) {
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'compare_reflexive_${a.symbol}',
-          actual: compareAssets(a, a),
-          expected: 0,
-        );
+        expect(compareAssets(a, a), equals(0));
         for (final Token b in tokens) {
-          expectBendMatch(
-            domain: _kDomain,
-            caseId: 'compare_antisym_${a.symbol}_${b.symbol}',
-            actual: compareAssets(a, b),
-            expected: -compareAssets(b, a),
-          );
+          expect(compareAssets(a, b), equals(-compareAssets(b, a)));
         }
       }
       final List<Token> sorted = sortAssets(<Token>[
@@ -401,11 +336,9 @@ void main() {
         kQsrCoin,
         kZnnCoin,
       ]);
-      expectBendMatch(
-        domain: _kDomain,
-        caseId: 'sort_assets_order',
-        actual: sorted.map((Token t) => t.symbol).toList(),
-        expected: <String>['ZNN', 'QSR', 'ALP'],
+      expect(
+        sorted.map((Token t) => t.symbol).toList(),
+        equals(<String>['ZNN', 'QSR', 'ALP']),
       );
     });
   });

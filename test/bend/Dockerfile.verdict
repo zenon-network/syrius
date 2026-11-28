@@ -13,7 +13,7 @@ ARG LEAN_TOOLCHAIN=leanprover/lean4:v4.34.0
 RUN set -eu; \
     case "$(uname -m)" in \
       aarch64|arm64) arch=aarch64; sum=$ELAN_SHA_ARM64;; \
-      x86_64|amd64) arch=x64; sum=$ELAN_SHA_X64;; \
+      x86_64|amd64) arch=x86_64; sum=$ELAN_SHA_X64;; \
       *) exit 1;; \
     esac; \
     curl --proto '=https' --tlsv1.2 -fsSL \

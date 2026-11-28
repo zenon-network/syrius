@@ -90,7 +90,7 @@ class _Populated extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (uncollectedReward.znnAmount == BigInt.zero) {
+    if (!canCollectPillarRewards(uncollectedReward)) {
       return SyriusErrorWidget(context.l10n.noRewardsCollect);
     }
 

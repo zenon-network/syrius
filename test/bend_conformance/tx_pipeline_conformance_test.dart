@@ -632,9 +632,6 @@ Future<int> _runAccountChainStatsPageCount({
   required int blockCount,
   required int pageSize,
 }) async {
-  if (pageSize != rpcMaxPageSize) {
-    return blockCount <= 0 ? 0 : (blockCount / pageSize).ceil();
-  }
   final _MockZenon mockZenon = _MockZenon();
   final _MockLedgerApi mockLedger = _MockLedgerApi();
   int heightCalls = 0;
@@ -658,7 +655,10 @@ Future<int> _runAccountChainStatsPageCount({
     });
   });
 
-  final AccountChainStatsBloc bloc = AccountChainStatsBloc(zenon: mockZenon);
+  final AccountChainStatsBloc bloc = AccountChainStatsBloc(
+    zenon: mockZenon,
+    pageSize: pageSize,
+  );
   try {
     await bloc.getData(address: _kAddress0);
     return heightCalls;
@@ -881,7 +881,21 @@ void main() {
           }
         }
 
-        expect(seenOps, isNotEmpty);
+        expect(
+          seenOps,
+          equals(<String>{
+            'node_is_synced_for_tx',
+            'check_create_preconditions',
+            'pow_sequence',
+            'hw_review_timing',
+            'auto_receive_add_hash',
+            'auto_receive_step',
+            'poll_step',
+            'infinite_list_page_and_max',
+            'balance_is_populated',
+            'account_chain_stats_page_count',
+          }),
+        );
       },
     );
 
@@ -938,12 +952,7 @@ void main() {
               : 'other_${e.code.name}';
         }
 
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'publish_fence_wallet_swap_in_access',
-          actual: outcome,
-          expected: 'aborted_wallet_changed',
-        );
+        expect(outcome, 'aborted_wallet_changed');
       },
     );
 
@@ -980,12 +989,7 @@ void main() {
         stalePage.complete(<int>[99, 98, 97, 96, 95]);
         await Future<void>.delayed(Duration.zero);
 
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'infinite_list_stale_first_page_discarded',
-          actual: listBloc.state.data,
-          expected: <int>[10, 20],
-        );
+        expect(listBloc.state.data, <int>[10, 20]);
 
         final Completer<String> f1 = Completer<String>();
         final Completer<String> f2 = Completer<String>();
@@ -1012,16 +1016,14 @@ void main() {
         await Future<void>.delayed(Duration.zero);
         final bool loadingAfterBoth = fetchBloc.isLoadingListenable.value;
 
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'fetch_bloc_ref_counted_loading',
-          actual: <bool>[
+        expect(
+          <bool>[
             loadingBefore,
             loadingDuringTwo,
             loadingDuringOne,
             loadingAfterBoth,
           ],
-          expected: <bool>[false, true, true, false],
+          <bool>[false, true, true, false],
         );
 
         final _TestTimerCubit timerCubit = _TestTimerCubit(
@@ -1039,14 +1041,9 @@ void main() {
         await timerCubit.fetchDataPeriodically();
         await Future<void>.delayed(Duration.zero);
 
-        expectBendMatch(
-          domain: _kDomain,
-          caseId: 'timer_cubit_success_skips_loading_flicker',
-          actual: timerStatuses.map((TimerStatus s) => s.name).toList(),
-          expected: <String>[
-            TimerStatus.loading.name,
-            TimerStatus.success.name,
-          ],
+        expect(
+          timerStatuses.map((TimerStatus s) => s.name).toList(),
+          <String>[TimerStatus.loading.name, TimerStatus.success.name],
         );
       },
     );

@@ -1,3 +1,4 @@
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pillars/utils/pillar_rules_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -23,9 +24,7 @@ class PillarRewardsHistoryBloc extends FetchBloc<RewardHistoryList> {
             address,
             pageSize: kStandardChartNumDays.toInt(),
           );
-      if (response.list.any(
-        (RewardHistoryEntry element) => element.znnAmount > BigInt.zero,
-      )) {
+      if (hasPillarRewardHistory(response.list)) {
         return response;
       } else {
         throw NoRewardsLastWeekException();

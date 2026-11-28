@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/initial_htlc_validation/utils/htlc_window_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/utils/swap_storage_error_sanitizer.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
@@ -88,7 +89,10 @@ class ReclaimDepositBloc
         htlc.timeLocked,
       );
 
-      if (htlc.expirationTime - _unixTimeProvider() > 0) {
+      if (!evaluateHtlcExpiration(
+        expirationTime: htlc.expirationTime,
+        unixTime: _unixTimeProvider(),
+      )) {
         final String expirationDate = FormatUtils.formatDate(
           htlc.expirationTime * Duration.millisecondsPerSecond,
           dateFormat: kDefaultDateTimeFormat,

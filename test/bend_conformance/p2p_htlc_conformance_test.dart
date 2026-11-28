@@ -29,7 +29,6 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/reclaim_depo
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
@@ -690,14 +689,8 @@ void main() {
               final RedactedSwapError redacted = sanitizeSwapErrorForLogging(
                 error,
               );
-              expectBendMatch(
-                domain: _kDomain,
-                caseId: '$caseId/no_secret_leak',
-                actual:
-                    !summary.contains(secret) &&
-                    !redacted.toString().contains(secret),
-                expected: true,
-              );
+              expect(summary.contains(secret), isFalse);
+              expect(redacted.toString().contains(secret), isFalse);
               expectBendMatch(
                 domain: _kDomain,
                 caseId: caseId,
@@ -858,9 +851,13 @@ void main() {
               }
 
               final bool remWithinMax =
-                  win.remainingSeconds > 0 &&
-                  win.remainingSeconds <=
-                      kMaxAllowedInitialHtlcDuration.inSeconds;
+                  !evaluateHtlcExpiration(
+                    expirationTime: expMin * _kSecondsPerMinute,
+                    unixTime: nowMin * _kSecondsPerMinute,
+                  ) &&
+                  !exceedsMaxInitialHtlcDuration(
+                    Duration(seconds: win.remainingSeconds),
+                  );
 
               expectBendMatch(
                 domain: _kDomain,
@@ -875,7 +872,20 @@ void main() {
           }
         }
 
-        expect(seenOps, isNotEmpty);
+        expect(
+          seenOps,
+          equals(<String>{
+            'join_window',
+            'funded_htlc_role',
+            'sanitize_error',
+            'sqlcipher_key_valid',
+            'change_password_txn',
+            'reclaim_evaluate',
+            'can_delete_swap',
+            'auto_unlock_arbiter',
+            'parallel_swap_safety_check',
+          }),
+        );
       },
     );
   });

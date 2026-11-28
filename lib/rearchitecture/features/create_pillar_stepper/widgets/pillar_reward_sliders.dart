@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pillars/utils/pillar_rules_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -32,8 +33,8 @@ class PillarRewardSliders extends StatelessWidget {
                   description: context.l10n.percentageOfMomentumRewards,
                   descriptionPosition: SliderDescriptionPosition.top,
                   startValue: value,
-                  min: 0,
-                  maxValue: 100,
+                  min: kMinPillarRewardPercentage.toDouble(),
+                  maxValue: kMaxPillarRewardPercentage.toDouble(),
                   callback: (double newValue) {
                     momentumRewardPercentage.value = newValue;
                   },
@@ -54,8 +55,8 @@ class PillarRewardSliders extends StatelessWidget {
                   description: context.l10n.percentageDelegationRewardsGiven,
                   descriptionPosition: SliderDescriptionPosition.top,
                   startValue: value,
-                  min: 0,
-                  maxValue: 100,
+                  min: kMinPillarRewardPercentage.toDouble(),
+                  maxValue: kMaxPillarRewardPercentage.toDouble(),
                   callback: (double newValue) {
                     delegateRewardPercentage.value = newValue;
                   },
@@ -81,7 +82,9 @@ class _RewardSplitLabels extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Text(
-          context.l10n.pillarsWithNumber(100 - percentage.toInt()),
+          context.l10n.pillarsWithNumber(
+            computeOwnerRewardPercentage(percentage.toInt()),
+          ),
           style: Theme.of(context).textTheme.titleSmall,
         ),
         Text(

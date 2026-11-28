@@ -3794,6 +3794,14 @@ DART_FAULTS: tuple[DartFault, ...] = (
         new="if (updatedAttempts > limit) {",
         test_file="test/bend_conformance/wallet_lifecycle_conformance_test.dart",
     ),
+    DartFault(
+        name="wl_autolock_ignores_active_htlc",
+        domain="wallet_lifecycle",
+        source_path="lib/rearchitecture/features/lock/utils/auto_lock_utils.dart",
+        old="  return !hasActiveIncomingSwaps && !isLocked && timerActive;",
+        new="  return !isLocked && timerActive;",
+        test_file="test/bend_conformance/wallet_lifecycle_conformance_test.dart",
+    ),
     # tx_pipeline (2 real Dart source faults)
     DartFault(
         name="account_block_sync_le_20",
@@ -3845,6 +3853,28 @@ DART_FAULTS: tuple[DartFault, ...] = (
         new="return JsonRpcError(code: 4001, message: error.toString());",
         test_file="test/bend_conformance/wallet_connect_conformance_test.dart",
     ),
+    DartFault(
+        name="wc_nom_service_lock_guard_bypass",
+        domain="wallet_connect",
+        source_path="lib/services/nom_service.dart",
+        old=(
+            "  void revalidateInteractiveRequest({\n"
+            "    required String topic,\n"
+            "    required int? requestId,\n"
+            "    required bool requireActiveChainMatch,\n"
+            "  }) {\n"
+            "    if (kCurrentPage == Tabs.lock) {"
+        ),
+        new=(
+            "  void revalidateInteractiveRequest({\n"
+            "    required String topic,\n"
+            "    required int? requestId,\n"
+            "    required bool requireActiveChainMatch,\n"
+            "  }) {\n"
+            "    if (false && kCurrentPage == Tabs.lock) {"
+        ),
+        test_file="test/bend_conformance/wallet_connect_conformance_test.dart",
+    ),
     # wc_crash_safety (2 real Dart source faults)
     DartFault(
         name="wc_delete_ignores_manifest_isolation_dart",
@@ -3871,24 +3901,13 @@ DART_FAULTS: tuple[DartFault, ...] = (
         ),
         test_file="test/bend_conformance/wc_crash_safety_conformance_test.dart",
     ),
-    # plasma_staking (2 real Dart source faults)
+    # plasma_staking (4 real Dart source faults)
     DartFault(
-        name="plasma_correct_value_zero_max_bypass",
+        name="plasma_fuse_min_strict_gt",
         domain="plasma_staking",
-        source_path="lib/utils/input_validators.dart",
-        old=(
-            "if (maxValue == BigInt.zero && !canBeEqualToMin) {\n"
-            "          return resolvedL10n.emptyBalance;\n"
-            "        }"
-        ),
-        new=(
-            "if (maxValue == BigInt.zero) {\n"
-            "          if (canBeEqualToMin) {\n"
-            "            return null;\n"
-            "          }\n"
-            "          return resolvedL10n.emptyBalance;\n"
-            "        }"
-        ),
+        source_path="lib/rearchitecture/features/fuse_plasma/utils/fuse_plasma_validation_utils.dart",
+        old="return amount >= fuseMinQsrAmount && amount <= maxQsrBalance;",
+        new="return amount > fuseMinQsrAmount && amount <= maxQsrBalance;",
         test_file="test/bend_conformance/plasma_staking_conformance_test.dart",
     ),
     DartFault(
@@ -3899,7 +3918,23 @@ DART_FAULTS: tuple[DartFault, ...] = (
         new="const int kStakePlasmaAmountNeeded = 84000;",
         test_file="test/bend_conformance/plasma_staking_conformance_test.dart",
     ),
-    # pillars_sentinels (2 real Dart source faults)
+    DartFault(
+        name="plasma_fusion_revocable_ge",
+        domain="plasma_staking",
+        source_path="lib/rearchitecture/features/fused_plasma/utils/fusion_expiration_utils.dart",
+        old="}) => lastMomentumHeight > expirationHeight;",
+        new="}) => lastMomentumHeight >= expirationHeight;",
+        test_file="test/bend_conformance/plasma_staking_conformance_test.dart",
+    ),
+    DartFault(
+        name="plasma_stake_collect_ge_zero",
+        domain="plasma_staking",
+        source_path="lib/rearchitecture/features/stake_collect/utils/stake_reward_utils.dart",
+        old="    reward.qsrAmount > BigInt.zero;",
+        new="    reward.qsrAmount >= BigInt.zero;",
+        test_file="test/bend_conformance/plasma_staking_conformance_test.dart",
+    ),
+    # pillars_sentinels (4 real Dart source faults)
     DartFault(
         name="pillars_max_qsr_deposit_uncapped",
         domain="pillars_sentinels",
@@ -3916,7 +3951,29 @@ DART_FAULTS: tuple[DartFault, ...] = (
         new="if (false && kDefaultAddressList.contains(value)) {",
         test_file="test/bend_conformance/pillars_sentinels_conformance_test.dart",
     ),
-    # tokens_zts (2 real Dart source faults)
+    DartFault(
+        name="pillars_delegate_strict_gt",
+        domain="pillars_sentinels",
+        source_path="lib/rearchitecture/features/pillars/utils/pillar_rules_utils.dart",
+        old="    znnBalance >= kMinDelegationAmount;",
+        new="    znnBalance > kMinDelegationAmount;",
+        test_file="test/bend_conformance/pillars_sentinels_conformance_test.dart",
+    ),
+    DartFault(
+        name="pillars_collect_ge_zero",
+        domain="pillars_sentinels",
+        source_path="lib/rearchitecture/features/pillars/utils/pillar_rules_utils.dart",
+        old=(
+            "bool canCollectPillarRewards(UncollectedReward reward) =>\n"
+            "    reward.znnAmount > BigInt.zero;"
+        ),
+        new=(
+            "bool canCollectPillarRewards(UncollectedReward reward) =>\n"
+            "    reward.znnAmount >= BigInt.zero;"
+        ),
+        test_file="test/bend_conformance/pillars_sentinels_conformance_test.dart",
+    ),
+    # tokens_zts (3 real Dart source faults)
     DartFault(
         name="tokens_burn_drops_owner_override",
         domain="tokens_zts",
@@ -3933,7 +3990,15 @@ DART_FAULTS: tuple[DartFault, ...] = (
         new="    znnTokenStandard,",
         test_file="test/bend_conformance/tokens_zts_conformance_test.dart",
     ),
-    # p2p_htlc (2 real Dart source faults)
+    DartFault(
+        name="tokens_domain_max_64",
+        domain="tokens_zts",
+        source_path="lib/rearchitecture/features/create_token_stepper/utils/token_validation_utils.dart",
+        old="const int kTokenDomainMaxLength = 128;",
+        new="const int kTokenDomainMaxLength = 64;",
+        test_file="test/bend_conformance/tokens_zts_conformance_test.dart",
+    ),
+    # p2p_htlc (3 real Dart source faults)
     DartFault(
         name="htlc_join_window_strict_gt",
         domain="p2p_htlc",
@@ -3950,7 +4015,15 @@ DART_FAULTS: tuple[DartFault, ...] = (
         new="for (int depth = 0; depth < 6 && current != null; depth += 1)",
         test_file="test/bend_conformance/p2p_htlc_conformance_test.dart",
     ),
-    # accelerator (2 real Dart source faults)
+    DartFault(
+        name="p2p_htlc_expiration_strict_lt",
+        domain="p2p_htlc",
+        source_path="lib/rearchitecture/features/initial_htlc_validation/utils/htlc_window_utils.dart",
+        old="}) => unixTime >= expirationTime;",
+        new="}) => unixTime > expirationTime;",
+        test_file="test/bend_conformance/p2p_htlc_conformance_test.dart",
+    ),
+    # accelerator (3 real Dart source faults)
     DartFault(
         name="accelerator_negative_donation_leg",
         domain="accelerator",
@@ -3969,6 +4042,14 @@ DART_FAULTS: tuple[DartFault, ...] = (
         source_path="lib/rearchitecture/features/accelerator_projects/utils/accelerator_vote_summary.dart",
         old="? (safePillars * 33) ~/ 100 + 1",
         new="? (safePillars * 33) ~/ 100",
+        test_file="test/bend_conformance/accelerator_conformance_test.dart",
+    ),
+    DartFault(
+        name="accelerator_create_phase_wrong_status",
+        domain="accelerator",
+        source_path="lib/rearchitecture/features/accelerator_projects/utils/accelerator_lifecycle_utils.dart",
+        old="    project.status == AcceleratorProjectStatus.active &&",
+        new="    project.status == AcceleratorProjectStatus.voting &&",
         test_file="test/bend_conformance/accelerator_conformance_test.dart",
     ),
 )

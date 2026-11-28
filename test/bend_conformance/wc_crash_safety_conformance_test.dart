@@ -1489,7 +1489,23 @@ void main() {
           }
         }
 
-        expect(seenOps, isNotEmpty);
+        expect(
+          seenOps,
+          equals(<String>{
+            'store_boot_mode',
+            'store_authoritative_sticky_step',
+            'store_isolation_and_delete_all',
+            'store_reconcile_key_view',
+            'store_migration_commit_order',
+            'store_reconciliation_cleanup_order',
+            'relay_unsubscribe_fencing',
+            'relay_restore_preserved_id',
+            'service_reset_admission_and_finalize',
+            'service_reset_marker_durability',
+            'service_idempotent_request_delivery',
+            'service_topic_epoch_fencing',
+          }),
+        );
       },
     );
   });
