@@ -238,43 +238,63 @@ class _AddressesSettingsPane extends StatelessWidget {
       context: context,
       maxWidth: 440,
       builder: (BuildContext dialogContext) {
-        return SyriusModalShell(
-          title: context.l10n.addContact,
-          actions: <Widget>[
-            SyriusPillButton(
-              label: context.l10n.cancel,
-              onPressed: () => Navigator.of(dialogContext).pop(),
-            ),
-            SyriusGradientButton(
-              label: context.l10n.confirm,
-              height: 36,
-              onPressed: () {
-                final String addr = addrCtrl.text.trim();
-                final String name = nameCtrl.text.trim();
-                if (addr.isNotEmpty && name.isNotEmpty) {
-                  prefs.saveContact(addr, name);
-                  Navigator.of(dialogContext).pop();
-                }
-              },
-            ),
-          ],
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                controller: nameCtrl,
-                decoration: InputDecoration(hintText: context.l10n.name),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: addrCtrl,
-                decoration: InputDecoration(
-                  hintText: context.l10n.p2pSwapAddressHint,
-                  suffixIcon: PasteContentButton(controller: addrCtrl),
+        return StatefulBuilder(
+          builder: (BuildContext ctx, StateSetter setModalState) {
+            final String addr = addrCtrl.text.trim();
+            final String name = nameCtrl.text.trim();
+            final String? addrError = addr.isEmpty
+                ? null
+                : InputValidators.checkAddress(addr, l10n: context.l10n);
+            final bool canSave =
+                addr.isNotEmpty && name.isNotEmpty && addrError == null;
+
+            return SyriusModalShell(
+              title: context.l10n.addContact,
+              actions: <Widget>[
+                SyriusPillButton(
+                  label: context.l10n.cancel,
+                  onPressed: () => Navigator.of(dialogContext).pop(),
                 ),
+                SyriusGradientButton(
+                  label: context.l10n.confirm,
+                  height: 36,
+                  onPressed: canSave
+                      ? () {
+                          if (initialAddress != null &&
+                              initialAddress != addr) {
+                            prefs.removeContact(initialAddress);
+                          }
+                          prefs.saveContact(addr, name);
+                          Navigator.of(dialogContext).pop();
+                        }
+                      : null,
+                ),
+              ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextField(
+                    controller: nameCtrl,
+                    onChanged: (_) => setModalState(() {}),
+                    decoration: InputDecoration(hintText: context.l10n.name),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: addrCtrl,
+                    onChanged: (_) => setModalState(() {}),
+                    decoration: InputDecoration(
+                      hintText: context.l10n.p2pSwapAddressHint,
+                      errorText: addrError,
+                      suffixIcon: PasteContentButton(
+                        controller: addrCtrl,
+                        onPasted: (_) => setModalState(() {}),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -1321,6 +1341,16 @@ class _SecuritySettingsPaneState extends State<_SecuritySettingsPane> {
   final TextEditingController _verifyMsgController = TextEditingController();
   final TextEditingController _verifySigController = TextEditingController();
   final TextEditingController _verifyPubKeyController = TextEditingController();
+  final TextEditingController _verifyFileHashController =
+      TextEditingController();
+  final TextEditingController _verifyFilePubKeyController =
+      TextEditingController();
+  final GlobalKey<SelectFileWidgetState> _signFileKey =
+      GlobalKey<SelectFileWidgetState>();
+  final GlobalKey<SelectFileWidgetState> _verifyFileKey =
+      GlobalKey<SelectFileWidgetState>();
+  String? _signFilePath;
+  String? _verifyFilePath;
 
   @override
   void dispose() {
@@ -1328,6 +1358,8 @@ class _SecuritySettingsPaneState extends State<_SecuritySettingsPane> {
     _verifyMsgController.dispose();
     _verifySigController.dispose();
     _verifyPubKeyController.dispose();
+    _verifyFileHashController.dispose();
+    _verifyFilePubKeyController.dispose();
     super.dispose();
   }
 
@@ -1358,6 +1390,27 @@ class _SecuritySettingsPaneState extends State<_SecuritySettingsPane> {
     return 10;
   }
 
+  Widget _buildPasteField({
+    required TextEditingController controller,
+    required String hintText,
+  }) {
+    return TextField(
+      controller: controller,
+      onChanged: (_) => setState(() {}),
+      decoration: InputDecoration(
+        hintText: hintText,
+        suffixIcon: PasteContentButton(
+          controller: controller,
+          onPasted: (_) {
+            if (mounted) {
+              setState(() {});
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final SyriusThemeTokens tokens = context.syriusTheme;
@@ -1369,6 +1422,42 @@ class _SecuritySettingsPaneState extends State<_SecuritySettingsPane> {
               (SettingsSecurityState prev, SettingsSecurityState curr) =>
                   prev.autoLockConfirmedNonce != curr.autoLockConfirmedNonce,
           listener: (_, _) => widget.onChangeAutoLockTime(),
+        ),
+        BlocListener<SettingsSecurityBloc, SettingsSecurityState>(
+          listenWhen:
+              (SettingsSecurityState prev, SettingsSecurityState curr) =>
+                  prev.messageVerifiedNonce != curr.messageVerifiedNonce,
+          listener: (_, _) {
+            setState(() {
+              _verifyMsgController.clear();
+              _verifySigController.clear();
+              _verifyPubKeyController.clear();
+            });
+          },
+        ),
+        BlocListener<SettingsSecurityBloc, SettingsSecurityState>(
+          listenWhen:
+              (SettingsSecurityState prev, SettingsSecurityState curr) =>
+                  prev.fileSignedNonce != curr.fileSignedNonce,
+          listener: (_, _) {
+            setState(() {
+              _signFilePath = null;
+              _signFileKey.currentState?.resetMessageToUser();
+            });
+          },
+        ),
+        BlocListener<SettingsSecurityBloc, SettingsSecurityState>(
+          listenWhen:
+              (SettingsSecurityState prev, SettingsSecurityState curr) =>
+                  prev.fileVerifiedNonce != curr.fileVerifiedNonce,
+          listener: (_, _) {
+            setState(() {
+              _verifyFilePath = null;
+              _verifyFileKey.currentState?.resetMessageToUser();
+              _verifyFileHashController.clear();
+              _verifyFilePubKeyController.clear();
+            });
+          },
         ),
         BlocListener<SettingsBackupCubit, SettingsBackupState>(
           listener: (BuildContext context, SettingsBackupState state) {
@@ -1401,9 +1490,11 @@ class _SecuritySettingsPaneState extends State<_SecuritySettingsPane> {
                   children: <Widget>[
                     _SettingsRow(
                       title: context.l10n.lockAfter,
-                      subtitle: context.l10n.lockAfterMinutesOfInactivity(
-                        state.autoLockMinutes,
-                      ),
+                      subtitle: state.autoLockMinutes <= 0
+                          ? context.l10n.onClose
+                          : context.l10n.lockAfterMinutesOfInactivity(
+                              state.autoLockMinutes,
+                            ),
                       trailing: SyriusSegmentedControl<int>(
                         selected: _nearestLockPreset(state.autoLockMinutes),
                         onChanged: (int minutes) {
@@ -1442,15 +1533,15 @@ class _SecuritySettingsPaneState extends State<_SecuritySettingsPane> {
                     Divider(height: 1, color: tokens.border),
                     _SettingsRow(
                       title: context.l10n.removeWalletAfterWrongPasswords,
-                      subtitle: context.l10n.eraseAfterFailedPasswordAttempts(
-                        state.autoEraseAttempts.toInt(),
-                      ),
+                      subtitle: state.autoEraseAttempts <= 0
+                          ? context.l10n.off
+                          : context.l10n.eraseAfterFailedPasswordAttempts(
+                              state.autoEraseAttempts.toInt(),
+                            ),
                       trailing: SyriusSegmentedControl<int>(
                         selected: _nearestErasePreset(state.autoEraseAttempts),
                         onChanged: (int attempts) {
-                          final double val = attempts == 0
-                              ? 10.0
-                              : attempts.toDouble();
+                          final double val = attempts.toDouble();
                           secBloc
                             ..add(
                               SettingsSecurityAutoEraseChanged(attempts: val),
@@ -1459,8 +1550,11 @@ class _SecuritySettingsPaneState extends State<_SecuritySettingsPane> {
                               SettingsSecurityAutoEraseConfirmed(
                                 notificationTitle:
                                     context.l10n.autoEraseLimitChanged,
-                                notificationDetails: context.l10n
-                                    .autoEraseLimitNowAttempts(val.toString()),
+                                notificationDetails: attempts == 0
+                                    ? context.l10n.off
+                                    : context.l10n.autoEraseLimitNowAttempts(
+                                        attempts.toString(),
+                                      ),
                                 errorTitle:
                                     context.l10n.errorConfirmingAutoEraseLimit,
                               ),
@@ -1566,12 +1660,9 @@ class _SecuritySettingsPaneState extends State<_SecuritySettingsPane> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    TextField(
+                    _buildPasteField(
                       controller: _signMsgController,
-                      onChanged: (_) => setState(() {}),
-                      decoration: InputDecoration(
-                        hintText: context.l10n.enterText,
-                      ),
+                      hintText: context.l10n.enterText,
                     ),
                     const SizedBox(height: 10),
                     Align(
@@ -1634,28 +1725,19 @@ class _SecuritySettingsPaneState extends State<_SecuritySettingsPane> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    TextField(
+                    _buildPasteField(
                       controller: _verifyMsgController,
-                      onChanged: (_) => setState(() {}),
-                      decoration: InputDecoration(
-                        hintText: context.l10n.enterMessage,
-                      ),
+                      hintText: context.l10n.enterMessage,
                     ),
                     const SizedBox(height: 10),
-                    TextField(
+                    _buildPasteField(
                       controller: _verifySigController,
-                      onChanged: (_) => setState(() {}),
-                      decoration: InputDecoration(
-                        hintText: context.l10n.enterSignature,
-                      ),
+                      hintText: context.l10n.enterSignature,
                     ),
                     const SizedBox(height: 10),
-                    TextField(
+                    _buildPasteField(
                       controller: _verifyPubKeyController,
-                      onChanged: (_) => setState(() {}),
-                      decoration: InputDecoration(
-                        hintText: context.l10n.enterPublicKey,
-                      ),
+                      hintText: context.l10n.enterPublicKey,
                     ),
                     const SizedBox(height: 12),
                     Align(
@@ -1685,6 +1767,140 @@ class _SecuritySettingsPaneState extends State<_SecuritySettingsPane> {
                                         context.l10n.messageOrSignatureInvalid,
                                     errorTitle:
                                         context.l10n.errorVerifyingMessage,
+                                  ),
+                                );
+                              }
+                            : null,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              _SettingsCollapsibleCard(
+                title: context.l10n.signFile,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    SelectFileWidget(
+                      key: _signFileKey,
+                      onPathFoundCallback: (String path) {
+                        setState(() => _signFilePath = path);
+                      },
+                      textStyle: TextStyle(
+                        fontSize: 13,
+                        color: tokens.textSecondary,
+                      ),
+                    ),
+                    if (_signFilePath != null) ...<Widget>[
+                      const SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: SyriusPillButton(
+                          label: context.l10n.signFile,
+                          isLoading: state.isSigningFile,
+                          onPressed: () {
+                            secBloc.add(
+                              SettingsSecuritySignFileRequested(
+                                filePath: _signFilePath!,
+                                errorTitle: context.l10n.errorSigningMessage,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                    if (state.signedFileHash.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 12),
+                      SyriusKeyValueRow(
+                        label: context.l10n.signedHash,
+                        labelWidth: 96,
+                        value: Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: SelectableText(
+                                state.signedFileHash,
+                                style: tokens.monoStyle(fontSize: 11.5),
+                              ),
+                            ),
+                            CopyToClipboardButton(state.signedFileHash),
+                          ],
+                        ),
+                      ),
+                      SyriusKeyValueRow(
+                        label: context.l10n.publicKey,
+                        labelWidth: 96,
+                        value: Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: SelectableText(
+                                state.signedFilePublicKey,
+                                style: tokens.monoStyle(fontSize: 11.5),
+                              ),
+                            ),
+                            CopyToClipboardButton(state.signedFilePublicKey),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              _SettingsCollapsibleCard(
+                title: context.l10n.verifyFile,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    SelectFileWidget(
+                      key: _verifyFileKey,
+                      onPathFoundCallback: (String path) {
+                        setState(() => _verifyFilePath = path);
+                      },
+                      textStyle: TextStyle(
+                        fontSize: 13,
+                        color: tokens.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildPasteField(
+                      controller: _verifyFileHashController,
+                      hintText: context.l10n.enterSignedHash,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildPasteField(
+                      controller: _verifyFilePubKeyController,
+                      hintText: context.l10n.enterPublicKey,
+                    ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: SyriusPillButton(
+                        label: context.l10n.verifyFile,
+                        isLoading: state.isVerifyingFile,
+                        onPressed:
+                            _verifyFilePath != null &&
+                                _verifyFileHashController.text.isNotEmpty &&
+                                _verifyFilePubKeyController.text.isNotEmpty
+                            ? () {
+                                final String signedHash =
+                                    _verifyFileHashController.text;
+                                secBloc.add(
+                                  SettingsSecurityVerifyFileRequested(
+                                    filePath: _verifyFilePath!,
+                                    signedHash: signedHash,
+                                    publicKey: _verifyFilePubKeyController.text,
+                                    successTitle: context
+                                        .l10n
+                                        .fileHashVerifiedSuccessfully,
+                                    successDetails: context.l10n
+                                        .fileHashVerifiedWithSignedHash(
+                                          signedHash,
+                                        ),
+                                    invalidMessage:
+                                        context.l10n.hashOrPublicKeyInvalid,
+                                    errorTitle:
+                                        context.l10n.errorVerifyingFileHash,
                                   ),
                                 );
                               }
@@ -2284,7 +2500,10 @@ class _AppsSettingsPane extends StatelessWidget {
                 onChanged: (_) => setModalState(() {}),
                 decoration: InputDecoration(
                   hintText: context.l10n.walletConnectUri,
-                  suffixIcon: PasteContentButton(controller: uriController),
+                  suffixIcon: PasteContentButton(
+                    controller: uriController,
+                    onPasted: (_) => setModalState(() {}),
+                  ),
                 ),
               ),
             );

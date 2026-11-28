@@ -483,6 +483,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
                             tokens,
                             uiPrefs,
                             state.data ?? const <AccountBlock>[],
+                            hasReachedMax: state.hasReachedMax,
                           ),
                         };
                       },
@@ -497,16 +498,25 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
     BuildContext context,
     SyriusThemeTokens tokens,
     AppUiPreferencesNotifier uiPrefs,
-    List<AccountBlock> blocks,
-  ) {
+    List<AccountBlock> blocks, {
+    required bool hasReachedMax,
+  }) {
     if (blocks.isEmpty) {
       return SyriusEmptyState(message: context.l10n.noneYet);
     }
 
-    return ListView.separated(
-      padding: EdgeInsets.zero,
+    return SyriusPaginatedListView(
       itemCount: blocks.length,
+      hasReachedMax: hasReachedMax,
       separatorBuilder: (_, _) => const SyriusDivider(),
+      onLoadMore: () {
+        final String? addr = kSelectedAddress;
+        if (addr != null) {
+          context.read<LatestTransactionsBloc>().add(
+            InfiniteListMoreRequested(address: Address.parse(addr)),
+          );
+        }
+      },
       itemBuilder: (BuildContext context, int index) {
         return _buildActivityRow(context, tokens, uiPrefs, blocks[index]);
       },
@@ -774,40 +784,73 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
     required bool hasSentinel,
     required bool hasStaking,
   }) async {
-    if (_collectingAll || kSelectedAddress == null) {
+    final String? address = kSelectedAddress;
+    if (_collectingAll || address == null) {
       return;
     }
     setState(() => _collectingAll = true);
+    final SendTransactionBloc txBloc = SendTransactionBloc();
+    final List<(AccountBlockTemplate, String)> requests =
+        <(AccountBlockTemplate, String)>[
+          if (hasPillar)
+            (
+              zenon!.embedded.pillar.collectReward(),
+              context.l10n.collectPillarRewards,
+            ),
+          if (hasSentinel)
+            (
+              zenon!.embedded.sentinel.collectReward(),
+              context.l10n.collectSentinelRewards,
+            ),
+          if (hasStaking)
+            (
+              zenon!.embedded.stake.collectReward(),
+              context.l10n.collectStakingRewards,
+            ),
+        ];
+
     try {
-      final SendTransactionBloc txBloc = context.read<SendTransactionBloc>();
-      if (hasPillar) {
+      for (final (AccountBlockTemplate block, String reason) in requests) {
+        final Future<SendTransactionState> resultFuture = txBloc.stream
+            .firstWhere(
+              (SendTransactionState s) =>
+                  s.status == SendTransactionStatus.success ||
+                  s.status == SendTransactionStatus.failure,
+            );
         txBloc.add(
           SendTransactionInitiateFromBlock(
-            block: zenon!.embedded.pillar.collectReward(),
-            fromAddress: kSelectedAddress!,
-            reasonForGeneratingPlasma: context.l10n.collectPillarRewards,
+            block: block,
+            fromAddress: address,
+            reasonForGeneratingPlasma: reason,
           ),
         );
+        final SendTransactionState result = await resultFuture;
+        if (result.status == SendTransactionStatus.failure &&
+            result.error != null) {
+          await NotificationUtils.sendNotificationError(result.error!, reason);
+          break;
+        }
       }
-      if (hasSentinel) {
-        txBloc.add(
-          SendTransactionInitiateFromBlock(
-            block: zenon!.embedded.sentinel.collectReward(),
-            fromAddress: kSelectedAddress!,
-            reasonForGeneratingPlasma: context.l10n.collectSentinelRewards,
-          ),
-        );
-      }
-      if (hasStaking) {
-        txBloc.add(
-          SendTransactionInitiateFromBlock(
-            block: zenon!.embedded.stake.collectReward(),
-            fromAddress: kSelectedAddress!,
-            reasonForGeneratingPlasma: context.l10n.collectStakingRewards,
-          ),
-        );
+      if (mounted && context.mounted) {
+        final Address parsed = Address.parse(address);
+        if (hasPillar) {
+          context.read<UncollectedPillarRewardsBloc>().add(
+            FetchRequestData(address: parsed),
+          );
+        }
+        if (hasSentinel) {
+          context.read<UncollectedSentinelRewardsBloc>().add(
+            FetchRequestData(address: parsed),
+          );
+        }
+        if (hasStaking) {
+          context.read<UncollectedStakingRewardsBloc>().add(
+            FetchRequestData(address: parsed),
+          );
+        }
       }
     } finally {
+      await txBloc.close();
       if (mounted) {
         setState(() => _collectingAll = false);
       }

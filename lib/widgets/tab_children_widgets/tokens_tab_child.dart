@@ -213,16 +213,22 @@ class _TokensWorkspaceViewState extends State<_TokensWorkspaceView> {
                 height: 36,
                 padding: const EdgeInsets.symmetric(horizontal: 18),
                 onPressed: () {
+                  final AllTokensBloc allTokensBloc = context
+                      .read<AllTokensBloc>();
                   Navigator.push<void>(
                     context,
                     MaterialPageRoute<void>(
-                      builder: (BuildContext context) => StepperScreen(
-                        breadcrumbParent: context.l10n.tokens,
-                        title: context.l10n.createToken,
-                        stepper: const CreateTokenStepperPage(),
-                        onStepperNotificationSeeMorePressed:
-                            widget.onStepperNotificationSeeMorePressed,
-                      ),
+                      builder: (BuildContext routeContext) =>
+                          BlocProvider<AllTokensBloc>.value(
+                            value: allTokensBloc,
+                            child: StepperScreen(
+                              breadcrumbParent: routeContext.l10n.tokens,
+                              title: routeContext.l10n.createToken,
+                              stepper: const CreateTokenStepperPage(),
+                              onStepperNotificationSeeMorePressed:
+                                  widget.onStepperNotificationSeeMorePressed,
+                            ),
+                          ),
                     ),
                   );
                 },
@@ -477,43 +483,35 @@ class _TokensWorkspaceViewState extends State<_TokensWorkspaceView> {
     List<Token> items, {
     required bool hasReachedMax,
   }) {
-    if (items.isEmpty) {
+    if (items.isEmpty && hasReachedMax) {
       return SyriusEmptyState(message: context.l10n.noTokensYet);
     }
 
-    return NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification notification) {
-        if (!hasReachedMax &&
-            notification.metrics.pixels >=
-                notification.metrics.maxScrollExtent - 160) {
-          context.read<TokensBloc>().add(const InfiniteListMoreRequested());
-        }
-        return false;
+    return SyriusPaginatedListView(
+      itemCount: items.length,
+      hasReachedMax: hasReachedMax,
+      onLoadMore: () =>
+          context.read<TokensBloc>().add(const InfiniteListMoreRequested()),
+      itemBuilder: (BuildContext context, int index) {
+        final Token token = items[index];
+        final String zts = token.tokenStandard.toString();
+        final bool expanded = _expandedZts == zts;
+        return _TokenExpandableRow(
+          key: ValueKey<String>(zts),
+          token: token,
+          accountInfo: accountInfo,
+          hideBalances: uiPrefs.hideBalances,
+          explorerBaseUrl: uiPrefs.selectedExplorer,
+          expanded: expanded,
+          onToggleExpand: () {
+            setState(() {
+              _expandedZts = expanded ? null : zts;
+            });
+          },
+          onFavoriteChanged: () => setState(() {}),
+          onMutationSuccess: _refreshTokens,
+        );
       },
-      child: ListView.separated(
-        itemCount: items.length,
-        separatorBuilder: (_, _) => Divider(height: 1, color: tokens.border),
-        itemBuilder: (BuildContext context, int index) {
-          final Token token = items[index];
-          final String zts = token.tokenStandard.toString();
-          final bool expanded = _expandedZts == zts;
-          return _TokenExpandableRow(
-            key: ValueKey<String>(zts),
-            token: token,
-            accountInfo: accountInfo,
-            hideBalances: uiPrefs.hideBalances,
-            explorerBaseUrl: uiPrefs.selectedExplorer,
-            expanded: expanded,
-            onToggleExpand: () {
-              setState(() {
-                _expandedZts = expanded ? null : zts;
-              });
-            },
-            onFavoriteChanged: () => setState(() {}),
-            onMutationSuccess: _refreshTokens,
-          );
-        },
-      ),
     );
   }
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,7 +7,6 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Full-window lock screen matching mockups Screens 41–43.
 class LockTabChild extends StatelessWidget {
@@ -54,19 +52,6 @@ class _View extends StatefulWidget {
 class _ViewState extends State<_View> {
   final TextEditingController _passwordController = TextEditingController();
 
-  List<String> _discoverWallets() {
-    try {
-      final Directory dir = znnDefaultWalletDirectory;
-      if (!dir.existsSync()) {
-        return const <String>[];
-      }
-      return dir.listSync().whereType<File>().map((File f) => f.path).toList()
-        ..sort();
-    } on Object catch (_) {
-      return const <String>[];
-    }
-  }
-
   String _currentWalletLabel() {
     final String? path = kWalletPath;
     if (path != null && path.isNotEmpty) {
@@ -86,7 +71,6 @@ class _ViewState extends State<_View> {
   @override
   Widget build(BuildContext context) {
     final SyriusThemeTokens tokens = context.syriusTheme;
-    final List<String> walletFiles = _discoverWallets();
 
     return BlocConsumer<WalletUnlockBloc, WalletUnlockState>(
       listener: _onUnlockStateChanged,
@@ -153,11 +137,7 @@ class _ViewState extends State<_View> {
                                     style: tokens.microLabelStyle(),
                                   ),
                                   const SizedBox(height: 6),
-                                  _buildWalletSelector(
-                                    context,
-                                    tokens,
-                                    walletFiles,
-                                  ),
+                                  _buildActiveWalletTile(tokens),
                                   const SizedBox(height: 16),
                                   Text(
                                     context.l10n.password.toUpperCase(),
@@ -177,6 +157,7 @@ class _ViewState extends State<_View> {
                                     tokens,
                                     isInitializing: isInitializing,
                                     hasError: hasError,
+                                    autoEraseEnabled: state.autoEraseEnabled,
                                     remainingAttempts: state.remainingAttempts,
                                   ),
                                   const SizedBox(height: 16),
@@ -197,12 +178,14 @@ class _ViewState extends State<_View> {
                                       Flexible(
                                         child: SyriusGhostButton(
                                           label: context.l10n.addAWallet,
-                                          onPressed: () {
-                                            NavigationUtils.push(
-                                              context,
-                                              const AccessWalletScreen(),
-                                            );
-                                          },
+                                          onPressed: state.isBusy
+                                              ? null
+                                              : () {
+                                                  NavigationUtils.push(
+                                                    context,
+                                                    const AccessWalletScreen(),
+                                                  );
+                                                },
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -213,12 +196,14 @@ class _ViewState extends State<_View> {
                                             label: context
                                                 .l10n
                                                 .forgotThePassword,
-                                            onPressed: () {
-                                              NavigationUtils.push(
-                                                context,
-                                                const ResetWalletScreen(),
-                                              );
-                                            },
+                                            onPressed: state.isBusy
+                                                ? null
+                                                : () {
+                                                    NavigationUtils.push(
+                                                      context,
+                                                      const ResetWalletScreen(),
+                                                    );
+                                                  },
                                           ),
                                         ),
                                       ),
@@ -285,78 +270,41 @@ class _ViewState extends State<_View> {
     );
   }
 
-  Widget _buildWalletSelector(
-    BuildContext context,
-    SyriusThemeTokens tokens,
-    List<String> walletFiles,
-  ) {
+  Widget _buildActiveWalletTile(SyriusThemeTokens tokens) {
     final String walletLabel = _currentWalletLabel();
     final String shortAddr = _shortSelectedAddress();
 
-    return PopupMenuButton<String>(
-      onSelected: (String value) {
-        if (value == '__add__') {
-          NavigationUtils.push(context, const AccessWalletScreen());
-        } else {
-          kWalletPath = value;
-          setState(() {});
-        }
-      },
-      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-        for (final String path in walletFiles)
-          PopupMenuItem<String>(
-            value: path,
-            child: Text(p.basenameWithoutExtension(path)),
+    return Container(
+      height: 42,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: tokens.surfaceSubtle,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: tokens.border),
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.key_rounded, size: 15, color: tokens.textMuted),
+          const SizedBox(width: 8),
+          Text(
+            walletLabel,
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
+              color: tokens.textPrimary,
+            ),
           ),
-        if (walletFiles.isNotEmpty) const PopupMenuDivider(),
-        PopupMenuItem<String>(
-          value: '__add__',
-          child: Row(
-            children: <Widget>[
-              Icon(Icons.add, size: 15, color: tokens.znnGreen),
-              const SizedBox(width: 8),
-              Text(context.l10n.addAWallet),
-            ],
-          ),
-        ),
-      ],
-      child: Container(
-        height: 42,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: tokens.surfaceSubtle,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: tokens.border),
-        ),
-        child: Row(
-          children: <Widget>[
-            Icon(Icons.key_rounded, size: 15, color: tokens.textMuted),
+          if (shortAddr.isNotEmpty) ...<Widget>[
             const SizedBox(width: 8),
-            Text(
-              walletLabel,
-              style: TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w500,
-                color: tokens.textPrimary,
+            Expanded(
+              child: Text(
+                shortAddr,
+                overflow: TextOverflow.ellipsis,
+                style: tokens.monoStyle(fontSize: 12, color: tokens.textMuted),
               ),
             ),
-            if (shortAddr.isNotEmpty) ...<Widget>[
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  shortAddr,
-                  overflow: TextOverflow.ellipsis,
-                  style: tokens.monoStyle(
-                    fontSize: 12,
-                    color: tokens.textMuted,
-                  ),
-                ),
-              ),
-            ] else
-              const Spacer(),
-            Icon(Icons.keyboard_arrow_down, size: 16, color: tokens.textMuted),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -366,12 +314,32 @@ class _ViewState extends State<_View> {
     SyriusThemeTokens tokens, {
     required bool isInitializing,
     required bool hasError,
+    required bool autoEraseEnabled,
     required int remainingAttempts,
   }) {
     if (isInitializing) {
       return Text(
         context.l10n.initializingWalletPleaseWait,
         style: TextStyle(fontSize: 12.5, color: tokens.znnGreen),
+      );
+    }
+
+    if (!autoEraseEnabled) {
+      if (!hasError) {
+        return const SizedBox.shrink();
+      }
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Icon(Icons.warning_amber_rounded, size: 15, color: tokens.error),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              context.l10n.incorrectPassword,
+              style: TextStyle(fontSize: 12, color: tokens.error, height: 1.35),
+            ),
+          ),
+        ],
       );
     }
 

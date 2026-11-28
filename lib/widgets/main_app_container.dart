@@ -458,7 +458,10 @@ class _MainAppContainerState extends State<MainAppContainer>
       context: context,
       commands: commands,
     );
-    if (!mounted || selected == null) {
+    if (!mounted ||
+        selected == null ||
+        _isOnLockScreen() ||
+        _isWalletLocked()) {
       return;
     }
     if (selected.id == 'action_toggle_privacy') {
@@ -492,8 +495,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   bool _isWalletLocked() {
-    return _navigateToLockTimer == null ||
-        _navigateToLockTimer != null && !_navigateToLockTimer!.isActive;
+    return _isOnLockScreen() || kWalletFile == null;
   }
 
   Widget _getCurrentPageContainer() {
@@ -561,12 +563,14 @@ class _MainAppContainerState extends State<MainAppContainer>
   }
 
   Future<void> _onChangeAutoLockTime() async {
+    final int minutes =
+        kAutoLockWalletMinutes ?? kAutoLockWalletDefaultIntervalMinutes;
     await sl.get<NotificationsBloc>().addNotification(
       WalletNotification(
         title: 'Auto-lock interval changed successfully',
-        details:
-            'Auto-lock interval changed successfully to '
-            '$kAutoLockWalletMinutes minutes.',
+        details: minutes <= 0
+            ? 'Auto-lock timer disabled (locks on close).'
+            : 'Auto-lock interval changed successfully to $minutes minutes.',
         timestamp: DateTime.now().millisecondsSinceEpoch,
         type: NotificationType.autoLockIntervalChanged,
       ),
@@ -653,10 +657,10 @@ class _MainAppContainerState extends State<MainAppContainer>
           unawaited(_onNavigateToLock());
           _tabController!.animateTo(_getTabChildIndex(Tabs.lock));
         case LockAction.resetTimer:
-          if (_navigateToLockTimer != null && _navigateToLockTimer!.isActive) {
-            _navigateToLockTimer?.cancel();
-            _navigateToLockTimer = _createAutoLockTimer();
-          }
+          _navigateToLockTimer?.cancel();
+          _navigateToLockTimer = _isOnLockScreen()
+              ? null
+              : _createAutoLockTimer();
         case LockAction.navigateToPreviousTab:
           _tabController!.animateTo(_tabController!.previousIndex);
       }
@@ -666,10 +670,13 @@ class _MainAppContainerState extends State<MainAppContainer>
     }
   }
 
-  Timer _createAutoLockTimer() {
-    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (
-      Timer timer,
-    ) async {
+  Timer? _createAutoLockTimer() {
+    final int minutes =
+        kAutoLockWalletMinutes ?? kAutoLockWalletDefaultIntervalMinutes;
+    if (minutes <= 0) {
+      return null;
+    }
+    return Timer.periodic(Duration(minutes: minutes), (Timer timer) async {
       if (!await sl<HtlcSwapSyncService>().hasActiveIncomingSwaps() &&
           mounted &&
           timer.isActive &&

@@ -387,7 +387,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
               label: amountText.isNotEmpty
                   ? '${context.l10n.stake} $amountText ZNN'
                   : context.l10n.stake,
-              onPressed: valid
+              onPressed: valid && !_submittingStake
                   ? () {
                       setState(() => _submittingStake = true);
                       final AccountBlockTemplate block = zenon!.embedded.stake
@@ -468,7 +468,13 @@ class _StakingTabChildState extends State<StakingTabChild> {
                   InfiniteListStatus.success =>
                     stakes.isEmpty
                         ? SyriusEmptyState(message: context.l10n.noneYet)
-                        : _buildStakesTable(context, tokens, uiPrefs, stakes),
+                        : _buildStakesTable(
+                            context,
+                            tokens,
+                            uiPrefs,
+                            stakes,
+                            hasReachedMax: state.hasReachedMax,
+                          ),
                 },
               ),
             ],
@@ -482,8 +488,9 @@ class _StakingTabChildState extends State<StakingTabChild> {
     BuildContext context,
     SyriusThemeTokens tokens,
     AppUiPreferencesNotifier uiPrefs,
-    List<StakeEntry> stakes,
-  ) {
+    List<StakeEntry> stakes, {
+    required bool hasReachedMax,
+  }) {
     return Column(
       children: <Widget>[
         Padding(
@@ -524,9 +531,18 @@ class _StakingTabChildState extends State<StakingTabChild> {
         ),
         const SyriusDivider(),
         Expanded(
-          child: ListView.separated(
+          child: SyriusPaginatedListView(
             itemCount: stakes.length,
+            hasReachedMax: hasReachedMax,
             separatorBuilder: (_, _) => const SyriusDivider(),
+            onLoadMore: () {
+              final String? addr = kSelectedAddress;
+              if (addr != null) {
+                context.read<StakesBloc>().add(
+                  InfiniteListMoreRequested(address: Address.parse(addr)),
+                );
+              }
+            },
             itemBuilder: (BuildContext context, int index) {
               final StakeEntry entry = stakes[index];
               final int nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -631,12 +647,20 @@ class _StakingTabChildState extends State<StakingTabChild> {
   }
 
   Future<void> _showRewardsHistoryModal(BuildContext context) async {
+    final StakingRewardsHistoryBloc rewardsBloc = context
+        .read<StakingRewardsHistoryBloc>();
     await showSyriusBlurredDialog<void>(
       context: context,
       maxWidth: 620,
       builder: (_) => SyriusModalShell(
         title: context.l10n.stakingRewardsTitle,
-        child: const SizedBox(height: 300, child: StakingRewardsCard()),
+        child: SizedBox(
+          height: 300,
+          child: BlocProvider<StakingRewardsHistoryBloc>.value(
+            value: rewardsBloc,
+            child: const StakingRewardsCard(),
+          ),
+        ),
       ),
     );
   }

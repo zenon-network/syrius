@@ -102,79 +102,90 @@ class SyriusModalShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final SyriusThemeTokens tokens = context.syriusTheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: tokens.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: tokens.border),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.28),
-            blurRadius: 32,
-            offset: const Offset(0, 14),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final Widget body = constraints.hasBoundedHeight
+            ? Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                  child: child,
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                child: child,
+              );
+
+        return Container(
+          decoration: BoxDecoration(
+            color: tokens.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: tokens.border),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 32,
+                offset: const Offset(0, 14),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 12, 14),
-            child: Row(
-              children: <Widget>[
-                if (leadingIcon != null) ...<Widget>[
-                  Icon(
-                    leadingIcon,
-                    size: 18,
-                    color: leadingIconColor ?? tokens.znnGreen,
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: tokens.textPrimary,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 12, 14),
+                child: Row(
+                  children: <Widget>[
+                    if (leadingIcon != null) ...<Widget>[
+                      Icon(
+                        leadingIcon,
+                        size: 18,
+                        color: leadingIconColor ?? tokens.znnGreen,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: tokens.textPrimary,
+                        ),
+                      ),
                     ),
+                    ?headerTrailing,
+                    if (showCloseButton)
+                      IconButton(
+                        iconSize: 17,
+                        splashRadius: 16,
+                        color: tokens.textMuted,
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close),
+                      ),
+                  ],
+                ),
+              ),
+              Divider(height: 1, color: tokens.border),
+              body,
+              if (actions.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 18),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      for (int i = 0; i < actions.length; i++) ...<Widget>[
+                        if (i > 0) const SizedBox(width: 10),
+                        actions[i],
+                      ],
+                    ],
                   ),
                 ),
-                ?headerTrailing,
-                if (showCloseButton)
-                  IconButton(
-                    iconSize: 17,
-                    splashRadius: 16,
-                    color: tokens.textMuted,
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
-                  ),
-              ],
-            ),
+            ],
           ),
-          Divider(height: 1, color: tokens.border),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-              child: child,
-            ),
-          ),
-          if (actions.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 18),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  for (int i = 0; i < actions.length; i++) ...<Widget>[
-                    if (i > 0) const SizedBox(width: 10),
-                    actions[i],
-                  ],
-                ],
-              ),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

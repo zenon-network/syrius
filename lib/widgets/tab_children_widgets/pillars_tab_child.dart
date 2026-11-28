@@ -852,6 +852,7 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
             tokens,
             uiPrefs,
             pillars: state.data ?? const <PillarInfo>[],
+            hasReachedMax: state.hasReachedMax,
             delegatedName: delegatedName,
             canDelegate: canDelegate,
           ),
@@ -865,6 +866,7 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
     SyriusThemeTokens tokens,
     AppUiPreferencesNotifier uiPrefs, {
     required List<PillarInfo> pillars,
+    required bool hasReachedMax,
     required String? delegatedName,
     required bool canDelegate,
   }) {
@@ -900,7 +902,7 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
         );
     }
 
-    if (filtered.isEmpty) {
+    if (filtered.isEmpty && hasReachedMax) {
       return SyriusEmptyState(message: context.l10n.noneYet);
     }
 
@@ -947,9 +949,13 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
         ),
         const SyriusDivider(),
         Expanded(
-          child: ListView.separated(
+          child: SyriusPaginatedListView(
             itemCount: filtered.length,
+            hasReachedMax: hasReachedMax,
             separatorBuilder: (_, _) => const SyriusDivider(),
+            onLoadMore: () => context.read<PillarsBloc>().add(
+              const InfiniteListMoreRequested(),
+            ),
             itemBuilder: (BuildContext context, int index) {
               final PillarInfo p = filtered[index];
               final bool isMine = p.ownerAddress.toString() == kSelectedAddress;
@@ -1196,6 +1202,7 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
             context,
             tokens,
             state.data ?? const <SentinelInfo>[],
+            hasReachedMax: state.hasReachedMax,
           ),
         };
       },
@@ -1205,8 +1212,9 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
   Widget _buildSentinelsTable(
     BuildContext context,
     SyriusThemeTokens tokens,
-    List<SentinelInfo> sentinels,
-  ) {
+    List<SentinelInfo> sentinels, {
+    required bool hasReachedMax,
+  }) {
     if (sentinels.isEmpty) {
       return SyriusEmptyState(message: context.l10n.noneYet);
     }
@@ -1241,9 +1249,13 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
         ),
         const SyriusDivider(),
         Expanded(
-          child: ListView.separated(
+          child: SyriusPaginatedListView(
             itemCount: sentinels.length,
+            hasReachedMax: hasReachedMax,
             separatorBuilder: (_, _) => const SyriusDivider(),
+            onLoadMore: () => context.read<SentinelsBloc>().add(
+              const InfiniteListMoreRequested(),
+            ),
             itemBuilder: (BuildContext context, int index) {
               final SentinelInfo s = sentinels[index];
               final bool isMine = s.owner.toString() == kSelectedAddress;
@@ -1388,6 +1400,13 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
     BuildContext context, {
     required bool isSentinel,
   }) async {
+    final PillarRewardsHistoryBloc? pillarRewardsBloc = isSentinel
+        ? null
+        : context.read<PillarRewardsHistoryBloc>();
+    final SentinelRewardsHistoryBloc? sentinelRewardsBloc = isSentinel
+        ? context.read<SentinelRewardsHistoryBloc>()
+        : null;
+
     await showSyriusBlurredDialog<void>(
       context: context,
       maxWidth: 620,
@@ -1398,8 +1417,14 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
         child: SizedBox(
           height: 300,
           child: isSentinel
-              ? const SentinelRewardsCard()
-              : const PillarRewardsCard(),
+              ? BlocProvider<SentinelRewardsHistoryBloc>.value(
+                  value: sentinelRewardsBloc!,
+                  child: const SentinelRewardsCard(),
+                )
+              : BlocProvider<PillarRewardsHistoryBloc>.value(
+                  value: pillarRewardsBloc!,
+                  child: const PillarRewardsCard(),
+                ),
         ),
       ),
     );

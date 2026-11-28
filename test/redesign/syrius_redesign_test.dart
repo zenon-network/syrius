@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
@@ -196,5 +198,102 @@ void main() {
       await tester.pump();
       expect(picked, 'b');
     });
+
+    testWidgets(
+      'SyriusModalShell renders inside showCustomDialog (unbounded height) '
+      'without layout assertions',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          _wrapThemed(
+            Builder(
+              builder: (BuildContext context) {
+                return ElevatedButton(
+                  onPressed: () {
+                    unawaited(
+                      showCustomDialog<void>(
+                        context: context,
+                        content: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 460),
+                          child: const SyriusModalShell(
+                            title: 'Start swap',
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Text('Swap form body'),
+                                SizedBox(height: 24),
+                                Text('Footer content'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Open modal'),
+                );
+              },
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open modal'));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Start swap'), findsOneWidget);
+        expect(find.text('Swap form body'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'SyriusPaginatedListView auto-requests more when viewport is unfilled '
+      'and deduplicates requests until itemCount updates',
+      (WidgetTester tester) async {
+        int loadMoreCalls = 0;
+
+        await tester.pumpWidget(
+          _wrapThemed(
+            SizedBox(
+              height: 400,
+              child: SyriusPaginatedListView(
+                itemCount: 2,
+                hasReachedMax: false,
+                onLoadMore: () => loadMoreCalls += 1,
+                itemBuilder: (_, int i) => SizedBox(
+                  height: 40,
+                  child: Text('Row $i'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        expect(loadMoreCalls, 1);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+        // Updating itemCount allows another fetch when still not max.
+        await tester.pumpWidget(
+          _wrapThemed(
+            SizedBox(
+              height: 400,
+              child: SyriusPaginatedListView(
+                itemCount: 4,
+                hasReachedMax: true,
+                onLoadMore: () => loadMoreCalls += 1,
+                itemBuilder: (_, int i) => SizedBox(
+                  height: 40,
+                  child: Text('Row $i'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        expect(loadMoreCalls, 1);
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+      },
+    );
   });
 }

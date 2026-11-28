@@ -27,6 +27,7 @@ final class WalletUnlockState extends Equatable {
   const WalletUnlockState({
     required this.remainingAttempts,
     this.status = WalletUnlockStatus.initial,
+    this.autoEraseEnabled = true,
     this.nonce = 0,
   });
 
@@ -35,6 +36,9 @@ final class WalletUnlockState extends Equatable {
 
   /// Number of unlock attempts remaining before wallet auto-erase.
   final int remainingAttempts;
+
+  /// Whether automatic wallet erasure after failed attempts is enabled.
+  final bool autoEraseEnabled;
 
   /// Monotonic counter so repeated status transitions (such as consecutive
   /// failures) trigger UI listeners.
@@ -46,5 +50,10 @@ final class WalletUnlockState extends Equatable {
       status == WalletUnlockStatus.initializing;
 
   @override
-  List<Object> get props => <Object>[status, remainingAttempts, nonce];
+  List<Object> get props => <Object>[
+    status,
+    remainingAttempts,
+    autoEraseEnabled,
+    nonce,
+  ];
 }

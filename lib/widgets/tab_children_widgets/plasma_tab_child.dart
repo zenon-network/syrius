@@ -107,10 +107,8 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
         ),
         BlocListener<CancelPlasmaBloc, CancelPlasmaState>(
           listener: (BuildContext context, CancelPlasmaState state) {
-            if (state is CancelPlasmaDone || state is CancelPlasmaFailure) {
-              if (_batchCancelling) {
-                setState(() => _batchCancelling = false);
-              }
+            if (!_batchCancelling &&
+                (state is CancelPlasmaDone || state is CancelPlasmaFailure)) {
               _refreshAll(context);
             }
           },
@@ -635,7 +633,7 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
                 label: amountText.isNotEmpty
                     ? '${context.l10n.fuse} $amountText QSR'
                     : context.l10n.fuse,
-                onPressed: valid
+                onPressed: valid && !_fusing
                     ? () {
                         setState(() => _fusing = true);
                         context.read<FusePlasmaBloc>().add(
@@ -709,7 +707,9 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
                         label: 'Cancel ${_selectedFusionIds.length} fuses',
                         compact: true,
                         isLoading: _batchCancelling,
-                        onPressed: () => _cancelSelectedFusions(context),
+                        onPressed: _batchCancelling
+                            ? null
+                            : () => unawaited(_cancelSelectedFusions(context)),
                       ),
                     ] else
                       Text(
@@ -727,7 +727,13 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
                   InfiniteListStatus.success =>
                     entries.isEmpty
                         ? SyriusEmptyState(message: context.l10n.noneYet)
-                        : _buildEntriesTable(context, tokens, uiPrefs, entries),
+                        : _buildEntriesTable(
+                            context,
+                            tokens,
+                            uiPrefs,
+                            entries,
+                            hasReachedMax: state.hasReachedMax,
+                          ),
                 },
               ),
             ],
@@ -741,8 +747,9 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
     BuildContext context,
     SyriusThemeTokens tokens,
     AppUiPreferencesNotifier uiPrefs,
-    List<FusionEntryWrapper> entries,
-  ) {
+    List<FusionEntryWrapper> entries, {
+    required bool hasReachedMax,
+  }) {
     final int lastHeight =
         context.read<FusedPlasmaBloc>().lastMomentumHeight ?? 0;
 
@@ -774,9 +781,18 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
         ),
         const SyriusDivider(),
         Expanded(
-          child: ListView.separated(
+          child: SyriusPaginatedListView(
             itemCount: entries.length,
+            hasReachedMax: hasReachedMax,
             separatorBuilder: (_, _) => const SyriusDivider(),
+            onLoadMore: () {
+              final String? addr = kSelectedAddress;
+              if (addr != null) {
+                context.read<FusedPlasmaBloc>().add(
+                  InfiniteListMoreRequested(address: Address.parse(addr)),
+                );
+              }
+            },
             itemBuilder: (BuildContext context, int index) {
               final FusionEntryWrapper wrapper = entries[index];
               final FusionEntry entry = wrapper.fusionEntry;
@@ -898,15 +914,42 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
     );
   }
 
-  void _cancelSelectedFusions(BuildContext context) {
+  Future<void> _cancelSelectedFusions(BuildContext context) async {
+    if (_batchCancelling || _selectedFusionIds.isEmpty) {
+      return;
+    }
     final List<Hash> hashes = _selectedFusionIds.toList();
-    setState(() {
-      _batchCancelling = true;
-      _selectedFusionIds.clear();
-    });
     final CancelPlasmaBloc cancelBloc = context.read<CancelPlasmaBloc>();
-    for (final Hash id in hashes) {
-      cancelBloc.add(CancelPlasmaRequested(plasmaHash: id));
+    final String errorTitle = context.l10n.plasmaFusingError;
+    setState(() => _batchCancelling = true);
+    try {
+      for (final Hash id in hashes) {
+        final Future<CancelPlasmaState> resultFuture = cancelBloc.stream
+            .firstWhere(
+              (CancelPlasmaState s) =>
+                  s is CancelPlasmaDone || s is CancelPlasmaFailure,
+            );
+        cancelBloc.add(CancelPlasmaRequested(plasmaHash: id));
+        final CancelPlasmaState result = await resultFuture;
+        if (result is CancelPlasmaDone) {
+          if (mounted) {
+            setState(() => _selectedFusionIds.remove(id));
+          }
+        } else if (result is CancelPlasmaFailure) {
+          await NotificationUtils.sendNotificationError(
+            result.exception,
+            errorTitle,
+          );
+          break;
+        }
+      }
+      if (mounted && context.mounted) {
+        _refreshAll(context);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _batchCancelling = false);
+      }
     }
   }
 

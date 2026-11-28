@@ -39,6 +39,8 @@ class _TransferTabChildState extends State<TransferTabChild> {
   Token _selectedToken = kZnnCoin;
   bool _lookalikeDismissed = false;
   bool _isSending = false;
+  bool _sendDialogOpen = false;
+  _PendingSendSummary? _pendingSendSummary;
 
   // Receive state
   bool _showQr = false;
@@ -602,14 +604,16 @@ class _TransferTabChildState extends State<TransferTabChild> {
                 : amountText.isNotEmpty
                 ? '${context.l10n.send} $amountText ${_selectedToken.symbol}'
                 : context.l10n.send,
-            onPressed: valid
-                ? () => _confirmAndSend(
-                    context,
-                    fromAddress: effectiveSender,
-                    toAddress: recipient,
-                    amountText: amountText,
-                    token: _selectedToken,
-                    knownLabel: knownLabel,
+            onPressed: valid && !_isSending && !_sendDialogOpen
+                ? () => unawaited(
+                    _confirmAndSend(
+                      context,
+                      fromAddress: effectiveSender,
+                      toAddress: recipient,
+                      amountText: amountText,
+                      token: _selectedToken,
+                      knownLabel: knownLabel,
+                    ),
                   )
                 : null,
           ),
@@ -708,120 +712,156 @@ class _TransferTabChildState extends State<TransferTabChild> {
     required Token token,
     String? knownLabel,
   }) async {
+    if (_isSending || _sendDialogOpen) {
+      return;
+    }
+    setState(() => _sendDialogOpen = true);
     final SyriusThemeTokens tokens = context.syriusTheme;
     final bool isLedger = kWalletFile?.isHardwareWallet ?? false;
 
-    final bool? confirmed = await showSyriusBlurredDialog<bool>(
-      context: context,
-      maxWidth: 440,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return SyriusModalShell(
-          title: '${context.l10n.send} $amountText ${token.symbol}?',
-          showCloseButton: false,
-          actions: <Widget>[
-            SyriusPillButton(
-              label: context.l10n.cancel,
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-            ),
-            SyriusGradientButton(
-              label: context.l10n.send,
-              height: 36,
-              padding: const EdgeInsets.symmetric(horizontal: 22),
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-            ),
-          ],
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              SyriusKeyValueRow(
-                label: context.l10n.to,
-                value: Wrap(
-                  spacing: 8,
-                  children: <Widget>[
-                    if (knownLabel != null)
-                      Text(
-                        knownLabel,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: tokens.textPrimary,
-                        ),
-                      ),
-                    Text(
-                      _shorten(toAddress),
-                      style: tokens.monoStyle(
-                        fontSize: 12.5,
-                        color: tokens.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
+    bool? confirmed;
+    try {
+      confirmed = await showSyriusBlurredDialog<bool>(
+        context: context,
+        maxWidth: 440,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          bool handled = false;
+          return SyriusModalShell(
+            title: '${context.l10n.send} $amountText ${token.symbol}?',
+            showCloseButton: false,
+            actions: <Widget>[
+              SyriusPillButton(
+                label: context.l10n.cancel,
+                onPressed: () {
+                  if (handled) {
+                    return;
+                  }
+                  handled = true;
+                  Navigator.of(dialogContext).pop(false);
+                },
               ),
-              SyriusKeyValueRow(
-                label: context.l10n.from,
-                value: Text(
-                  ZenonAddressUtils.getLabel(fromAddress),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: tokens.textPrimary,
-                  ),
-                ),
+              SyriusGradientButton(
+                label: context.l10n.send,
+                height: 36,
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                onPressed: () {
+                  if (handled) {
+                    return;
+                  }
+                  handled = true;
+                  Navigator.of(dialogContext).pop(true);
+                },
               ),
-              SyriusKeyValueRow(
-                label: context.l10n.plasma,
-                value: Text(
-                  'From fused QSR or PoW',
-                  style: TextStyle(fontSize: 12.5, color: tokens.textSecondary),
-                ),
-              ),
-              if (isLedger) ...<Widget>[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: tokens.surfaceElevated,
-                    borderRadius: BorderRadius.circular(9),
-                    border: Border.all(color: tokens.border),
-                  ),
-                  child: Row(
+            ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                SyriusKeyValueRow(
+                  label: context.l10n.to,
+                  value: Wrap(
+                    spacing: 8,
                     children: <Widget>[
-                      Icon(
-                        Icons.usb_rounded,
-                        size: 16,
-                        color: tokens.textSecondary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Confirm on the Ledger after Send.',
+                      if (knownLabel != null)
+                        Text(
+                          knownLabel,
                           style: TextStyle(
-                            fontSize: 12.5,
-                            color: tokens.textSecondary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: tokens.textPrimary,
                           ),
+                        ),
+                      Text(
+                        _shorten(toAddress),
+                        style: tokens.monoStyle(
+                          fontSize: 12.5,
+                          color: tokens.textSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
+                SyriusKeyValueRow(
+                  label: context.l10n.from,
+                  value: Text(
+                    ZenonAddressUtils.getLabel(fromAddress),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: tokens.textPrimary,
+                    ),
+                  ),
+                ),
+                SyriusKeyValueRow(
+                  label: context.l10n.plasma,
+                  value: Text(
+                    'From fused QSR or PoW',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: tokens.textSecondary,
+                    ),
+                  ),
+                ),
+                if (isLedger) ...<Widget>[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: tokens.surfaceElevated,
+                      borderRadius: BorderRadius.circular(9),
+                      border: Border.all(color: tokens.border),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        Icon(
+                          Icons.usb_rounded,
+                          size: 16,
+                          color: tokens.textSecondary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Confirm on the Ledger after Send.',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: tokens.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
-            ],
-          ),
-        );
-      },
-    );
+            ),
+          );
+        },
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _sendDialogOpen = false);
+      }
+    }
 
-    if (!mounted || !(confirmed ?? false)) {
+    if (!mounted || !(confirmed ?? false) || _isSending) {
       return;
     }
     if (!context.mounted) {
       return;
     }
+    setState(() {
+      _isSending = true;
+      _pendingSendSummary = _PendingSendSummary(
+        amount: amountText,
+        recipient: toAddress,
+        sender: fromAddress,
+        symbol: token.symbol,
+      );
+    });
     context.read<SendTransactionBloc>().add(
       SendTransactionInitiate(
         amount: amountText.extractDecimals(token.decimals),
@@ -1300,15 +1340,47 @@ class _TransferTabChildState extends State<TransferTabChild> {
     required String qsrText,
     required String message,
   }) async {
+    if (_isZapping || _isSending) {
+      return;
+    }
     setState(() => _isZapping = true);
+    final SendTransactionBloc zapBloc = SendTransactionBloc();
+    final String zapReason = context.l10n.zap;
     try {
-      final SendTransactionBloc bloc = context.read<SendTransactionBloc>();
       final List<int> dataBytes = message.isNotEmpty
           ? utf8.encode(message)
           : const <int>[];
       final double znnVal = double.tryParse(znnText) ?? 0;
       final double qsrVal = double.tryParse(qsrText) ?? 0;
 
+      Future<bool> submitBlock(AccountBlockTemplate block) async {
+        final Future<SendTransactionState> resultFuture = zapBloc.stream
+            .firstWhere(
+              (SendTransactionState s) =>
+                  s.status == SendTransactionStatus.success ||
+                  s.status == SendTransactionStatus.failure,
+            );
+        zapBloc.add(
+          SendTransactionInitiateFromBlock(
+            block: block,
+            fromAddress: fromAddress,
+            reasonForGeneratingPlasma: zapReason,
+          ),
+        );
+        final SendTransactionState result = await resultFuture;
+        if (result.status == SendTransactionStatus.failure) {
+          if (result.error != null) {
+            await NotificationUtils.sendNotificationError(
+              result.error!,
+              zapReason,
+            );
+          }
+          return false;
+        }
+        return true;
+      }
+
+      bool allSucceeded = true;
       if (znnVal > 0) {
         final AccountBlockTemplate znnBlock = AccountBlockTemplate.send(
           Address.parse(toAddress),
@@ -1316,31 +1388,22 @@ class _TransferTabChildState extends State<TransferTabChild> {
           znnText.extractDecimals(kZnnCoin.decimals),
           dataBytes,
         );
-        bloc.add(
-          SendTransactionInitiateFromBlock(
-            block: znnBlock,
-            fromAddress: fromAddress,
-            reasonForGeneratingPlasma: context.l10n.zap,
-          ),
-        );
+        allSucceeded = await submitBlock(znnBlock);
       }
-      if (qsrVal > 0) {
+      if (allSucceeded && qsrVal > 0) {
         final AccountBlockTemplate qsrBlock = AccountBlockTemplate.send(
           Address.parse(toAddress),
           kQsrCoin.tokenStandard,
           qsrText.extractDecimals(kQsrCoin.decimals),
           znnVal > 0 ? const <int>[] : dataBytes,
         );
-        bloc.add(
-          SendTransactionInitiateFromBlock(
-            block: qsrBlock,
-            fromAddress: fromAddress,
-            reasonForGeneratingPlasma: context.l10n.zap,
-          ),
-        );
+        allSucceeded = await submitBlock(qsrBlock);
       }
-      _zapMessageController.clear();
+      if (allSucceeded && mounted) {
+        _zapMessageController.clear();
+      }
     } finally {
+      await zapBloc.close();
       if (mounted) {
         setState(() => _isZapping = false);
       }
@@ -1417,6 +1480,27 @@ class _TransferTabChildState extends State<TransferTabChild> {
                 for (int i = 0; i < pending.length; i++) ...<Widget>[
                   if (i > 0) const SyriusDivider(),
                   _buildPendingReceiveRow(tokens, uiPrefs, pending[i]),
+                ],
+                if (!state.hasReachedMax) ...<Widget>[
+                  const SyriusDivider(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Center(
+                      child: SyriusGhostButton(
+                        label: context.l10n.seeMore,
+                        onPressed: () {
+                          final String? addr = kSelectedAddress;
+                          if (addr != null) {
+                            context.read<PendingTransactionsBloc>().add(
+                              InfiniteListMoreRequested(
+                                address: Address.parse(addr),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
                 ],
               ],
             ],
@@ -1542,22 +1626,29 @@ class _TransferTabChildState extends State<TransferTabChild> {
   }
 
   void _onSendStateChanged(BuildContext context, SendTransactionState state) {
+    final _PendingSendSummary? summary = _pendingSendSummary;
+    if (summary == null) {
+      return;
+    }
     if (state.status == SendTransactionStatus.loading) {
-      setState(() => _isSending = true);
+      if (!_isSending) {
+        setState(() => _isSending = true);
+      }
     } else if (state.status == SendTransactionStatus.success) {
+      _pendingSendSummary = null;
       final String recipientLabel = ZenonAddressUtils.getLabel(
-        _recipientController.text.trim(),
+        summary.recipient,
       );
-      final String senderLabel = ZenonAddressUtils.getLabel(_senderAddress);
-      if (state.data != null && _mode == TransferMode.send) {
+      final String senderLabel = ZenonAddressUtils.getLabel(summary.sender);
+      if (state.data != null) {
         unawaited(
           sl.get<NotificationsBloc>().addNotification(
             WalletNotification(
               title: context.l10n.sentDetails(
-                _amountController.text.trim(),
+                summary.amount,
                 recipientLabel,
                 senderLabel,
-                _selectedToken.symbol,
+                summary.symbol,
               ),
               timestamp: DateTime.now().millisecondsSinceEpoch,
               details: context.l10n.hashValue(state.data!.hash.toString()),
@@ -1573,15 +1664,16 @@ class _TransferTabChildState extends State<TransferTabChild> {
         _lookalikeDismissed = false;
       });
     } else if (state.status == SendTransactionStatus.failure) {
+      _pendingSendSummary = null;
       setState(() => _isSending = false);
       if (state.error != null) {
         unawaited(
           NotificationUtils.sendNotificationError(
             state.error!,
             context.l10n.couldNotSend(
-              _amountController.text.trim(),
-              ZenonAddressUtils.getLabel(_recipientController.text.trim()),
-              _selectedToken.symbol,
+              summary.amount,
+              ZenonAddressUtils.getLabel(summary.recipient),
+              summary.symbol,
             ),
           ),
         );
@@ -1683,4 +1775,18 @@ class _LookalikeMatch {
 
   final String address;
   final String label;
+}
+
+class _PendingSendSummary {
+  const _PendingSendSummary({
+    required this.amount,
+    required this.recipient,
+    required this.sender,
+    required this.symbol,
+  });
+
+  final String amount;
+  final String recipient;
+  final String sender;
+  final String symbol;
 }

@@ -55,6 +55,9 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
            sendErrorNotification ?? NotificationUtils.sendNotificationError,
        super(
          WalletUnlockState(
+           autoEraseEnabled:
+               (getAutoEraseWalletLimit ?? _defaultGetAutoEraseWalletLimit)() >
+               0,
            remainingAttempts: _computeRemainingAttempts(
              limit:
                  (getAutoEraseWalletLimit ?? _defaultGetAutoEraseWalletLimit)(),
@@ -90,6 +93,7 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
     }
 
     final int limit = _getAutoEraseWalletLimit();
+    final bool autoEraseEnabled = limit > 0;
     final int currentAttempts = _getNumFailedAttempts();
     final int currentRemaining = _computeRemainingAttempts(
       limit: limit,
@@ -100,6 +104,7 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
       WalletUnlockState(
         status: WalletUnlockStatus.decrypting,
         remainingAttempts: currentRemaining,
+        autoEraseEnabled: autoEraseEnabled,
         nonce: state.nonce + 1,
       ),
     );
@@ -121,6 +126,7 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
           WalletUnlockState(
             status: WalletUnlockStatus.initializing,
             remainingAttempts: currentRemaining,
+            autoEraseEnabled: autoEraseEnabled,
             nonce: state.nonce + 1,
           ),
         );
@@ -138,7 +144,8 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
       emit(
         WalletUnlockState(
           status: WalletUnlockStatus.success,
-          remainingAttempts: limit,
+          remainingAttempts: autoEraseEnabled ? limit : 0,
+          autoEraseEnabled: autoEraseEnabled,
           nonce: state.nonce + 1,
         ),
       );
@@ -155,11 +162,12 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
         limit: limit,
         failedAttempts: updatedAttempts,
       );
-      if (updatedAttempts >= limit) {
+      if (autoEraseEnabled && updatedAttempts >= limit) {
         emit(
           WalletUnlockState(
             status: WalletUnlockStatus.autoEraseTriggered,
             remainingAttempts: 0,
+            autoEraseEnabled: autoEraseEnabled,
             nonce: state.nonce + 1,
           ),
         );
@@ -168,6 +176,7 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
           WalletUnlockState(
             status: WalletUnlockStatus.failure,
             remainingAttempts: remaining,
+            autoEraseEnabled: autoEraseEnabled,
             nonce: state.nonce + 1,
           ),
         );
@@ -182,6 +191,7 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
         WalletUnlockState(
           status: WalletUnlockStatus.failure,
           remainingAttempts: currentRemaining,
+          autoEraseEnabled: autoEraseEnabled,
           nonce: state.nonce + 1,
         ),
       );
@@ -192,6 +202,7 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
         WalletUnlockState(
           status: WalletUnlockStatus.failure,
           remainingAttempts: currentRemaining,
+          autoEraseEnabled: autoEraseEnabled,
           nonce: state.nonce + 1,
         ),
       );
@@ -210,6 +221,9 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
     required int limit,
     required int failedAttempts,
   }) {
+    if (limit <= 0) {
+      return 0;
+    }
     final int remaining = limit - failedAttempts;
     return remaining < 0 ? 0 : remaining;
   }

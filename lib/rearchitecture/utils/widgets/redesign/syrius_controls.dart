@@ -626,3 +626,129 @@ class SyriusVerticalStepRail extends StatelessWidget {
     );
   }
 }
+
+/// Separated [ListView] with scroll-bottom and unfilled-viewport pagination
+/// for paginated tables and activity feeds.
+class SyriusPaginatedListView extends StatefulWidget {
+  /// Creates a [SyriusPaginatedListView].
+  const SyriusPaginatedListView({
+    required this.itemCount,
+    required this.itemBuilder,
+    required this.hasReachedMax,
+    required this.onLoadMore,
+    this.separatorBuilder,
+    this.padding = EdgeInsets.zero,
+    super.key,
+  });
+
+  /// Number of loaded data rows (excluding any bottom loading indicator).
+  final int itemCount;
+
+  /// Builds each data row at `index` in `[0, itemCount)`.
+  final IndexedWidgetBuilder itemBuilder;
+
+  /// Whether all pages have been fetched.
+  final bool hasReachedMax;
+
+  /// Dispatches the next page request when reaching the end of the list.
+  final VoidCallback onLoadMore;
+
+  /// Optional separator between rows. Defaults to a hairline [Divider].
+  final IndexedWidgetBuilder? separatorBuilder;
+
+  /// List padding.
+  final EdgeInsetsGeometry padding;
+
+  @override
+  State<SyriusPaginatedListView> createState() =>
+      _SyriusPaginatedListViewState();
+}
+
+class _SyriusPaginatedListViewState extends State<SyriusPaginatedListView> {
+  final ScrollController _controller = ScrollController();
+  bool _isRequesting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onScroll);
+    _requestIfViewportUnfilled();
+  }
+
+  @override
+  void didUpdateWidget(covariant SyriusPaginatedListView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.itemCount != widget.itemCount ||
+        oldWidget.hasReachedMax != widget.hasReachedMax) {
+      _isRequesting = false;
+      _requestIfViewportUnfilled();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_controller.hasClients) {
+      return;
+    }
+    final ScrollPosition pos = _controller.position;
+    if (pos.pixels >= pos.maxScrollExtent - 160) {
+      _triggerLoadMore();
+    }
+  }
+
+  void _requestIfViewportUnfilled() {
+    if (widget.hasReachedMax) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_controller.hasClients) {
+        return;
+      }
+      if (_controller.position.maxScrollExtent <= 0) {
+        _triggerLoadMore();
+      }
+    });
+  }
+
+  void _triggerLoadMore() {
+    if (_isRequesting || widget.hasReachedMax) {
+      return;
+    }
+    _isRequesting = true;
+    widget.onLoadMore();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final SyriusThemeTokens tokens = context.syriusTheme;
+    final int totalCount = widget.itemCount + (widget.hasReachedMax ? 0 : 1);
+
+    return ListView.separated(
+      controller: _controller,
+      padding: widget.padding,
+      itemCount: totalCount,
+      separatorBuilder:
+          widget.separatorBuilder ??
+          (_, _) => Divider(height: 1, color: tokens.border),
+      itemBuilder: (BuildContext context, int index) {
+        if (index >= widget.itemCount) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 14),
+            child: Center(
+              child: SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
+        return widget.itemBuilder(context, index);
+      },
+    );
+  }
+}
