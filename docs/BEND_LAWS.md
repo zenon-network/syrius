@@ -156,8 +156,8 @@ Every law outside those 107 oracle ops is proved strictly at the Bend/Lean model
 level and enumerated explicitly in `test/bend/coverage.json`:
 
 - **291 oracle-exercised domain laws**: laws whose subject model functions are
-  directly evaluated against real `lib/` production code through the 107 oracle
-  ops.
+  directly or transitively evaluated against real `lib/` production code through
+  the 107 oracle ops.
 - **107 model-only laws (`model_only_laws` in `coverage.json`: 90 domain + 17
   root)**: proved in Bend and Lean `--verdict` without direct Bend oracle
   differential execution. These comprise:
@@ -334,7 +334,8 @@ pure helpers are wired live into Syrius production code:
   `canCreateStake`
 - `lib/rearchitecture/features/stake_collect/utils/stake_reward_utils.dart`:
   `canCollectStakeRewards`, `hasStakingRewardHistory` (wired live into
-  `StakeCollectBloc` and `StakingRewardsHistoryBloc`)
+  `StakeCollectCard` (`stake_collect_card.dart`) and
+  `StakingRewardsHistoryBloc` (`staking_rewards_history_bloc.dart`))
 - `lib/rearchitecture/features/tokens/utils/token_capabilities.dart`:
   `TokenCapabilities`, `evaluateTokenCapabilities`, `canMintTokenAmount`,
   `canBurnTokenAmount`
