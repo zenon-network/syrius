@@ -459,6 +459,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WindowListener {
+  final FocusNode _keyboardFocusNode = FocusNode();
+
   @override
   void initState() {
     windowManager.addListener(this);
@@ -503,90 +505,80 @@ class _MyAppState extends State<MyApp> with WindowListener {
           ),
           BlocProvider<LockBloc>(
             create: (_) => LockBloc(),
-            child: Builder(
-              builder: (BuildContext context) {
-                return Consumer<AppThemeNotifier>(
-                  builder: (_, AppThemeNotifier appThemeNotifier, _) {
-                    final LockBloc lockBloc = context.read<LockBloc>();
-                    return OverlaySupport(
-                      child: Listener(
-                        onPointerSignal: (PointerSignalEvent event) {
-                          if (event is PointerScrollEvent) {
-                            lockBloc.add(const LockTimerResetRequested());
-                          }
-                        },
-                        onPointerCancel: (_) =>
-                            lockBloc.add(const LockTimerResetRequested()),
-                        onPointerDown: (_) =>
-                            lockBloc.add(const LockTimerResetRequested()),
-                        onPointerHover: (_) =>
-                            lockBloc.add(const LockTimerResetRequested()),
-                        onPointerMove: (_) =>
-                            lockBloc.add(const LockTimerResetRequested()),
-                        onPointerUp: (_) =>
-                            lockBloc.add(const LockTimerResetRequested()),
-                        child: MouseRegion(
-                          onEnter: (_) =>
-                              lockBloc.add(const LockTimerResetRequested()),
-                          onExit: (_) =>
-                              lockBloc.add(const LockTimerResetRequested()),
-                          child: KeyboardListener(
-                            focusNode: FocusNode(),
-                            onKeyEvent: (KeyEvent event) {
-                              lockBloc.add(const LockTimerResetRequested());
-                            },
-                            child: Layout(
-                              child: MaterialApp(
-                                title: 's y r i u s',
-                                navigatorKey: globalNavigatorKey,
-                                debugShowCheckedModeBanner: false,
-                                theme: AppTheme.lightTheme,
-                                darkTheme: AppTheme.darkTheme,
-                                themeMode: appThemeNotifier.currentThemeMode,
-                                initialRoute: SplashScreen.route,
-                                scrollBehavior: RemoveOverscrollEffect(),
-                                localizationsDelegates:
-                                    AppLocalizations.localizationsDelegates,
-                                supportedLocales:
-                                    AppLocalizations.supportedLocales,
-                                routes: <String, WidgetBuilder>{
-                                  AccessWalletScreen.route:
-                                      (BuildContext context) =>
-                                          const AccessWalletScreen(),
-                                  SplashScreen.route: (BuildContext context) =>
-                                      const SplashScreen(),
-                                  MainAppContainer.route:
-                                      (BuildContext context) =>
-                                          const MainAppContainer(),
-                                  NodeManagementScreen.route: (_) =>
-                                      const NodeManagementScreen(),
-                                },
-                                onGenerateRoute: (RouteSettings settings) {
-                                  if (settings.name ==
-                                      SyriusErrorWidget.route) {
-                                    final CustomSyriusErrorWidgetArguments
-                                    args =
-                                        settings.arguments!
-                                            as CustomSyriusErrorWidgetArguments;
-                                    return MaterialPageRoute<dynamic>(
-                                      builder: (BuildContext context) =>
-                                          SyriusErrorWidget(args.errorText),
-                                    );
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
           ),
         ],
+        child: Consumer<AppThemeNotifier>(
+          builder:
+              (BuildContext context, AppThemeNotifier appThemeNotifier, _) {
+            final LockBloc lockBloc = context.read<LockBloc>();
+            return OverlaySupport(
+              child: Listener(
+                onPointerSignal: (PointerSignalEvent event) {
+                  if (event is PointerScrollEvent) {
+                    lockBloc.add(const LockTimerResetRequested());
+                  }
+                },
+                onPointerCancel: (_) =>
+                    lockBloc.add(const LockTimerResetRequested()),
+                onPointerDown: (_) =>
+                    lockBloc.add(const LockTimerResetRequested()),
+                onPointerHover: (_) =>
+                    lockBloc.add(const LockTimerResetRequested()),
+                onPointerMove: (_) =>
+                    lockBloc.add(const LockTimerResetRequested()),
+                onPointerUp: (_) =>
+                    lockBloc.add(const LockTimerResetRequested()),
+                child: MouseRegion(
+                  onEnter: (_) => lockBloc.add(const LockTimerResetRequested()),
+                  onExit: (_) => lockBloc.add(const LockTimerResetRequested()),
+                  child: KeyboardListener(
+                    focusNode: _keyboardFocusNode,
+                    onKeyEvent: (KeyEvent event) {
+                      lockBloc.add(const LockTimerResetRequested());
+                    },
+                    child: Layout(
+                      child: MaterialApp(
+                        title: 's y r i u s',
+                        navigatorKey: globalNavigatorKey,
+                        debugShowCheckedModeBanner: false,
+                        theme: AppTheme.lightTheme,
+                        darkTheme: AppTheme.darkTheme,
+                        themeMode: appThemeNotifier.currentThemeMode,
+                        initialRoute: SplashScreen.route,
+                        scrollBehavior: RemoveOverscrollEffect(),
+                        localizationsDelegates:
+                            AppLocalizations.localizationsDelegates,
+                        supportedLocales: AppLocalizations.supportedLocales,
+                        routes: <String, WidgetBuilder>{
+                          AccessWalletScreen.route: (BuildContext context) =>
+                              const AccessWalletScreen(),
+                          SplashScreen.route: (BuildContext context) =>
+                              const SplashScreen(),
+                          MainAppContainer.route: (BuildContext context) =>
+                              const MainAppContainer(),
+                          NodeManagementScreen.route: (_) =>
+                              const NodeManagementScreen(),
+                        },
+                        onGenerateRoute: (RouteSettings settings) {
+                          if (settings.name == SyriusErrorWidget.route) {
+                            final CustomSyriusErrorWidgetArguments args =
+                                settings.arguments!
+                                    as CustomSyriusErrorWidgetArguments;
+                            return MaterialPageRoute<dynamic>(
+                              builder: (BuildContext context) =>
+                                  SyriusErrorWidget(args.errorText),
+                            );
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -638,6 +630,7 @@ class _MyAppState extends State<MyApp> with WindowListener {
   @override
   void dispose() {
     windowManager.removeListener(this);
+    _keyboardFocusNode.dispose();
     _trayIcon?.dispose();
     _trayIcon = null;
     super.dispose();
