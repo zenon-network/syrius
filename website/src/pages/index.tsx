@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import {useEffect, useState, type ReactNode} from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
@@ -197,6 +197,14 @@ const DEVELOPER_CARDS: JourneyCard[] = [
 
 function HeroSection(): ReactNode {
   const logoSrc = useBaseUrl('/img/syrius-logo.svg');
+  const [searchShortcut, setSearchShortcut] = useState('⌘K / Ctrl K');
+
+  useEffect(() => {
+    const isMac =
+      typeof navigator !== 'undefined' &&
+      /Mac|iPod|iPhone|iPad/i.test(navigator.platform || navigator.userAgent);
+    setSearchShortcut(isMac ? '⌘ K' : 'Ctrl K');
+  }, []);
 
   const focusNavbarSearch = () => {
     const input = document.querySelector<HTMLInputElement>('.navbar__search-input');
@@ -296,7 +304,7 @@ function HeroSection(): ReactNode {
               className={styles.shortcutHint}
               onClick={focusNavbarSearch}>
               <span>Press</span>
-              <kbd className={styles.shortcutKey}>Ctrl K</kbd>
+              <kbd className={styles.shortcutKey}>{searchShortcut}</kbd>
               <span>to search</span>
             </button>
           </div>

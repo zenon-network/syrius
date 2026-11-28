@@ -170,10 +170,12 @@ The mnemonic and password above are **publicly committed devnet test values** fr
    # Run a single feature suite
    flutter test integration_test/features/send_transaction_test.dart -d <macos|windows|linux> --tags chain
 
-   # Or run all feature suites sequentially
+   # Or run all feature suites sequentially (preserving any failure status)
+   status=0
    for test_file in integration_test/features/*_test.dart; do
-     flutter test "$test_file" -d <macos|windows|linux> --tags chain
+     flutter test "$test_file" -d <macos|windows|linux> --tags chain || status=1
    done
+   [ "$status" -eq 0 ]
    ```
 
 4. **Shut down the devnet** when finished:

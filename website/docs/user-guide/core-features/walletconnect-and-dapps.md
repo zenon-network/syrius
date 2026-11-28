@@ -24,7 +24,7 @@ Syrius supports three WalletConnect request methods on Network of Momentum (`zen
 | `znn_send` | Broadcast an on-chain transaction (transfer, stake, contract call, etc.). |
 
 :::info You Always Stay in Control
-A connected dApp can **never** move funds silently. Every `znn_sign` and `znn_send` request opens an approval dialog inside Syrius showing the exact details for you to **Approve** or **Decline**.
+A connected dApp can **never** move funds silently. Every `znn_sign` and `znn_send` request opens an approval dialog inside Syrius so you can **Approve** or **Decline**. For `znn_send`, Syrius displays the recipient, amount, token, source address, and network—plus the decoded method and arguments for recognized embedded contract calls; unrecognized or custom call data is shown only as a truncated raw hex preview, so never approve unfamiliar raw data you do not trust.
 :::
 
 ---

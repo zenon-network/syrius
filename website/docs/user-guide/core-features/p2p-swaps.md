@@ -77,7 +77,7 @@ Understanding these exact timers keeps your funds safe:
 
 ### Built-In Protections in Syrius
 
-- **Wakelock**: While you are waiting as the Joining Party, Syrius activates your OS **wakelock** so your computer does not go to sleep while monitoring the chain.
+- **Wakelock**: While you are waiting as the Joining Party, Syrius requests an OS display wakelock while monitoring the chain. Because a display wakelock does not guarantee that your computer stays awake under all OS power policies, disable system sleep in your OS power settings and keep Syrius running and connected until the swap completes.
 - **No Auto-Lock During Active Swaps**: Syrius temporarily pauses automatic wallet locking while an incoming swap is active so automatic unlocking is never blocked.
 - **HTLC Watchtowers**: Community members can run open-source [HTLC Watchtowers](https://github.com/hypercore-one/htlc-watchtower) that watch the chain for revealed secrets and automatically submit unlock transactions on your behalf as an extra safety net.
 

@@ -104,6 +104,8 @@ Because Syrius is non-custodial, passwords cannot be recovered or reset by email
 
 :::warning Wait Before Erasing
 Never erase your wallet unless you have physically verified that you possess the correct seed phrase or Seed Vault + Key!
+
+Resetting also deletes local P2P swap records (`htlc_swaps.sqlite`) without checking for active swaps, and Syrius does not recreate active swap records from chain blocks afterward. Finish or reclaim every active P2P swap before resetting so automatic unlocking is not interrupted.
 :::
 
 ### Where do I find Syrius log files for bug reports?

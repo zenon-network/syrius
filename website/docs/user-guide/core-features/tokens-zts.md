@@ -52,7 +52,7 @@ Anyone can issue a ZTS token using Syrius's guided creation stepper.
 7. **Issue Token**: Review all settings carefully and click **Issue** to burn 1 ZNN and create your ZTS token on-chain.
 
 :::caution Most Token Properties Are Permanent
-Your token's **Name**, **Symbol**, **Domain**, **Decimals**, and **Max Supply** cannot be edited after issuance. Review every field carefully before submitting!
+Your token's **Name**, **Symbol**, **Domain**, and **Decimals** cannot be edited after issuance, and **Max Supply** can never be increased. Note also that disabling minting permanently lowers **Max Supply** to the current **Total Supply**, and burning a non-mintable token reduces **Max Supply** by the burned amount. Review every field carefully before submitting!
 :::
 
 ---
@@ -66,9 +66,9 @@ Expand any token row in the **Tokens** tab to access available actions:
 When your currently selected address is the token's **owner**, you see four owner tabs:
 
 1. **Mint** *(Mintable tokens only)*: Mint new tokens (up to the remaining allowance under **Max supply**) to any `z1...` destination address.
-2. **Burn**: Permanently destroy tokens from your balance, reducing total supply.
+2. **Burn**: Permanently destroy tokens from your balance, reducing total supply (and Max Supply as well if the token is non-mintable).
 3. **Transfer Ownership**: Transfer owner privileges to a new `z1...` address.
-4. **Flags**: Permanently update token flags (for example, revoking mintability to lock supply forever, or toggling burnability/utility flags).
+4. **Flags**: Update token mintability and burnability flags via `UpdateToken` (for example, permanently revoking mintability—which locks **Max Supply** to the current **Total Supply**—or toggling whether any holder may burn).
 
 :::danger Ownership Transfers Are Irreversible
 Once you transfer ownership of a ZTS token to another address, only the new owner can mint, update flags, or transfer ownership again.

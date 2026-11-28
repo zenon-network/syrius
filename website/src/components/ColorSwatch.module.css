@@ -179,6 +179,8 @@
   font-size: 0.74rem;
   font-weight: 600;
   color: var(--syrius-text-primary);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .gradientStops {
