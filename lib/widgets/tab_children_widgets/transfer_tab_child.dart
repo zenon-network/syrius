@@ -213,13 +213,18 @@ class _TransferTabChildState extends State<TransferTabChild> {
                         ),
                       ],
                     ),
-                    const Spacer(),
-                    _buildAddressPillSelector(
-                      context,
-                      tokens,
-                      effectiveSender,
-                      accountInfo,
-                      uiPrefs,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: _buildAddressPillSelector(
+                          context,
+                          tokens,
+                          effectiveSender,
+                          accountInfo,
+                          uiPrefs,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -351,11 +356,14 @@ class _TransferTabChildState extends State<TransferTabChild> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text(
-              '$label$balSuffix',
-              style: tokens.monoStyle(
-                fontSize: 12,
-                color: tokens.textSecondary,
+            Flexible(
+              child: Text(
+                '$label$balSuffix',
+                overflow: TextOverflow.ellipsis,
+                style: tokens.monoStyle(
+                  fontSize: 12,
+                  color: tokens.textSecondary,
+                ),
               ),
             ),
             const SizedBox(width: 4),

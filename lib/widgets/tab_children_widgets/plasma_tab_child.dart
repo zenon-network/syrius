@@ -723,8 +723,9 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
               Expanded(
                 child: switch (state.status) {
                   InfiniteListStatus.initial => const SyriusLoadingWidget(),
-                  InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
-                  InfiniteListStatus.success =>
+                  InfiniteListStatus.failure when entries.isEmpty =>
+                    SyriusErrorWidget(state.error!),
+                  InfiniteListStatus.failure || InfiniteListStatus.success =>
                     entries.isEmpty
                         ? SyriusEmptyState(message: context.l10n.noneYet)
                         : _buildEntriesTable(
@@ -733,6 +734,8 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
                             uiPrefs,
                             entries,
                             hasReachedMax: state.hasReachedMax,
+                            hasLoadMoreError:
+                                state.status == InfiniteListStatus.failure,
                           ),
                 },
               ),
@@ -749,6 +752,7 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
     AppUiPreferencesNotifier uiPrefs,
     List<FusionEntryWrapper> entries, {
     required bool hasReachedMax,
+    bool hasLoadMoreError = false,
   }) {
     final int lastHeight =
         context.read<FusedPlasmaBloc>().lastMomentumHeight ?? 0;
@@ -784,6 +788,7 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
           child: SyriusPaginatedListView(
             itemCount: entries.length,
             hasReachedMax: hasReachedMax,
+            hasLoadMoreError: hasLoadMoreError,
             isLoadingMore: context
                 .read<FusedPlasmaBloc>()
                 .isLoadingMoreListenable,

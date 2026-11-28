@@ -1,19 +1,26 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_ce/hive_ce.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_ui_preferences_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/pair.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -32,6 +39,10 @@ class _MockPlasmaApi extends Mock implements PlasmaApi {}
 
 class _MockPillarApi extends Mock implements PillarApi {}
 
+class _MockSentinelApi extends Mock implements SentinelApi {}
+
+class _MockTokenApi extends Mock implements TokenApi {}
+
 class _MockStartP2pSwapBloc
     extends MockBloc<StartP2pSwapEvent, StartP2pSwapState>
     implements StartP2pSwapBloc {}
@@ -40,9 +51,83 @@ class _MockDeployPillarBloc
     extends MockBloc<DeployPillarEvent, DeployPillarState>
     implements DeployPillarBloc {}
 
+class _MockIssueTokenBloc extends MockBloc<IssueTokenEvent, IssueTokenState>
+    implements IssueTokenBloc {}
+
+class _MockSendTransactionBloc
+    extends MockBloc<SendTransactionEvent, SendTransactionState>
+    implements SendTransactionBloc {}
+
+class _MockPendingTransactionsBloc
+    extends MockBloc<InfiniteListEvent, InfiniteListState<AccountBlock>>
+    implements PendingTransactionsBloc {}
+
+class _MockNodeSyncStatusCubit extends MockCubit<NodeSyncStatusState>
+    implements NodeSyncStatusCubit {}
+
+class _MockNotificationsBloc extends Mock implements NotificationsBloc {}
+
 class _FakeAddress extends Fake implements Address {}
 
 class _FakeAccountBlockTemplate extends Fake implements AccountBlockTemplate {}
+
+class _DelayedFavoriteTokensRepository implements FavoriteTokensRepository {
+  _DelayedFavoriteTokensRepository(this.addCompleter);
+
+  final Completer<void> addCompleter;
+
+  @override
+  bool contains(TokenStandard tokenStandard) => false;
+
+  @override
+  Future<void> add(TokenStandard tokenStandard) => addCompleter.future;
+
+  @override
+  Future<void> remove(TokenStandard tokenStandard) async {}
+}
+
+Token _buildTestToken({
+  required String name,
+  required String symbol,
+  required String owner,
+  required int seedByte,
+}) => Token(
+  name,
+  symbol,
+  'zenon.network',
+  BigInt.from(1000),
+  0,
+  Address.parse(owner),
+  TokenStandard.fromBytes(List<int>.filled(TokenStandard.coreSize, seedByte)),
+  BigInt.from(10000),
+  true,
+  true,
+  true,
+);
+
+PillarInfo _buildTestPillar({
+  required String name,
+  required String owner,
+  required String producer,
+  int rank = 1,
+}) => PillarInfo.fromJson(<String, dynamic>{
+  'name': name,
+  'rank': rank,
+  'type': PillarInfo.regularPillarType,
+  'ownerAddress': owner,
+  'producerAddress': producer,
+  'withdrawAddress': owner,
+  'giveMomentumRewardPercentage': 0,
+  'giveDelegateRewardPercentage': 50,
+  'isRevocable': false,
+  'revokeCooldown': 3600,
+  'revokeTimestamp': 0,
+  'currentStats': const <String, dynamic>{
+    'producedMomentums': 10,
+    'expectedMomentums': 10,
+  },
+  'weight': '1500000000000',
+});
 
 Widget _wrapThemed(Widget child, {ThemeData? theme}) {
   return MaterialApp(
@@ -404,6 +489,8 @@ void main() {
     late _MockEmbeddedApi mockEmbeddedApi;
     late _MockPlasmaApi mockPlasmaApi;
     late _MockPillarApi mockPillarApi;
+    late _MockSentinelApi mockSentinelApi;
+    late _MockTokenApi mockTokenApi;
 
     late Zenon? previousZenon;
     late String? previousSelectedAddress;
@@ -430,6 +517,14 @@ void main() {
     setUpAll(() {
       registerFallbackValue(_FakeAddress());
       registerFallbackValue(
+        SendTransactionInitiate(
+          fromAddress: selfAddress,
+          toAddress: counterpartyAddress,
+          amount: BigInt.one,
+          token: kZnnCoin,
+        ),
+      );
+      registerFallbackValue(
         DeployPillarRequested(
           pillarName: 'PillarA',
           rewardAddress: emptyAddress,
@@ -455,12 +550,16 @@ void main() {
       mockEmbeddedApi = _MockEmbeddedApi();
       mockPlasmaApi = _MockPlasmaApi();
       mockPillarApi = _MockPillarApi();
+      mockSentinelApi = _MockSentinelApi();
+      mockTokenApi = _MockTokenApi();
 
       when(() => mockZenon.wsClient).thenReturn(mockWsClient);
       when(() => mockZenon.ledger).thenReturn(mockLedgerApi);
       when(() => mockZenon.embedded).thenReturn(mockEmbeddedApi);
       when(() => mockEmbeddedApi.plasma).thenReturn(mockPlasmaApi);
       when(() => mockEmbeddedApi.pillar).thenReturn(mockPillarApi);
+      when(() => mockEmbeddedApi.sentinel).thenReturn(mockSentinelApi);
+      when(() => mockEmbeddedApi.token).thenReturn(mockTokenApi);
       when(
         () => mockWsClient.restartedStream,
       ).thenAnswer((_) => const Stream<bool>.empty());
@@ -1101,6 +1200,508 @@ void main() {
 
         expect(deployDoneCalled, isTrue);
         expect(completedName, 'PillarA');
+      },
+    );
+
+    testWidgets(
+      'IssueTokenStep keeps Go Back, Create, and utility checkbox disabled '
+      'while favorites persistence is still pending after IssueTokenDone',
+      (WidgetTester tester) async {
+        final _MockIssueTokenBloc issueBloc = _MockIssueTokenBloc();
+        final StreamController<IssueTokenState> stateController =
+            StreamController<IssueTokenState>.broadcast();
+        addTearDown(stateController.close);
+
+        when(() => issueBloc.state).thenReturn(const IssueTokenInitial());
+        whenListen<IssueTokenState>(
+          issueBloc,
+          stateController.stream,
+          initialState: const IssueTokenInitial(),
+        );
+
+        final Completer<void> addCompleter = Completer<void>();
+        final _DelayedFavoriteTokensRepository favoritesRepo =
+            _DelayedFavoriteTokensRepository(addCompleter);
+        final ValueNotifier<NewTokenData> tokenData =
+            ValueNotifier<NewTokenData>(
+              NewTokenData.initial(
+                address: selfAddress,
+              ).copyWith(tokenName: 'DevToken', tokenSymbol: 'DEV'),
+            );
+        addTearDown(tokenData.dispose);
+
+        bool backPressed = false;
+        bool issuePressed = false;
+        bool issueDone = false;
+
+        await tester.pumpWidget(
+          _wrapThemed(
+            RepositoryProvider<FavoriteTokensRepository>.value(
+              value: favoritesRepo,
+              child: BlocProvider<IssueTokenBloc>.value(
+                value: issueBloc,
+                child: IssueTokenStep(
+                  onBackPressed: () => backPressed = true,
+                  onIssueDone: () => issueDone = true,
+                  onIssuePressed: () => issuePressed = true,
+                  tokenData: tokenData,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final Finder utilityCheckbox = find.byKey(
+          const Key('token_utility_checkbox'),
+        );
+        final Finder createButton = find.descendant(
+          of: find.byKey(const Key('token_create_button')),
+          matching: find.byType(LoadingButton),
+        );
+
+        expect(find.text('Go back'), findsOneWidget);
+        expect(tester.widget<Checkbox>(utilityCheckbox).onChanged, isNotNull);
+        expect(tester.widget<LoadingButton>(createButton).onPressed, isNotNull);
+
+        stateController.add(const IssueTokenLoading());
+        await tester.pump();
+        await tester.pump();
+        expect(find.text('Go back'), findsNothing);
+        expect(tester.widget<Checkbox>(utilityCheckbox).onChanged, isNull);
+        expect(tester.widget<LoadingButton>(createButton).onPressed, isNull);
+
+        stateController.add(
+          IssueTokenDone(
+            accountBlock: _FakeAccountBlockTemplate(),
+            newTokenStandard: kZnnCoin.tokenStandard,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        // Favorites write is still pending: controls must remain locked.
+        expect(find.text('Go back'), findsNothing);
+        expect(tester.widget<Checkbox>(utilityCheckbox).onChanged, isNull);
+        expect(tester.widget<LoadingButton>(createButton).onPressed, isNull);
+        expect(issueDone, isFalse);
+        expect(backPressed, isFalse);
+        expect(issuePressed, isFalse);
+
+        addCompleter.complete();
+        await tester.pumpAndSettle();
+
+        expect(issueDone, isTrue);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'TokensTabChild keeps loaded rows visible after a load-more failure and '
+      'loads the next page when inline Retry is tapped',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1280, 620);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        await Hive.openBox<dynamic>(kFavoriteTokensBox, bytes: Uint8List(0));
+        addTearDown(() async {
+          if (Hive.isBoxOpen(kFavoriteTokensBox)) {
+            await Hive.box<dynamic>(kFavoriteTokensBox).close();
+          }
+        });
+
+        final List<Token> page0Tokens = List<Token>.generate(
+          kPageSize,
+          (int index) => _buildTestToken(
+            name: 'Token$index',
+            symbol: 'TK$index',
+            owner: counterpartyAddress,
+            seedByte: index + 1,
+          ),
+        );
+        final List<Token> page1Tokens = <Token>[
+          _buildTestToken(
+            name: 'Token10',
+            symbol: 'TK10',
+            owner: counterpartyAddress,
+            seedByte: 11,
+          ),
+          _buildTestToken(
+            name: 'Token11',
+            symbol: 'TK11',
+            owner: counterpartyAddress,
+            seedByte: 12,
+          ),
+        ];
+
+        int page1Calls = 0;
+        when(
+          () => mockTokenApi.getAll(
+            pageIndex: any(named: 'pageIndex'),
+            pageSize: any(named: 'pageSize'),
+          ),
+        ).thenAnswer((Invocation invocation) async {
+          final int pageIndex = invocation.namedArguments[#pageIndex]! as int;
+          if (pageIndex == 0) {
+            return TokenList(count: 12, list: page0Tokens);
+          }
+          page1Calls += 1;
+          if (page1Calls == 1) {
+            throw Exception('transient page 1 failure');
+          }
+          return TokenList(count: 12, list: page1Tokens);
+        });
+
+        final MultipleBalanceBloc multipleBalanceBloc =
+            await createTestBalanceBloc();
+        final AppUiPreferencesNotifier uiPrefs = AppUiPreferencesNotifier();
+        final SelectedAddressNotifier addressNotifier =
+            SelectedAddressNotifier();
+        addTearDown(uiPrefs.dispose);
+        addTearDown(addressNotifier.dispose);
+
+        await tester.pumpWidget(
+          MultiProvider(
+            providers: <SingleChildWidget>[
+              ChangeNotifierProvider<AppUiPreferencesNotifier>.value(
+                value: uiPrefs,
+              ),
+              ChangeNotifierProvider<SelectedAddressNotifier>.value(
+                value: addressNotifier,
+              ),
+              BlocProvider<MultipleBalanceBloc>.value(
+                value: multipleBalanceBloc,
+              ),
+            ],
+            child: _wrapThemed(
+              TokensTabChild(onStepperNotificationSeeMorePressed: () {}),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Switch from Held to All so the 10 page-0 network tokens are listed.
+        await tester.tap(find.text('All'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Token0'), findsOneWidget);
+        expect(find.byType(SyriusErrorWidget), findsNothing);
+
+        // Scroll to the bottom to trigger page 1 (which fails once).
+        await tester.drag(find.byType(ListView), const Offset(0, -1200));
+        await tester.pumpAndSettle();
+
+        expect(page1Calls, 1);
+        expect(find.byType(SyriusErrorWidget), findsNothing);
+        expect(find.text('Token9'), findsOneWidget);
+        expect(find.text('Retry'), findsOneWidget);
+
+        // Tapping inline Retry fetches page 1 and appends the new rows.
+        await tester.tap(find.text('Retry'));
+        await tester.pumpAndSettle();
+
+        expect(page1Calls, 2);
+        await tester.drag(find.byType(ListView), const Offset(0, -400));
+        await tester.pumpAndSettle();
+        expect(find.text('Token10'), findsOneWidget);
+        expect(find.text('Token11'), findsOneWidget);
+        expect(find.text('Retry'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'NodesWorkspaceView shows a waiting/retry panel when a newly registered '
+      'Pillar is not yet returned by PillarsByOwnerBloc, then opens it on '
+      'retry',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1280, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final String validProducerAddress = Address.fromPublicKey(
+          List<int>.filled(32, 3),
+        ).toString();
+        final PillarInfo existingPillar = _buildTestPillar(
+          name: 'ExistingPillar',
+          owner: selfAddress,
+          producer: validProducerAddress,
+        );
+        final PillarInfo newPillar = _buildTestPillar(
+          name: 'NewPillar',
+          owner: selfAddress,
+          producer: counterpartyAddress,
+          rank: 2,
+        );
+
+        List<PillarInfo> ownedPillars = <PillarInfo>[existingPillar];
+        List<PillarInfo> allPillars = <PillarInfo>[existingPillar];
+
+        when(() => mockPillarApi.getByOwner(any())).thenAnswer(
+          (_) async => List<PillarInfo>.from(ownedPillars),
+        );
+        when(
+          () => mockPillarApi.getAll(
+            pageIndex: any(named: 'pageIndex'),
+            pageSize: any(named: 'pageSize'),
+          ),
+        ).thenAnswer(
+          (_) async => PillarInfoList.fromJson(<String, dynamic>{
+            'count': allPillars.length,
+            'list': allPillars.map((PillarInfo p) => p.toJson()).toList(),
+          }),
+        );
+        when(() => mockPillarApi.getDelegatedPillar(any())).thenAnswer(
+          (_) async => null,
+        );
+        when(() => mockPillarApi.getUncollectedReward(any())).thenAnswer(
+          (_) async => UncollectedReward.fromJson(const <String, dynamic>{
+            'address': selfAddress,
+            'znnAmount': '0',
+            'qsrAmount': '0',
+          }),
+        );
+        when(
+          () => mockSentinelApi.getAllActive(
+            pageIndex: any(named: 'pageIndex'),
+            pageSize: any(named: 'pageSize'),
+          ),
+        ).thenAnswer(
+          (_) async => SentinelInfoList(
+            count: 0,
+            list: const <SentinelInfo>[],
+          ),
+        );
+        when(() => mockSentinelApi.getByOwner(any())).thenAnswer(
+          (_) async => null,
+        );
+        when(() => mockSentinelApi.getUncollectedReward(any())).thenAnswer(
+          (_) async => UncollectedReward.fromJson(const <String, dynamic>{
+            'address': selfAddress,
+            'znnAmount': '0',
+            'qsrAmount': '0',
+          }),
+        );
+
+        final MultipleBalanceBloc multipleBalanceBloc =
+            await createTestBalanceBloc();
+        final PillarsByOwnerBloc pillarsByOwnerBloc = PillarsByOwnerBloc(
+          zenon: mockZenon,
+        )..add(FetchRequestData(address: Address.parse(selfAddress)));
+        final DelegationStatsBloc delegationStatsBloc = DelegationStatsBloc(
+          zenon: mockZenon,
+        )..add(FetchRequestData(address: Address.parse(selfAddress)));
+        final AppUiPreferencesNotifier uiPrefs = AppUiPreferencesNotifier();
+        addTearDown(pillarsByOwnerBloc.close);
+        addTearDown(delegationStatsBloc.close);
+        addTearDown(uiPrefs.dispose);
+
+        await tester.pumpWidget(
+          MultiProvider(
+            providers: <SingleChildWidget>[
+              ChangeNotifierProvider<AppUiPreferencesNotifier>.value(
+                value: uiPrefs,
+              ),
+              BlocProvider<MultipleBalanceBloc>.value(
+                value: multipleBalanceBloc,
+              ),
+              BlocProvider<PillarsByOwnerBloc>.value(value: pillarsByOwnerBloc),
+              BlocProvider<DelegationStatsBloc>.value(
+                value: delegationStatsBloc,
+              ),
+            ],
+            child: _wrapThemed(
+              NodesWorkspaceView(
+                initialTab: NodesSubTab.pillars,
+                onStepperNotificationSeeMorePressed: () {},
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Launch Spawn Pillar stepper and simulate returning via View Pillar.
+        await tester.tap(find.byIcon(Icons.more_horiz));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Spawn a pillar'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(StepperScreen), findsOneWidget);
+        Navigator.of(
+          tester.element(find.byType(StepperScreen)),
+        ).pop('NewPillar');
+        await tester.pumpAndSettle();
+
+        // While PillarsByOwnerBloc only has ExistingPillar, the panel must
+        // show the waiting/retry state for NewPillar instead of falling back.
+        expect(find.text('NewPillar'), findsOneWidget);
+        expect(find.text('Waiting'), findsOneWidget);
+        expect(find.text('Producing'), findsNothing);
+        expect(find.text('Retry'), findsOneWidget);
+
+        // Once the RPC returns NewPillar, tapping Retry populates its panel.
+        ownedPillars = <PillarInfo>[existingPillar, newPillar];
+        allPillars = <PillarInfo>[existingPillar, newPillar];
+
+        await tester.tap(find.text('Retry'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Waiting'), findsNothing);
+        expect(find.text('Producing'), findsOneWidget);
+        expect(find.text('NewPillar'), findsWidgets);
+        expect(find.text('15,000 ZNN'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'TransferTabChild blocks sending without throwing when the node falls '
+      'behind while the Send confirmation dialog is open',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1280, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final bool hadNotificationsBloc = app.sl.isRegistered<
+          NotificationsBloc
+        >();
+        final NotificationsBloc? previousNotificationsBloc =
+            hadNotificationsBloc ? app.sl<NotificationsBloc>() : null;
+        if (hadNotificationsBloc) {
+          await app.sl.unregister<NotificationsBloc>();
+        }
+        final _MockNotificationsBloc mockNotificationsBloc =
+            _MockNotificationsBloc();
+        when(
+          () => mockNotificationsBloc.addErrorNotification(any(), any()),
+        ).thenAnswer((_) async {});
+        app.sl.registerSingleton<NotificationsBloc>(mockNotificationsBloc);
+        addTearDown(() async {
+          if (app.sl.isRegistered<NotificationsBloc>()) {
+            await app.sl.unregister<NotificationsBloc>();
+          }
+          if (hadNotificationsBloc && previousNotificationsBloc != null) {
+            app.sl.registerSingleton<NotificationsBloc>(
+              previousNotificationsBloc,
+            );
+          }
+        });
+
+        final MultipleBalanceBloc multipleBalanceBloc =
+            await createTestBalanceBloc();
+        multipleBalanceBloc.add(
+          const MultipleBalanceFetch(addresses: <String>[selfAddress]),
+        );
+
+        final _MockSendTransactionBloc sendBloc = _MockSendTransactionBloc();
+        when(() => sendBloc.state).thenReturn(const SendTransactionState());
+        whenListen<SendTransactionState>(
+          sendBloc,
+          const Stream<SendTransactionState>.empty(),
+          initialState: const SendTransactionState(),
+        );
+
+        final _MockPendingTransactionsBloc pendingBloc =
+            _MockPendingTransactionsBloc();
+        const InfiniteListState<AccountBlock> emptyPendingState =
+            InfiniteListState<AccountBlock>(
+              status: InfiniteListStatus.success,
+              data: <AccountBlock>[],
+              hasReachedMax: true,
+            );
+        when(() => pendingBloc.state).thenReturn(emptyPendingState);
+        whenListen<InfiniteListState<AccountBlock>>(
+          pendingBloc,
+          const Stream<InfiniteListState<AccountBlock>>.empty(),
+          initialState: emptyPendingState,
+        );
+
+        final NodeSyncStatusState syncedState = NodeSyncStatusState(
+          status: TimerStatus.success,
+          data: Pair<SyncState, SyncInfo>(
+            SyncState.syncDone,
+            SyncInfo.fromJson(const <String, dynamic>{
+              'state': 2,
+              'currentHeight': 100,
+              'targetHeight': 100,
+            }),
+          ),
+        );
+        final NodeSyncStatusState behindState = NodeSyncStatusState(
+          status: TimerStatus.success,
+          data: Pair<SyncState, SyncInfo>(
+            SyncState.syncing,
+            SyncInfo.fromJson(const <String, dynamic>{
+              'state': 1,
+              'currentHeight': 100,
+              'targetHeight': 110,
+            }),
+          ),
+        );
+        final _MockNodeSyncStatusCubit syncCubit = _MockNodeSyncStatusCubit();
+        final StreamController<NodeSyncStatusState> syncController =
+            StreamController<NodeSyncStatusState>.broadcast();
+        addTearDown(syncController.close);
+        when(() => syncCubit.state).thenReturn(syncedState);
+        whenListen<NodeSyncStatusState>(
+          syncCubit,
+          syncController.stream,
+          initialState: syncedState,
+        );
+
+        final AppUiPreferencesNotifier uiPrefs = AppUiPreferencesNotifier();
+        addTearDown(uiPrefs.dispose);
+
+        await tester.pumpWidget(
+          MultiProvider(
+            providers: <SingleChildWidget>[
+              ChangeNotifierProvider<AppUiPreferencesNotifier>.value(
+                value: uiPrefs,
+              ),
+              BlocProvider<MultipleBalanceBloc>.value(
+                value: multipleBalanceBloc,
+              ),
+              BlocProvider<SendTransactionBloc>.value(value: sendBloc),
+              BlocProvider<PendingTransactionsBloc>.value(value: pendingBloc),
+              BlocProvider<NodeSyncStatusCubit>.value(value: syncCubit),
+            ],
+            child: _wrapThemed(const TransferTabChild()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.byKey(const Key('send_recipient_field')),
+          counterpartyAddress,
+        );
+        await tester.enterText(
+          find.byKey(const Key('send_amount_field')),
+          '5',
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const Key('send_submit_button')));
+        await tester.pumpAndSettle();
+        expect(find.text('Send 5 ZNN?'), findsOneWidget);
+
+        // Node falls behind while the confirmation dialog is still open.
+        syncController.add(behindState);
+        await tester.pump();
+        expect(syncCubit.state.data?.second.targetHeight, 110);
+
+        final Finder confirmSendButton = find.descendant(
+          of: find.byType(SyriusModalShell),
+          matching: find.text('Send'),
+        );
+        await tester.tap(confirmSendButton);
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        verifyNever(() => sendBloc.add(any()));
+        verify(
+          () => mockNotificationsBloc.addErrorNotification(any(), any()),
+        ).called(1);
       },
     );
   });

@@ -412,19 +412,24 @@ class _TokensWorkspaceViewState extends State<_TokensWorkspaceView> {
   ) {
     return BlocBuilder<TokensBloc, InfiniteListState<Token>>(
       builder: (BuildContext context, InfiniteListState<Token> state) {
-        return switch (state.status) {
-          InfiniteListStatus.initial => const SyriusLoadingWidget(),
-          InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
-          InfiniteListStatus.success => _buildTokenRows(
-            context,
-            tokens,
-            accountInfo,
-            uiPrefs,
-            _filterTokens(state.data ?? const <Token>[], accountInfo),
-            hasReachedMax: state.hasReachedMax,
-            dataIdentity: state.data,
-          ),
-        };
+        final List<Token>? loadedTokens = state.data;
+        if (state.status == InfiniteListStatus.initial) {
+          return const SyriusLoadingWidget();
+        }
+        if (state.status == InfiniteListStatus.failure &&
+            (loadedTokens == null || loadedTokens.isEmpty)) {
+          return SyriusErrorWidget(state.error!);
+        }
+        return _buildTokenRows(
+          context,
+          tokens,
+          accountInfo,
+          uiPrefs,
+          _filterTokens(loadedTokens ?? const <Token>[], accountInfo),
+          hasReachedMax: state.hasReachedMax,
+          hasLoadMoreError: state.status == InfiniteListStatus.failure,
+          dataIdentity: loadedTokens,
+        );
       },
     );
   }
@@ -483,6 +488,7 @@ class _TokensWorkspaceViewState extends State<_TokensWorkspaceView> {
     AppUiPreferencesNotifier uiPrefs,
     List<Token> items, {
     required bool hasReachedMax,
+    bool hasLoadMoreError = false,
     Object? dataIdentity,
   }) {
     if (items.isEmpty && hasReachedMax) {
@@ -492,6 +498,7 @@ class _TokensWorkspaceViewState extends State<_TokensWorkspaceView> {
     return SyriusPaginatedListView(
       itemCount: items.length,
       hasReachedMax: hasReachedMax,
+      hasLoadMoreError: hasLoadMoreError,
       isLoadingMore: context.read<TokensBloc>().isLoadingMoreListenable,
       dataIdentity: dataIdentity ?? items,
       onLoadMore: () =>

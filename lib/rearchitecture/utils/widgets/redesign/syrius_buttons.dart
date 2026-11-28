@@ -214,12 +214,15 @@ class SyriusPillButton extends StatelessWidget {
                     Icon(icon, size: compact ? 13.5 : 15, color: fgColor),
                     const SizedBox(width: 6),
                   ],
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: compact ? 12 : 13,
-                      fontWeight: FontWeight.w500,
-                      color: fgColor,
+                  Flexible(
+                    child: Text(
+                      label,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: compact ? 12 : 13,
+                        fontWeight: FontWeight.w500,
+                        color: fgColor,
+                      ),
                     ),
                   ),
                   if (trailingIcon != null) ...<Widget>[

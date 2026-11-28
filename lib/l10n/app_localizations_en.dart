@@ -2525,6 +2525,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Resolving address, please confirm the address on your hardware device';
 
   @override
+  String get retry => 'Retry';
+
+  @override
   String get returnToProjectList => 'Return to project list';
 
   @override

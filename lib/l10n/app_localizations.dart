@@ -4453,6 +4453,12 @@ abstract class AppLocalizations {
   /// **'Resolving address, please confirm the address on your hardware device'**
   String get resolvingAddressConfirmOnDevice;
 
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
   /// No description provided for @returnToProjectList.
   ///
   /// In en, this message translates to:

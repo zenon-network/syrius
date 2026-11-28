@@ -1210,6 +1210,7 @@
   "reset": "Reset",
   "resetWallet": "Reset wallet",
   "resolvingAddressConfirmOnDevice": "Resolving address, please confirm the address on your hardware device",
+  "retry": "Retry",
   "returnToProjectList": "Return to project list",
   "revocationWindowOpen": "Revocation window is open",
   "rewardAddress": "Reward address",

@@ -74,6 +74,7 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
   final TextEditingController _searchController = TextEditingController();
   _PillarSortField _sortField = _PillarSortField.weight;
   String? _expandedPillarName;
+  String? _pendingRegisteredPillarName;
   String? _delegatingPillarName;
   bool _collecting = false;
 
@@ -136,6 +137,19 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
 
     return MultiBlocListener(
       listeners: <SingleChildWidget>[
+        BlocListener<PillarsByOwnerBloc, FetchState<List<PillarInfo>>>(
+          listener: (BuildContext context, FetchState<List<PillarInfo>> state) {
+            final String? pending = _pendingRegisteredPillarName;
+            if (pending != null &&
+                state is FetchPopulated<List<PillarInfo>> &&
+                state.data.any((PillarInfo p) => p.name == pending)) {
+              setState(() {
+                _pendingRegisteredPillarName = null;
+                _expandedPillarName = pending;
+              });
+            }
+          },
+        ),
         BlocListener<DelegationBloc, DelegationState>(
           listener: (BuildContext context, DelegationState state) {
             if (state is DelegationDone) {
@@ -234,6 +248,82 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
     final bool canCollect =
         uncollectedZnn > BigInt.zero || uncollectedQsr > BigInt.zero;
 
+    if (_showMyPillarPanel &&
+        ownedPillar == null &&
+        _pendingRegisteredPillarName != null) {
+      final PillarsByOwnerBloc ownerBloc = context.read<PillarsByOwnerBloc>();
+      return ValueListenableBuilder<bool>(
+        valueListenable: ownerBloc.isLoadingListenable,
+        builder: (BuildContext context, bool isFetchingOwner, _) {
+          final bool isLoadingOwner =
+              isFetchingOwner || ownedState is FetchInitial<List<PillarInfo>>;
+          return SyriusCard(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            child: Row(
+              children: <Widget>[
+                SizedBox.square(
+                  dimension: 40,
+                  child: Lottie.asset(
+                    'assets/lottie/ic_anim_pillar.json',
+                    repeat: false,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      context.l10n.yourPillar.toUpperCase(),
+                      style: tokens.microLabelStyle(),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: <Widget>[
+                        Text(
+                          _pendingRegisteredPillarName!,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: tokens.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        SyriusStatusBadge(
+                          label: context.l10n.waiting,
+                          tone: SyriusBadgeTone.info,
+                          leadingDot: true,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                SyriusPillButton(
+                  label: context.l10n.refresh,
+                  icon: Icons.refresh_rounded,
+                  height: 36,
+                  isLoading: isLoadingOwner,
+                  onPressed: isLoadingOwner
+                      ? null
+                      : () => _refreshPendingPillar(context),
+                ),
+                const SizedBox(width: 8),
+                SyriusPillButton(
+                  label: context.l10n.close,
+                  icon: Icons.close_rounded,
+                  height: 36,
+                  onPressed: () => setState(() {
+                    _showMyPillarPanel = false;
+                    _pendingRegisteredPillarName = null;
+                  }),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
     if (_showMyPillarPanel && ownedPillar != null) {
       return SyriusCard(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -297,7 +387,10 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
               label: context.l10n.close,
               icon: Icons.close_rounded,
               height: 36,
-              onPressed: () => setState(() => _showMyPillarPanel = false),
+              onPressed: () => setState(() {
+                _showMyPillarPanel = false;
+                _pendingRegisteredPillarName = null;
+              }),
             ),
           ],
         ),
@@ -386,7 +479,10 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
               label: ownedPillar.name,
               icon: Icons.layers_rounded,
               compact: true,
-              onPressed: () => setState(() => _showMyPillarPanel = true),
+              onPressed: () => setState(() {
+                _pendingRegisteredPillarName = null;
+                _showMyPillarPanel = true;
+              }),
             ),
             const SizedBox(width: 10),
           ],
@@ -403,7 +499,10 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
               if (value == 'spawn') {
                 unawaited(_openSpawnPillar(context));
               } else if (value == 'mine' && ownedPillar != null) {
-                setState(() => _showMyPillarPanel = true);
+                setState(() {
+                  _pendingRegisteredPillarName = null;
+                  _showMyPillarPanel = true;
+                });
               }
             },
             itemBuilder: (_) => <PopupMenuEntry<String>>[
@@ -434,6 +533,14 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
         ownedState.data.isEmpty) {
       return null;
     }
+    if (_pendingRegisteredPillarName != null) {
+      for (final PillarInfo item in ownedState.data) {
+        if (item.name == _pendingRegisteredPillarName) {
+          return item;
+        }
+      }
+      return null;
+    }
     return ownedState.data.firstWhere(
       (PillarInfo item) => item.name == _expandedPillarName,
       orElse: () => ownedState.data.first,
@@ -450,7 +557,68 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
         .state;
     final PillarInfo? p = _selectedOwnedPillar(ownedState);
     if (p == null) {
-      return const SizedBox.shrink();
+      if (_pendingRegisteredPillarName == null) {
+        return const SizedBox.shrink();
+      }
+      final PillarsByOwnerBloc ownerBloc = context.read<PillarsByOwnerBloc>();
+      final bool isOwnerError = ownedState is FetchFailure<List<PillarInfo>>;
+      final String statusText = isOwnerError
+          ? context.l10n.somethingWentWrong
+          : context.l10n.waitingForDataFetching;
+      return ValueListenableBuilder<bool>(
+        valueListenable: ownerBloc.isLoadingListenable,
+        builder: (BuildContext context, bool isFetchingOwner, _) {
+          final bool isLoadingOwner =
+              isFetchingOwner || ownedState is FetchInitial<List<PillarInfo>>;
+          return Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: SyriusCard(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: <Widget>[
+                  if (isLoadingOwner)
+                    const SizedBox.square(
+                      dimension: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else if (isOwnerError)
+                    Icon(
+                      Icons.error_outline_rounded,
+                      size: 20,
+                      color: tokens.error,
+                    )
+                  else
+                    Icon(
+                      Icons.schedule_rounded,
+                      size: 20,
+                      color: tokens.infoForeground,
+                    ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      '${_pendingRegisteredPillarName!} · $statusText',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: tokens.textSecondary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SyriusPillButton(
+                    label: context.l10n.retry,
+                    icon: Icons.refresh_rounded,
+                    compact: true,
+                    isLoading: isLoadingOwner,
+                    onPressed: isLoadingOwner
+                        ? null
+                        : () => _refreshPendingPillar(context),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
     }
     final double uptime = p.expectedMomentums > 0
         ? (p.producedMomentums / p.expectedMomentums) * 100
@@ -850,18 +1018,23 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
 
     return BlocBuilder<PillarsBloc, InfiniteListState<PillarInfo>>(
       builder: (BuildContext context, InfiniteListState<PillarInfo> state) {
+        final List<PillarInfo> loaded = state.data ?? const <PillarInfo>[];
         return switch (state.status) {
           InfiniteListStatus.initial => const SyriusLoadingWidget(),
-          InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
-          InfiniteListStatus.success => _buildPillarsTable(
-            context,
-            tokens,
-            uiPrefs,
-            pillars: state.data ?? const <PillarInfo>[],
-            hasReachedMax: state.hasReachedMax,
-            delegatedName: delegatedName,
-            canDelegate: canDelegate,
+          InfiniteListStatus.failure when loaded.isEmpty => SyriusErrorWidget(
+            state.error!,
           ),
+          InfiniteListStatus.failure || InfiniteListStatus.success =>
+            _buildPillarsTable(
+              context,
+              tokens,
+              uiPrefs,
+              pillars: loaded,
+              hasReachedMax: state.hasReachedMax,
+              hasLoadMoreError: state.status == InfiniteListStatus.failure,
+              delegatedName: delegatedName,
+              canDelegate: canDelegate,
+            ),
         };
       },
     );
@@ -875,6 +1048,7 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
     required bool hasReachedMax,
     required String? delegatedName,
     required bool canDelegate,
+    bool hasLoadMoreError = false,
   }) {
     final String query = _searchController.text.trim().toLowerCase();
     final List<PillarInfo> filtered = pillars
@@ -958,6 +1132,7 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
           child: SyriusPaginatedListView(
             itemCount: filtered.length,
             hasReachedMax: hasReachedMax,
+            hasLoadMoreError: hasLoadMoreError,
             isLoadingMore: context.read<PillarsBloc>().isLoadingMoreListenable,
             dataIdentity: pillars,
             separatorBuilder: (_, _) => const SyriusDivider(),
@@ -1203,15 +1378,20 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
   Widget _buildSentinelsList(BuildContext context, SyriusThemeTokens tokens) {
     return BlocBuilder<SentinelsBloc, InfiniteListState<SentinelInfo>>(
       builder: (BuildContext context, InfiniteListState<SentinelInfo> state) {
+        final List<SentinelInfo> loaded = state.data ?? const <SentinelInfo>[];
         return switch (state.status) {
           InfiniteListStatus.initial => const SyriusLoadingWidget(),
-          InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
-          InfiniteListStatus.success => _buildSentinelsTable(
-            context,
-            tokens,
-            state.data ?? const <SentinelInfo>[],
-            hasReachedMax: state.hasReachedMax,
+          InfiniteListStatus.failure when loaded.isEmpty => SyriusErrorWidget(
+            state.error!,
           ),
+          InfiniteListStatus.failure || InfiniteListStatus.success =>
+            _buildSentinelsTable(
+              context,
+              tokens,
+              loaded,
+              hasReachedMax: state.hasReachedMax,
+              hasLoadMoreError: state.status == InfiniteListStatus.failure,
+            ),
         };
       },
     );
@@ -1222,6 +1402,7 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
     SyriusThemeTokens tokens,
     List<SentinelInfo> sentinels, {
     required bool hasReachedMax,
+    bool hasLoadMoreError = false,
   }) {
     if (sentinels.isEmpty) {
       return SyriusEmptyState(message: context.l10n.noneYet);
@@ -1260,6 +1441,7 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
           child: SyriusPaginatedListView(
             itemCount: sentinels.length,
             hasReachedMax: hasReachedMax,
+            hasLoadMoreError: hasLoadMoreError,
             isLoadingMore: context
                 .read<SentinelsBloc>()
                 .isLoadingMoreListenable,
@@ -1377,6 +1559,16 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
     );
   }
 
+  void _refreshPendingPillar(BuildContext context) {
+    context.read<PillarsBloc>().add(const InfiniteListRefreshRequested());
+    final String? selected = kSelectedAddress;
+    if (selected != null) {
+      context.read<PillarsByOwnerBloc>().add(
+        FetchRequestData(address: Address.parse(selected)),
+      );
+    }
+  }
+
   Future<void> _openSpawnPillar(BuildContext context) async {
     final PillarsBloc pillarsBloc = context.read<PillarsBloc>();
     final PillarsByOwnerBloc pillarsByOwnerBloc = context
@@ -1408,6 +1600,7 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
         _activeSubTab = NodesSubTab.pillars;
         _showMyPillarPanel = true;
         _expandedPillarName = registeredPillarName;
+        _pendingRegisteredPillarName = registeredPillarName;
         _searchController.clear();
       });
     }

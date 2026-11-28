@@ -649,6 +649,7 @@ class SyriusPaginatedListView extends StatefulWidget {
     required this.onLoadMore,
     this.isLoadingMore,
     this.dataIdentity,
+    this.hasLoadMoreError = false,
     this.separatorBuilder,
     this.padding = EdgeInsets.zero,
     super.key,
@@ -675,6 +676,11 @@ class SyriusPaginatedListView extends StatefulWidget {
   /// identity release the request guard even when filtered [itemCount] and
   /// [hasReachedMax] stay unchanged.
   final Object? dataIdentity;
+
+  /// Whether the most recent load-more request failed while keeping already
+  /// loaded rows visible. When true, renders an inline retry footer instead of
+  /// auto-looping retries.
+  final bool hasLoadMoreError;
 
   /// Optional separator between rows. Defaults to a hairline [Divider].
   final IndexedWidgetBuilder? separatorBuilder;
@@ -709,6 +715,9 @@ class _SyriusPaginatedListViewState extends State<SyriusPaginatedListView> {
       oldWidget.isLoadingMore?.removeListener(_onLoadingMoreChanged);
       _wasLoadingMore = widget.isLoadingMore?.value ?? false;
       widget.isLoadingMore?.addListener(_onLoadingMoreChanged);
+    }
+    if (widget.hasLoadMoreError && !oldWidget.hasLoadMoreError) {
+      _isRequesting = false;
     }
     final bool dataReplaced =
         widget.dataIdentity != null &&
@@ -747,7 +756,7 @@ class _SyriusPaginatedListViewState extends State<SyriusPaginatedListView> {
   }
 
   void _onScroll() {
-    if (!_controller.hasClients) {
+    if (!_controller.hasClients || widget.hasLoadMoreError) {
       return;
     }
     final ScrollPosition pos = _controller.position;
@@ -757,11 +766,11 @@ class _SyriusPaginatedListViewState extends State<SyriusPaginatedListView> {
   }
 
   void _requestIfViewportUnfilled() {
-    if (widget.hasReachedMax) {
+    if (widget.hasReachedMax || widget.hasLoadMoreError) {
       return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_controller.hasClients) {
+      if (!mounted || !_controller.hasClients || widget.hasLoadMoreError) {
         return;
       }
       if (_controller.position.maxScrollExtent <= 0) {
@@ -786,6 +795,42 @@ class _SyriusPaginatedListViewState extends State<SyriusPaginatedListView> {
     }
   }
 
+  Widget _buildLoadMoreErrorFooter(
+    BuildContext context,
+    SyriusThemeTokens tokens,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Icon(Icons.error_outline_rounded, size: 15, color: tokens.error),
+          const SizedBox(width: 8),
+          Text(
+            context.l10n.somethingWentWrong,
+            style: TextStyle(fontSize: 12.5, color: tokens.textSecondary),
+          ),
+          const SizedBox(width: 12),
+          OutlinedButton.icon(
+            onPressed: _triggerLoadMore,
+            icon: const Icon(Icons.refresh_rounded, size: 14),
+            label: Text(context.l10n.retry),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: tokens.textPrimary,
+              side: BorderSide(color: tokens.borderStrong),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              minimumSize: const Size(0, 30),
+              textStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final SyriusThemeTokens tokens = context.syriusTheme;
@@ -804,20 +849,26 @@ class _SyriusPaginatedListViewState extends State<SyriusPaginatedListView> {
             return ValueListenableBuilder<bool>(
               valueListenable: widget.isLoadingMore!,
               builder: (_, bool loading, _) {
-                if (!loading) {
-                  return const SizedBox(height: 16);
-                }
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 14),
-                  child: Center(
-                    child: SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                if (loading) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    child: Center(
+                      child: SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
+                if (widget.hasLoadMoreError) {
+                  return _buildLoadMoreErrorFooter(context, tokens);
+                }
+                return const SizedBox(height: 16);
               },
             );
+          }
+          if (widget.hasLoadMoreError) {
+            return _buildLoadMoreErrorFooter(context, tokens);
           }
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 14),

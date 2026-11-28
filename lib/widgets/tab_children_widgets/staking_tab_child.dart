@@ -464,8 +464,9 @@ class _StakingTabChildState extends State<StakingTabChild> {
               Expanded(
                 child: switch (state.status) {
                   InfiniteListStatus.initial => const SyriusLoadingWidget(),
-                  InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
-                  InfiniteListStatus.success =>
+                  InfiniteListStatus.failure when stakes.isEmpty =>
+                    SyriusErrorWidget(state.error!),
+                  InfiniteListStatus.failure || InfiniteListStatus.success =>
                     stakes.isEmpty
                         ? SyriusEmptyState(message: context.l10n.noneYet)
                         : _buildStakesTable(
@@ -474,6 +475,8 @@ class _StakingTabChildState extends State<StakingTabChild> {
                             uiPrefs,
                             stakes,
                             hasReachedMax: state.hasReachedMax,
+                            hasLoadMoreError:
+                                state.status == InfiniteListStatus.failure,
                           ),
                 },
               ),
@@ -490,6 +493,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
     AppUiPreferencesNotifier uiPrefs,
     List<StakeEntry> stakes, {
     required bool hasReachedMax,
+    bool hasLoadMoreError = false,
   }) {
     return Column(
       children: <Widget>[
@@ -534,6 +538,7 @@ class _StakingTabChildState extends State<StakingTabChild> {
           child: SyriusPaginatedListView(
             itemCount: stakes.length,
             hasReachedMax: hasReachedMax,
+            hasLoadMoreError: hasLoadMoreError,
             isLoadingMore: context.read<StakesBloc>().isLoadingMoreListenable,
             dataIdentity: stakes,
             separatorBuilder: (_, _) => const SyriusDivider(),

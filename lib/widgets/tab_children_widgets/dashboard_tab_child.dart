@@ -472,18 +472,22 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
                         BuildContext context,
                         InfiniteListState<AccountBlock> state,
                       ) {
+                        final List<AccountBlock> loaded =
+                            state.data ?? const <AccountBlock>[];
                         return switch (state.status) {
                           InfiniteListStatus.initial =>
                             const SyriusLoadingWidget(),
-                          InfiniteListStatus.failure => SyriusErrorWidget(
-                            state.error!,
-                          ),
+                          InfiniteListStatus.failure when loaded.isEmpty =>
+                            SyriusErrorWidget(state.error!),
+                          InfiniteListStatus.failure ||
                           InfiniteListStatus.success => _buildActivityList(
                             context,
                             tokens,
                             uiPrefs,
-                            state.data ?? const <AccountBlock>[],
+                            loaded,
                             hasReachedMax: state.hasReachedMax,
+                            hasLoadMoreError:
+                                state.status == InfiniteListStatus.failure,
                           ),
                         };
                       },
@@ -500,6 +504,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
     AppUiPreferencesNotifier uiPrefs,
     List<AccountBlock> blocks, {
     required bool hasReachedMax,
+    bool hasLoadMoreError = false,
   }) {
     if (blocks.isEmpty) {
       return SyriusEmptyState(message: context.l10n.noneYet);
@@ -508,6 +513,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
     return SyriusPaginatedListView(
       itemCount: blocks.length,
       hasReachedMax: hasReachedMax,
+      hasLoadMoreError: hasLoadMoreError,
       isLoadingMore: context
           .read<LatestTransactionsBloc>()
           .isLoadingMoreListenable,

@@ -38,6 +38,7 @@ class IssueTokenStep extends StatefulWidget {
 
 class _IssueTokenStepState extends State<IssueTokenStep> {
   final GlobalKey<LoadingButtonState> _createButtonKey = GlobalKey();
+  bool _isCompleting = false;
 
   @override
   void initState() {
@@ -57,7 +58,7 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
     return BlocConsumer<IssueTokenBloc, IssueTokenState>(
       listener: (_, IssueTokenState state) => _onIssueTokenStateChanged(state),
       builder: (BuildContext context, IssueTokenState state) {
-        final bool isIssuing = state is IssueTokenLoading;
+        final bool isIssuing = state is IssueTokenLoading || _isCompleting;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -137,8 +138,14 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
 
   void _onIssueTokenStateChanged(IssueTokenState state) {
     if (state is IssueTokenLoading) {
+      if (!_isCompleting) {
+        setState(() => _isCompleting = true);
+      }
       _createButtonKey.currentState?.animateForward();
     } else if (state is IssueTokenDone) {
+      if (!_isCompleting) {
+        setState(() => _isCompleting = true);
+      }
       unawaited(
         _onIssueTokenDone(
           context: context,
@@ -146,6 +153,9 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
         ),
       );
     } else if (state is IssueTokenFailure) {
+      if (_isCompleting) {
+        setState(() => _isCompleting = false);
+      }
       _createButtonKey.currentState?.animateReverse();
       unawaited(
         NotificationUtils.sendNotificationError(
@@ -172,7 +182,8 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
         );
       }
     } finally {
-      if (context.mounted) {
+      if (mounted) {
+        setState(() => _isCompleting = false);
         _createButtonKey.currentState?.animateReverse();
         widget.onIssueDone();
       }
