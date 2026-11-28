@@ -72,73 +72,200 @@ class _MainPillarState extends State<CreatePillarStepperView> {
             ? _Step.values.length
             : currentStep.index;
         final BigInt znnHave = accountInfo.getBalance(kZnnCoin.tokenStandard);
+        final String lockedZnn = pillarRegisterZnnAmount.addDecimals(
+          coinDecimals,
+        );
+        final List<String> steps = <String>[
+          context.l10n.plasmaCheck,
+          context.l10n.depositQsr,
+          context.l10n.management(kZnnCoin.symbol),
+          context.l10n.register,
+        ];
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Container(
-              width: 260,
-              decoration: BoxDecoration(
-                border: Border(right: BorderSide(color: tokens.border)),
-              ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(22),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    SyriusVerticalStepRail(
-                      steps: <String>[
-                        context.l10n.plasmaCheck,
-                        context.l10n.depositQsr,
-                        context.l10n.management(kZnnCoin.symbol),
-                        context.l10n.register,
-                      ],
-                      currentStep: stepIndex,
+        return LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final bool isCompact = constraints.maxWidth < 900;
+            final double stepMaxWidth = currentStep == _Step.qsrManagement
+                ? 820
+                : 600;
+            final Widget stepPane = completed
+                ? _buildCompletionPane(context, tokens)
+                : SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isCompact ? 20 : 28,
+                      vertical: isCompact ? 16 : 28,
                     ),
-                    const SizedBox(height: 20),
-                    Divider(height: 1, color: tokens.border),
-                    const SizedBox(height: 16),
-                    _summaryRow(
-                      tokens,
-                      context.l10n.slotFee,
-                      _qsrAmountController.text.isNotEmpty
-                          ? '${_qsrAmountController.text} ${kQsrCoin.symbol}'
-                          : '— ${kQsrCoin.symbol}',
-                    ),
-                    const SizedBox(height: 8),
-                    _summaryRow(
-                      tokens,
-                      context.l10n.locks,
-                      '${pillarRegisterZnnAmount.addDecimals(coinDecimals)} '
-                      '${kZnnCoin.symbol}',
-                    ),
-                    const SizedBox(height: 8),
-                    _summaryRow(
-                      tokens,
-                      context.l10n.have,
-                      '${znnHave.addDecimals(coinDecimals)} ${kZnnCoin.symbol}',
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              child: completed
-                  ? _buildCompletionPane(context, tokens)
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(28),
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 560),
-                          child: _buildActiveStep(currentStep, accountInfo),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: isCompact ? double.infinity : stepMaxWidth,
                         ),
+                        child: _buildActiveStep(currentStep, accountInfo),
                       ),
                     ),
-            ),
-          ],
+                  );
+
+            if (isCompact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  _buildCompactStepBar(tokens, steps, stepIndex),
+                  Expanded(child: stepPane),
+                ],
+              );
+            }
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Container(
+                  width: 260,
+                  decoration: BoxDecoration(
+                    border: Border(right: BorderSide(color: tokens.border)),
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(22),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        SyriusVerticalStepRail(
+                          steps: steps,
+                          currentStep: stepIndex,
+                        ),
+                        const SizedBox(height: 20),
+                        Divider(height: 1, color: tokens.border),
+                        const SizedBox(height: 16),
+                        BlocBuilder<
+                          CreatePillarQsrInfoBloc,
+                          FetchState<CreatePillarQsrInfoData>
+                        >(
+                          builder:
+                              (
+                                _,
+                                FetchState<CreatePillarQsrInfoData> qsrState,
+                              ) {
+                                final String slotFeeValue = switch (qsrState) {
+                                  FetchPopulated<CreatePillarQsrInfoData>(
+                                    :final CreatePillarQsrInfoData data,
+                                  ) =>
+                                    '${data.cost.addDecimals(coinDecimals)} '
+                                        '${kQsrCoin.symbol}',
+                                  _ => '— ${kQsrCoin.symbol}',
+                                };
+                                return _summaryRow(
+                                  tokens,
+                                  context.l10n.slotFee,
+                                  slotFeeValue,
+                                );
+                              },
+                        ),
+                        const SizedBox(height: 8),
+                        _summaryRow(
+                          tokens,
+                          context.l10n.locks,
+                          '$lockedZnn ${kZnnCoin.symbol}',
+                        ),
+                        const SizedBox(height: 8),
+                        _summaryRow(
+                          tokens,
+                          context.l10n.have,
+                          '${znnHave.addDecimals(coinDecimals)} '
+                          '${kZnnCoin.symbol}',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(child: stepPane),
+              ],
+            );
+          },
         );
       },
+    );
+  }
+
+  Widget _buildCompactStepBar(
+    SyriusThemeTokens tokens,
+    List<String> steps,
+    int currentStep,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: tokens.border)),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: <Widget>[
+            for (int i = 0; i < steps.length; i++) ...<Widget>[
+              if (i > 0)
+                Container(
+                  width: 20,
+                  height: 1,
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  color: i <= currentStep
+                      ? tokens.znnGreen.withValues(alpha: 0.45)
+                      : tokens.border,
+                ),
+              _buildCompactStepChip(tokens, i, steps[i], currentStep),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactStepChip(
+    SyriusThemeTokens tokens,
+    int index,
+    String label,
+    int currentStep,
+  ) {
+    final bool completed = index < currentStep;
+    final bool active = index == currentStep;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Container(
+          width: 20,
+          height: 20,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: completed ? tokens.znnGreen : Colors.transparent,
+            border: Border.all(
+              color: completed || active ? tokens.znnGreen : tokens.border,
+              width: 1.4,
+            ),
+          ),
+          child: completed
+              ? Icon(
+                  Icons.check,
+                  size: 12,
+                  color: tokens.gradientButtonForeground,
+                )
+              : Text(
+                  '${index + 1}',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: active ? tokens.znnGreen : tokens.textMuted,
+                  ),
+                ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+            color: active ? tokens.textPrimary : tokens.textMuted,
+          ),
+        ),
+      ],
     );
   }
 

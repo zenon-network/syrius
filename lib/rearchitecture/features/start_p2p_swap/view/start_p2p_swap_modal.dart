@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:styled_text/styled_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -153,28 +154,37 @@ class _ViewState extends State<_View> {
                             context.l10n.youSend.toUpperCase(),
                             style: tokens.microLabelStyle(),
                           ),
-                          const Spacer(),
-                          PopupMenuButton<String>(
-                            enabled: !isSwapLoading,
-                            onSelected: (String value) {
-                              _sender.value = value;
-                            },
-                            itemBuilder: (_) => kDefaultAddressList
-                                .whereType<String>()
-                                .map(
-                                  (String addr) => PopupMenuItem<String>(
-                                    value: addr,
-                                    child: Text(kAddressLabelMap[addr] ?? addr),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: PopupMenuButton<String>(
+                                enabled: !isSwapLoading,
+                                onSelected: (String value) {
+                                  _sender.value = value;
+                                },
+                                itemBuilder: (_) => kDefaultAddressList
+                                    .whereType<String>()
+                                    .map(
+                                      (String addr) => PopupMenuItem<String>(
+                                        value: addr,
+                                        child: Text(
+                                          kAddressLabelMap[addr] ?? addr,
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                                child: Text(
+                                  '${kAddressLabelMap[_sender.value] ?? ''} · '
+                                  '${balance.addDecimals(_token.decimals)} '
+                                  '${_token.symbol}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: tokens.monoStyle(
+                                    fontSize: 11.5,
+                                    color: tokens.textMuted,
                                   ),
-                                )
-                                .toList(),
-                            child: Text(
-                              '${kAddressLabelMap[_sender.value] ?? ''} · '
-                              '${balance.addDecimals(_token.decimals)} '
-                              '${_token.symbol}',
-                              style: tokens.monoStyle(
-                                fontSize: 11.5,
-                                color: tokens.textMuted,
+                                ),
                               ),
                             ),
                           ),
@@ -303,15 +313,23 @@ class _ViewState extends State<_View> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  children: <Widget>[
-                    Text(
-                      context.l10n.p2pSwapReclaimFunds(
-                        context.l10n.p2pSwapHours(kInitialHtlcDuration.inHours),
+                StyledText(
+                  text: context.l10n.p2pSwapReclaimFunds(
+                    context.l10n.p2pSwapHours(kInitialHtlcDuration.inHours),
+                  ),
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: tokens.textMuted,
+                    height: 1.4,
+                  ),
+                  tags: <String, StyledTextTagBase>{
+                    'highlight': StyledTextTag(
+                      style: TextStyle(
+                        color: tokens.textPrimary,
+                        fontWeight: FontWeight.w600,
                       ),
-                      style: TextStyle(fontSize: 11.5, color: tokens.textMuted),
                     ),
-                  ],
+                  },
                 ),
                 const SizedBox(height: 10),
                 Row(
