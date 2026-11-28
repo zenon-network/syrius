@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -20,7 +22,9 @@ class ReceiveCell extends StatelessWidget {
           icon: const Icon(Icons.call_received_rounded),
           color: AppColors.znnColor,
           onPressed: () {
-            sl<AutoReceiveTxWorker>().autoReceiveTransactionHash(hash);
+            unawaited(
+              sl<AutoReceiveTxWorker>().autoReceiveTransactionHash(hash),
+            );
           },
         ),
       ),
