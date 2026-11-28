@@ -21,7 +21,7 @@ All new features and remaining UI/state refactors must follow the patterns docum
 Most refactored features replace existing legacy widgets or view models. **Do not delete old files and create brand-new ones from scratch** when refactoring an existing feature:
 
 - Move and rename the existing files into `lib/rearchitecture/features/<feature>/` (for example with `git mv`) and adapt them in place so `git log --follow` preserves file history and blame context.
-- Convert any remaining `BaseBloc` / `BaseViewModel` classes into proper `Bloc` or `Cubit` classes (extending `Bloc`, `Cubit`, `FetchBloc`, or `InfiniteListBloc`).
+- Migrate any remaining legacy `StatefulWidget` or `ChangeNotifier`-backed UI logic into proper `Bloc` or `Cubit` modules (extending `Bloc`, `Cubit`, `FetchBloc`, or `InfiniteListBloc`).
 
 ## Standard Feature Directory Layout
 

@@ -20,6 +20,12 @@ Syrius connects to Network of Momentum through a Zenon full node. Depending on w
 Even when connected to a Remote or Community Node, **all transaction signing happens locally inside Syrius (or on your Ledger)**. A remote node cannot spend your funds or read your seed phrase — it only relays signed transactions and serves blockchain data.
 :::
 
+:::warning Remote Nodes Control the Chain Data Syrius Sees (Important for P2P Swaps)
+Although a remote node cannot sign transactions or move funds on its own, **it controls what blockchain state Syrius displays**. A malicious or compromised remote node can hide incoming transactions or report a deposit that does not exist on-chain.
+
+This is especially important when running [P2P Swaps](../core-features/p2p-swaps.md): completing a swap publishes your HTLC secret on-chain, so a node colluding with your counterparty could display a fake counter-deposit, trick you into revealing the secret, and allow the counterparty to claim your initial deposit. **Use the Embedded Node or your own Local Node for P2P swaps**, or independently verify your counterparty's counter-deposit on a block explorer before completing.
+:::
+
 ---
 
 ## Embedded Node: What to Expect

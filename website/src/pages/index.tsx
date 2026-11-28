@@ -272,7 +272,7 @@ function HeroSection(): ReactNode {
             <div className={styles.statusMeta}>
               <span className={styles.statusLive}>
                 <span className={styles.statusDot} aria-hidden="true" />
-                <span>v0.3.0</span>
+                <span>Alphanet</span>
               </span>
               <span className={styles.statusSep} aria-hidden="true">
                 ·

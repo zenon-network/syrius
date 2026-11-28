@@ -21,6 +21,7 @@ P2P Swaps are marked **experimental** in Syrius. Failing to follow the timing ru
 2. **Verify your computer's clock**: When you open the **P2P Swaps** tab, Syrius checks whether your OS clock is within 5 minutes of the network. Fix any clock discrepancy before starting.
 3. **Check your Plasma**: Make sure you have sufficient Plasma (fused QSR) or wait if Syrius is currently generating PoW Plasma.
 4. **Plan to stay on this computer**: The swap secret is stored locally in Syrius's encrypted swap database on your machine, so you must complete the swap on the **same computer** you started it on.
+5. **Use a trusted node (or verify on a block explorer)**: Prefer the **Embedded Node** or your own **Local Node** when running P2P swaps. A remote node controls the chain data Syrius sees — a malicious remote node colluding with your counterparty could show a fake counter-deposit so you publish your secret and lose your initial deposit. If you are connected to a remote node, independently verify your counterparty's counter-deposit on a block explorer before completing the swap (see [Node Modes](../hardware-and-nodes/node-modes.md)).
 
 ---
 
@@ -50,7 +51,7 @@ Bob has approximately **1 hour** after Alice starts the swap to join safely. Syr
 ### Step 3: Alice Completes the Swap
 
 1. Alice's Syrius detects Bob's counter-deposit and shows the exact token and amount Bob deposited.
-2. Alice verifies that Bob deposited the agreed `1,000 QSR`.
+2. Alice verifies that Bob deposited the agreed `1,000 QSR` (if connected to a remote node rather than her Embedded or Local Node, she also confirms Bob's counter-deposit on a block explorer).
    - *Wrong token or amount?* **Do not complete the swap!** Wait until your deposit expires and reclaim your funds safely.
 3. Alice clicks to **complete the swap** within **50 minutes** of Bob joining.
 4. Alice receives her `1,000 QSR` immediately.

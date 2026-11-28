@@ -90,6 +90,13 @@ flowchart LR
 
 All **32** fields on `SyriusThemeTokens` (`lib/rearchitecture/utils/theming/syrius_theme_tokens.dart`) are documented below alongside their matching CSS custom properties in `website/src/css/custom.css`.
 
+:::note Web Contrast Overrides in `website/src/css/custom.css`
+The hex swatches in the tables below show the exact Flutter values from `SyriusThemeTokens`. For WCAG AA+ legibility in long-form web prose, links, and badges, `website/src/css/custom.css` overrides a subset of foreground variables:
+- **Text**: `--syrius-text-secondary` light `#535953`; `--syrius-text-muted` dark `#949A94` / light `#626862`
+- **Brand & semantic inks**: `--syrius-zts` light `#C7267C`; `--syrius-success-fg` light `#147A38`; `--syrius-info-fg` dark `#6AA6FF` / light `#0F57BF`; `--syrius-warning` light `#8A6108`; `--syrius-error` dark `#FF6B86` / light `#B9183C`
+- **Hero radials**: `--syrius-hero-radial-left` dark `rgba(79, 209, 102, 0.08)` / light `rgba(29, 168, 76, 0.14)`; `--syrius-hero-radial-right` dark `rgba(0, 106, 255, 0.18)` / light `rgba(0, 97, 235, 0.12)`
+:::
+
 ### Surfaces & Chrome (6 tokens)
 
 | Dart Token | Dark (`SyriusThemeTokens.dark`) | Light (`SyriusThemeTokens.light`) | CSS Variable | Usage |
@@ -144,7 +151,7 @@ Unmigrated widgets in `lib/utils/app_colors.dart` reference static protocol cons
 | `errorSurface` | <ColorSwatch hex="#3B2129" /> | <ColorSwatch hex="#FCE8EC" /> | `--syrius-error-surface` | Error banners, `SyriusBadgeTone.error` pills, danger admonitions |
 | `errorBorder` | <ColorSwatch hex="#683040" /> | <ColorSwatch hex="#EDAEB9" /> | `--syrius-error-border` | `1px` hairline border framing error banners and badges |
 | `releaseSurface` | <ColorSwatch hex="#3B2032" /> | <ColorSwatch hex="#F9DFEE" /> | `--syrius-release-surface` | Release version pill background (`SyriusBadgeTone.release`) |
-| `releaseForeground` | <ColorSwatch hex="#FC54AE" /> | <ColorSwatch hex="#B82174" /> | `--syrius-release-fg` | Release version pill ink (`v0.3.0`, etc.) |
+| `releaseForeground` | <ColorSwatch hex="#FC54AE" /> | <ColorSwatch hex="#B82174" /> | `--syrius-release-fg` | Release version pill ink (e.g., release tags in About/Update badges) |
 
 ### Hero & Ambient Glows (5 tokens)
 

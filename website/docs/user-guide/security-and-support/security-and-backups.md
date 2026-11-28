@@ -84,6 +84,6 @@ Protect yourself from the most common cryptocurrency attacks:
 
 1. **Fake "Support" DMs**: After posting a question in Telegram, Discord, or a forum, scammers often direct-message you pretending to be official Zenon or Syrius support and ask you to "validate", "sync", or "rectify" your wallet on a website. **Block and report them immediately.**
 2. **Fake Wallet Downloads**: Always download Syrius solely from [github.com/zenon-network/syrius/releases/latest](https://github.com/zenon-network/syrius/releases/latest) and verify `SHA256CHECKSUMS.txt`.
-3. **Address Poisoning (Lookalike Addresses)**: Never copy a destination address blindly from your transaction history — always copy from a trusted source or saved contact, and pay attention if Syrius warns *"Looks like [Contact], but is not"*.
+3. **Address Poisoning (Lookalike Addresses)**: Never copy a destination address blindly from your transaction history — attackers can send small transactions from addresses with matching starting and ending characters. Always verify the full destination address character-by-character or copy it directly from a saved contact or trusted source.
 4. **Malicious Zap Messages & Fake Tokens**: Ignore unsolicited links embedded in incoming Zap messages, and verify exact `zts1...` token standards before accepting or swapping ZTS tokens.
 5. **Suspicious WalletConnect Prompts**: Never approve a `znn_send` or `znn_sign` dialog you did not actively initiate yourself.

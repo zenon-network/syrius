@@ -64,8 +64,8 @@ Ordering and category titles are managed inside each folder via `_category_.json
 Deployment is automated via [`.github/workflows/deploy-docs.yml`](../.github/workflows/deploy-docs.yml):
 
 1. In your GitHub repository, open **Settings → Pages** and set **Source** to **GitHub Actions**.
-2. Push changes touching `website/` to `master` or `develop` (or run **Actions → Deploy Documentation → Run workflow**).
-3. Pull requests touching `website/` automatically run `npm ci`, `npm run typecheck`, and `npm run build` without deploying.
+2. Push changes touching `website/` to `master` (or run **Actions → Deploy Documentation → Run workflow**) to publish to GitHub Pages.
+3. Pull requests targeting `master` or `develop` that touch `website/` automatically run `npm ci`, `npm run typecheck`, and `npm run build` for validation without deploying.
 4. For forks, `DOCS_URL` and `DOCS_BASE_URL` are automatically derived from `github.repository`. If you configure a custom domain, you may also set repository variables `DOCS_URL` (e.g., `https://docs.zenon.network`) and `DOCS_BASE_URL` (`/`).
 
 ### Cloudflare Pages
