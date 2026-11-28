@@ -1,0 +1,8 @@
+{
+  "label": "Hardware & Nodes",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Choose the right Zenon node mode for your needs and connect a Ledger hardware wallet on macOS, Windows, or Linux."
+  }
+}

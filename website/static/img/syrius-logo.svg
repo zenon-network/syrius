@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Syrius Wallet Logo">
+  <defs>
+    <linearGradient id="syrius-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E201E" />
+      <stop offset="100%" stop-color="#111211" />
+    </linearGradient>
+    <radialGradient id="syrius-star" cx="56%" cy="44%" r="58%">
+      <stop offset="0%" stop-color="#7BFF92" />
+      <stop offset="45%" stop-color="#4FD166" />
+      <stop offset="100%" stop-color="#1DA84C" />
+    </radialGradient>
+    <linearGradient id="syrius-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4FD166" stop-opacity="0.45" />
+      <stop offset="100%" stop-color="#006AFF" stop-opacity="0.35" />
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#syrius-bg)" stroke="url(#syrius-ring)" stroke-width="2" />
+  <path
+    d="M32 10.5C33.4 22.8 41.2 30.6 53.5 32C41.2 33.4 33.4 41.2 32 53.5C30.6 41.2 22.8 33.4 10.5 32C22.8 30.6 30.6 22.8 32 10.5Z"
+    fill="url(#syrius-star)"
+  />
+</svg>

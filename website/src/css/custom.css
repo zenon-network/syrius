@@ -1,0 +1,979 @@
+/**
+ * Syrius Documentation Portal — Global Redesign Theme
+ * Design tokens sampled from the Syrius Redesign desktop screens (Dark & Light)
+ * and synchronized with SyriusThemeTokens
+ * (lib/rearchitecture/utils/theming/syrius_theme_tokens.dart).
+ */
+
+:root {
+  /* Infima primary scale — Light mode WCAG AA+ ZNN green (#147A38 on #FFFFFF/#F6F7F6) */
+  --ifm-color-primary: #147a38;
+  --ifm-color-primary-dark: #116b31;
+  --ifm-color-primary-darker: #10652e;
+  --ifm-color-primary-darkest: #0d5326;
+  --ifm-color-primary-light: #17893f;
+  --ifm-color-primary-lighter: #199143;
+  --ifm-color-primary-lightest: #1da84c;
+
+  /* Typography */
+  --ifm-font-family-base: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  --ifm-font-family-monospace: 'SF Mono', Menlo, Consolas, 'Roboto Mono', monospace;
+  --ifm-code-font-size: 89%;
+  --ifm-heading-font-weight: 700;
+  --ifm-global-radius: 12px;
+  --ifm-navbar-height: 3.6rem;
+
+  /* Syrius Redesign — Light Theme Tokens (SyriusThemeTokens.light + AA+ contrast) */
+  --syrius-shell-bg: #eaeaea;
+  --syrius-surface: #f6f7f6;
+  --syrius-surface-elevated: #ffffff;
+  --syrius-surface-subtle: #eef0ee;
+  --syrius-surface-hover: #f0f2f0;
+  --syrius-card-bg: #ffffff;
+  --syrius-navbar-bg: rgba(234, 234, 234, 0.9);
+  --syrius-border: #d5d8d5;
+  --syrius-border-strong: #b5bbb5;
+  --syrius-text-primary: #161816;
+  --syrius-text-secondary: #535953;
+  --syrius-text-muted: #626862;
+  --syrius-znn: #1da84c;
+  --syrius-znn-text: #147a38;
+  --syrius-qsr: #0061eb;
+  --syrius-qsr-text: #0058d6;
+  --syrius-zts: #c7267c;
+  --syrius-warning: #8a6108;
+  --syrius-warning-surface: #fbf3dc;
+  --syrius-warning-border: #e3ca86;
+  --syrius-warning-text: #4e4a3d;
+  --syrius-error: #b9183c;
+  --syrius-error-surface: #fce8ec;
+  --syrius-error-border: #edaeb9;
+  --syrius-success-surface: #ddf3e3;
+  --syrius-success-border: #a8dcb8;
+  --syrius-success-fg: #147a38;
+  --syrius-info-surface: #dceafd;
+  --syrius-info-border: #a9c8f5;
+  --syrius-info-fg: #0f57bf;
+  --syrius-release-surface: #f9dfee;
+  --syrius-release-fg: #b82174;
+  --syrius-rail-bg: #eaeaea;
+  --syrius-rail-active-bg: #ffffff;
+  --syrius-rail-active-border: #d5d8d5;
+  --syrius-hero-glow-left: #d8f0dc;
+  --syrius-hero-glow-right: #cfdff6;
+  --syrius-hero-radial-left: rgba(29, 168, 76, 0.14);
+  --syrius-hero-radial-right: rgba(0, 97, 235, 0.12);
+  --syrius-hero-subtitle: #3e4640;
+  --syrius-hero-strip-bg: rgba(255, 255, 255, 0.82);
+  --syrius-hero-strip-border: rgba(213, 216, 213, 0.95);
+  --syrius-gradient-primary: linear-gradient(95deg, #4fd166 0%, #006aff 100%);
+  --syrius-gradient-fg: #0a140e;
+  --syrius-code-surface: #ffffff;
+  --syrius-code-header: #eef0ee;
+  --syrius-announcement-bg: #f6f7f6;
+  --syrius-announcement-fg: #161816;
+  --syrius-kbd-bg: #ffffff;
+  --syrius-kbd-border: #cfd3cf;
+  --syrius-footer-bg: #171817;
+  --syrius-footer-border: #2b2d2b;
+
+  /* Apply Syrius tokens to Infima */
+  --ifm-background-color: var(--syrius-surface);
+  --ifm-background-surface-color: var(--syrius-surface-elevated);
+  --ifm-navbar-background-color: var(--syrius-navbar-bg);
+  --ifm-navbar-shadow: none;
+  --ifm-navbar-link-color: var(--syrius-text-secondary);
+  --ifm-navbar-link-hover-color: var(--syrius-text-primary);
+  --ifm-font-color-base: var(--syrius-text-primary);
+  --ifm-font-color-secondary: var(--syrius-text-secondary);
+  --ifm-heading-color: var(--syrius-text-primary);
+  --ifm-toc-border-color: var(--syrius-border);
+  --ifm-hr-border-color: var(--syrius-border);
+  --ifm-table-border-color: var(--syrius-border);
+  --ifm-table-stripe-background: transparent;
+  --ifm-code-background: var(--syrius-surface-subtle);
+  --ifm-menu-color: var(--syrius-text-secondary);
+  --ifm-menu-color-active: var(--syrius-text-primary);
+  --ifm-menu-color-background-active: var(--syrius-rail-active-bg);
+  --ifm-menu-color-background-hover: var(--syrius-surface-hover);
+  --ifm-breadcrumb-color-active: var(--syrius-text-primary);
+  --ifm-breadcrumb-item-background-active: var(--syrius-surface-elevated);
+  --docusaurus-highlighted-code-line-bg: rgba(29, 168, 76, 0.12);
+
+  /* Local search modal aligned with Syrius Quick Nav (Light) */
+  --search-local-modal-background: var(--syrius-surface);
+  --search-local-modal-shadow: 0 12px 32px rgba(22, 24, 22, 0.12),
+    0 0 0 1px var(--syrius-border);
+  --search-local-hit-background: var(--syrius-surface-elevated);
+  --search-local-hit-shadow: 0 0 0 1px var(--syrius-border);
+  --search-local-hit-color: var(--syrius-text-primary);
+  --search-local-hit-active-color: #ffffff;
+  --search-local-highlight-color: var(--syrius-znn-text);
+  --search-local-muted-color: var(--syrius-text-muted);
+  --search-local-input-active-border-color: var(--syrius-border-strong);
+}
+
+[data-theme='dark'] {
+  /* Infima primary scale — Dark mode Syrius ZNN green (#4FD166) */
+  --ifm-color-primary: #4fd166;
+  --ifm-color-primary-dark: #38c952;
+  --ifm-color-primary-darker: #30bf49;
+  --ifm-color-primary-darkest: #279d3c;
+  --ifm-color-primary-light: #66d87a;
+  --ifm-color-primary-lighter: #73dc85;
+  --ifm-color-primary-lightest: #97e6a5;
+
+  /* Syrius Redesign — Dark Theme Tokens (SyriusThemeTokens.dark + AA+ contrast) */
+  --syrius-shell-bg: #1b1c1b;
+  --syrius-surface: #262726;
+  --syrius-surface-elevated: #2e302e;
+  --syrius-surface-subtle: #202120;
+  --syrius-surface-hover: #2c2e2c;
+  --syrius-card-bg: #262726;
+  --syrius-navbar-bg: rgba(27, 28, 27, 0.9);
+  --syrius-border: #353735;
+  --syrius-border-strong: #4b4e4b;
+  --syrius-text-primary: #f0f2f0;
+  --syrius-text-secondary: #a0a5a0;
+  --syrius-text-muted: #949a94;
+  --syrius-znn: #4fd166;
+  --syrius-znn-text: #4fd166;
+  --syrius-qsr: #3b8bff;
+  --syrius-qsr-text: #5c9dff;
+  --syrius-zts: #fc54ae;
+  --syrius-warning: #e6b543;
+  --syrius-warning-surface: #373225;
+  --syrius-warning-border: #5d5132;
+  --syrius-warning-text: #c4c0b4;
+  --syrius-error: #ff6b86;
+  --syrius-error-surface: #3b2129;
+  --syrius-error-border: #683040;
+  --syrius-success-surface: #233928;
+  --syrius-success-border: #345a3d;
+  --syrius-success-fg: #4fd166;
+  --syrius-info-surface: #1e3048;
+  --syrius-info-border: #314e74;
+  --syrius-info-fg: #6aa6ff;
+  --syrius-release-surface: #3b2032;
+  --syrius-release-fg: #fc54ae;
+  --syrius-rail-bg: #1b1c1b;
+  --syrius-rail-active-bg: #262a26;
+  --syrius-rail-active-border: #353735;
+  --syrius-hero-glow-left: #2d4531;
+  --syrius-hero-glow-right: #223249;
+  --syrius-hero-radial-left: rgba(79, 209, 102, 0.08);
+  --syrius-hero-radial-right: rgba(0, 106, 255, 0.18);
+  --syrius-hero-subtitle: #c8cfc8;
+  --syrius-hero-strip-bg: rgba(27, 28, 27, 0.72);
+  --syrius-hero-strip-border: rgba(53, 55, 53, 0.95);
+  --syrius-gradient-primary: linear-gradient(95deg, #4fd166 0%, #006aff 100%);
+  --syrius-gradient-fg: #0a140e;
+  --syrius-code-surface: #202120;
+  --syrius-code-header: #262726;
+  --syrius-announcement-bg: #202120;
+  --syrius-announcement-fg: #f0f2f0;
+  --syrius-kbd-bg: #202120;
+  --syrius-kbd-border: #3c3f3c;
+  --syrius-footer-bg: #141514;
+  --syrius-footer-border: #282a28;
+
+  /* Apply Syrius tokens to Infima */
+  --ifm-background-color: var(--syrius-shell-bg);
+  --ifm-background-surface-color: var(--syrius-surface);
+  --ifm-navbar-background-color: var(--syrius-navbar-bg);
+  --ifm-footer-background-color: var(--syrius-footer-bg);
+  --ifm-navbar-link-color: var(--syrius-text-secondary);
+  --ifm-navbar-link-hover-color: var(--syrius-text-primary);
+  --ifm-font-color-base: var(--syrius-text-primary);
+  --ifm-font-color-secondary: var(--syrius-text-secondary);
+  --ifm-heading-color: var(--syrius-text-primary);
+  --ifm-toc-border-color: var(--syrius-border);
+  --ifm-hr-border-color: var(--syrius-border);
+  --ifm-table-border-color: var(--syrius-border);
+  --ifm-table-stripe-background: transparent;
+  --ifm-code-background: var(--syrius-surface-elevated);
+  --ifm-menu-color: var(--syrius-text-secondary);
+  --ifm-menu-color-active: var(--syrius-text-primary);
+  --ifm-menu-color-background-active: var(--syrius-rail-active-bg);
+  --ifm-menu-color-background-hover: var(--syrius-surface-hover);
+  --ifm-breadcrumb-color-active: var(--syrius-text-primary);
+  --ifm-breadcrumb-item-background-active: var(--syrius-surface);
+  --docusaurus-highlighted-code-line-bg: rgba(79, 209, 102, 0.14);
+
+  /* Local search modal aligned with Syrius Quick Nav (Dark) */
+  --search-local-modal-background: var(--syrius-surface);
+  --search-local-modal-shadow: 0 16px 40px rgba(0, 0, 0, 0.45),
+    0 0 0 1px var(--syrius-border);
+  --search-local-hit-background: var(--syrius-surface-subtle);
+  --search-local-hit-shadow: 0 0 0 1px var(--syrius-border);
+  --search-local-hit-color: var(--syrius-text-primary);
+  --search-local-hit-active-color: var(--syrius-gradient-fg);
+  --search-local-highlight-color: var(--syrius-znn);
+  --search-local-muted-color: var(--syrius-text-muted);
+  --search-local-input-active-border-color: var(--syrius-border-strong);
+}
+
+/* ============================================================================
+ * Global Typography, Tabular Figures & Keycaps
+ * ========================================================================== */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.025em;
+  color: var(--syrius-text-primary);
+}
+
+h1 {
+  letter-spacing: -0.035em;
+}
+
+code,
+pre,
+kbd,
+time,
+.markdown table {
+  font-variant-numeric: tabular-nums;
+}
+
+kbd {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--syrius-text-secondary);
+  background-color: var(--syrius-kbd-bg);
+  border: 1px solid var(--syrius-kbd-border);
+  border-radius: 6px;
+  padding: 0.12rem 0.42rem;
+  box-shadow: none;
+}
+
+/* ============================================================================
+ * Announcement Bar (Syrius Status / Update Strip)
+ * ========================================================================== */
+
+div[class*='announcementBar_'] {
+  background-color: var(--syrius-announcement-bg) !important;
+  color: var(--syrius-announcement-fg) !important;
+  border-bottom: 1px solid var(--syrius-border);
+  font-size: 0.82rem;
+  min-height: 2.35rem;
+}
+
+div[class*='announcementBarContent_'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.35rem 2.25rem;
+  color: var(--syrius-announcement-fg);
+}
+
+.syrius-announcement-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background-color: var(--syrius-warning);
+  flex-shrink: 0;
+}
+
+div[class*='announcementBar_'] a {
+  color: var(--syrius-znn-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+}
+
+div[class*='announcementBar_'] a:hover {
+  opacity: 0.85;
+}
+
+div[class*='announcementBar_'] button[class*='closeButton_'] {
+  color: var(--syrius-text-secondary);
+  opacity: 0.85;
+}
+
+div[class*='announcementBar_'] button[class*='closeButton_']:hover {
+  color: var(--syrius-text-primary);
+  opacity: 1;
+}
+
+/* ============================================================================
+ * Navbar (Syrius Desktop Chrome)
+ * ========================================================================== */
+
+.navbar {
+  border-bottom: 1px solid var(--syrius-border);
+  background-color: var(--syrius-navbar-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: none;
+}
+
+.navbar-sidebar {
+  background-color: var(--syrius-rail-bg);
+  border-right: 1px solid var(--syrius-border);
+  box-shadow: none;
+}
+
+.navbar-sidebar__brand {
+  border-bottom: 1px solid var(--syrius-border);
+  box-shadow: none;
+}
+
+.navbar__brand {
+  gap: 0.55rem;
+  margin-right: 1.5rem;
+}
+
+.navbar__logo {
+  height: 28px;
+  margin-right: 0;
+}
+
+.navbar__logo img {
+  border-radius: 7px;
+  border: 1px solid var(--syrius-border);
+}
+
+.navbar__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--syrius-text-primary);
+}
+
+.navbar__title::after {
+  content: 'DOCS';
+  display: inline-flex;
+  align-items: center;
+  padding: 0.14rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--syrius-border);
+  background-color: var(--syrius-surface-elevated);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--syrius-text-secondary);
+  line-height: 1.25;
+}
+
+.navbar__link {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--syrius-text-secondary);
+  border-radius: 8px;
+  padding: 0.35rem 0.68rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.navbar__link:hover {
+  color: var(--syrius-text-primary);
+  background-color: var(--syrius-surface-hover);
+}
+
+.navbar__link--active {
+  color: var(--syrius-text-primary);
+  font-weight: 600;
+  background-color: var(--syrius-rail-active-bg);
+  box-shadow: inset 0 0 0 1px var(--syrius-rail-active-border);
+}
+
+/* Theme toggle button */
+.navbar__items--right button[class*='toggleButton_'] {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--syrius-text-secondary);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.navbar__items--right button[class*='toggleButton_']:hover {
+  background-color: var(--syrius-surface-elevated);
+  border-color: var(--syrius-border);
+  color: var(--syrius-text-primary);
+}
+
+/* Pill-styled Search Bar & Quick-Nav Keycaps */
+.navbar__search-input {
+  border-radius: 999px !important;
+  border: 1px solid var(--syrius-border) !important;
+  background-color: var(--syrius-surface-elevated) !important;
+  color: var(--syrius-text-primary) !important;
+  font-size: 0.84rem;
+  height: 2.15rem;
+  padding-left: 2.2rem !important;
+  box-shadow: none !important;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.navbar__search-input::placeholder {
+  color: var(--syrius-text-muted);
+}
+
+.navbar__search-input:hover {
+  border-color: var(--syrius-border-strong) !important;
+}
+
+.navbar__search-input:focus {
+  outline: none !important;
+  border-color: var(--syrius-znn) !important;
+  box-shadow: 0 0 0 2px rgba(79, 209, 102, 0.16) !important;
+}
+
+[class*='searchBarContainer_'] kbd[class*='searchHint_'] {
+  background-color: var(--syrius-kbd-bg);
+  border: 1px solid var(--syrius-kbd-border);
+  border-radius: 5px;
+  color: var(--syrius-text-muted);
+  box-shadow: none;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.68rem;
+  padding: 0.08rem 0.34rem;
+}
+
+[class*='searchBar_'] [class*='dropdownMenu_'] {
+  border-radius: 12px !important;
+  border: 1px solid var(--syrius-border);
+}
+
+[class*='searchBar_'] [class*='suggestion_'] {
+  border-radius: 8px !important;
+}
+
+/* ============================================================================
+ * Docs Left Sidebar (Syrius Navigation Rail)
+ * ========================================================================== */
+
+.theme-doc-sidebar-container {
+  background-color: var(--syrius-rail-bg);
+  border-right: 1px solid var(--syrius-border) !important;
+}
+
+.theme-doc-sidebar-container nav.menu {
+  padding: 0.85rem 0.7rem 1.75rem;
+}
+
+.menu__list {
+  padding-left: 0;
+}
+
+.menu__list .menu__list {
+  margin-top: 0.2rem;
+  margin-left: 0.55rem;
+  padding-left: 0.55rem;
+  border-left: 1px solid var(--syrius-border);
+}
+
+.menu__list-item:not(:first-child) {
+  margin-top: 0.15rem;
+}
+
+.theme-doc-sidebar-item-category-level-1:not(:first-child) {
+  margin-top: 0.9rem;
+}
+
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible > .menu__link {
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--syrius-text-muted);
+  padding: 0.4rem 0.65rem;
+}
+
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible > .menu__link:hover {
+  color: var(--syrius-text-primary);
+  background-color: transparent;
+}
+
+.menu__list-item-collapsible:hover {
+  background-color: transparent;
+}
+
+.menu__link {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.38;
+  padding: 0.45rem 0.72rem;
+  color: var(--syrius-text-secondary);
+  transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+.menu__link:hover {
+  background-color: var(--syrius-surface-hover);
+  color: var(--syrius-text-primary);
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  position: relative;
+  background-color: var(--syrius-rail-active-bg);
+  border-color: var(--syrius-rail-active-border);
+  color: var(--syrius-text-primary);
+  font-weight: 600;
+  padding-left: 1rem;
+}
+
+.menu__link--active:not(.menu__link--sublist)::before {
+  content: '';
+  position: absolute;
+  left: 0.36rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 14px;
+  border-radius: 999px;
+  background-color: var(--syrius-znn);
+}
+
+.menu__caret::before,
+.menu__link--sublist-caret::after {
+  opacity: 0.6;
+  background-size: 1.1rem 1.1rem;
+}
+
+/* Collapse sidebar button */
+.theme-doc-sidebar-container button[class*='collapseSidebarButton_'] {
+  background-color: var(--syrius-rail-bg);
+  border-top: 1px solid var(--syrius-border);
+  color: var(--syrius-text-secondary);
+}
+
+.theme-doc-sidebar-container button[class*='collapseSidebarButton_']:hover {
+  background-color: var(--syrius-surface-hover);
+  color: var(--syrius-text-primary);
+}
+
+/* ============================================================================
+ * Docs Content Area — Breadcrumbs, Typography, Activity Tables & Code
+ * ========================================================================== */
+
+.theme-doc-breadcrumbs {
+  margin-bottom: 1.15rem;
+}
+
+.breadcrumbs__link {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--syrius-text-secondary);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid transparent;
+  transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+.breadcrumbs__link:hover {
+  background-color: var(--syrius-surface-elevated);
+  border-color: var(--syrius-border);
+  color: var(--syrius-text-primary);
+}
+
+.breadcrumbs__item--active .breadcrumbs__link {
+  background-color: var(--syrius-surface-elevated);
+  border-color: var(--syrius-border);
+  color: var(--syrius-text-primary);
+  font-weight: 600;
+}
+
+.markdown h1:first-child {
+  font-size: clamp(1.85rem, 3.2vw, 2.4rem);
+  line-height: 1.14;
+  letter-spacing: -0.035em;
+  margin-bottom: 1.1rem;
+}
+
+.markdown h2 {
+  letter-spacing: -0.025em;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--syrius-border);
+}
+
+.markdown h3 {
+  letter-spacing: -0.02em;
+}
+
+.markdown p,
+.markdown li {
+  line-height: 1.68;
+}
+
+.markdown a {
+  color: var(--syrius-znn-text);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.markdown a:hover {
+  text-decoration: underline;
+}
+
+/* Activity-panel styled tables */
+.markdown table {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--syrius-border);
+  border-radius: 12px;
+  background-color: var(--syrius-card-bg);
+  margin: 1.35rem 0;
+}
+
+.markdown table tr {
+  background-color: transparent;
+  border: 0;
+  transition: background-color 0.12s ease;
+}
+
+.markdown table thead tr {
+  background-color: var(--syrius-surface-subtle);
+}
+
+.markdown table tbody tr:hover {
+  background-color: var(--syrius-surface-hover);
+}
+
+.markdown table th {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--syrius-text-muted);
+  text-align: left;
+  padding: 0.72rem 0.95rem;
+  border: 0;
+  border-bottom: 1px solid var(--syrius-border);
+  white-space: nowrap;
+}
+
+.markdown table td {
+  font-size: 0.9rem;
+  color: var(--syrius-text-primary);
+  padding: 0.74rem 0.95rem;
+  border: 0;
+  border-bottom: 1px solid var(--syrius-border);
+  vertical-align: top;
+}
+
+.markdown table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Inline code & Code blocks */
+.markdown code {
+  border: 1px solid var(--syrius-border);
+  border-radius: 6px;
+  padding: 0.1rem 0.38rem;
+  background-color: var(--syrius-surface-subtle);
+  color: var(--syrius-text-primary);
+}
+
+[data-theme='dark'] .markdown code {
+  background-color: var(--syrius-surface-elevated);
+}
+
+.markdown pre code {
+  border: none;
+  padding: 0;
+  background-color: transparent;
+}
+
+.theme-code-block {
+  border: 1px solid var(--syrius-border);
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  overflow: hidden;
+  background-color: var(--syrius-code-surface) !important;
+}
+
+.theme-code-block pre {
+  background-color: var(--syrius-code-surface) !important;
+}
+
+div[class*='codeBlockTitle_'] {
+  background-color: var(--syrius-code-header) !important;
+  border-bottom: 1px solid var(--syrius-border) !important;
+  color: var(--syrius-text-secondary);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.55rem 0.95rem;
+}
+
+div[class*='buttonGroup_'] button {
+  border: 1px solid var(--syrius-border) !important;
+  border-radius: 999px !important;
+  background-color: var(--syrius-surface-elevated) !important;
+  color: var(--syrius-text-secondary) !important;
+  opacity: 0.9;
+}
+
+div[class*='buttonGroup_'] button:hover {
+  border-color: var(--syrius-border-strong) !important;
+  color: var(--syrius-text-primary) !important;
+  opacity: 1;
+}
+
+/* Blockquotes */
+.markdown blockquote {
+  border-left: 2px solid var(--syrius-znn);
+  background-color: var(--syrius-surface-subtle);
+  border-radius: 0 10px 10px 0;
+  padding: 0.75rem 1.05rem;
+  color: var(--syrius-text-secondary);
+}
+
+/* ============================================================================
+ * Admonitions (Syrius Transfer Warning & Notification Card Style)
+ * ========================================================================== */
+
+.theme-admonition {
+  border-radius: 12px;
+  border-width: 1px !important;
+  border-left-width: 1px !important;
+  border-style: solid;
+  box-shadow: none !important;
+  padding: 0.95rem 1.15rem;
+  color: var(--syrius-text-primary);
+}
+
+.theme-admonition div[class*='admonitionHeading_'] {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.45rem;
+}
+
+.theme-admonition div[class*='admonitionContent_'] {
+  font-size: 0.93rem;
+  color: var(--syrius-text-primary);
+}
+
+.theme-admonition div[class*='admonitionContent_'] a {
+  color: var(--syrius-text-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.theme-admonition-warning,
+.theme-admonition-caution {
+  background-color: var(--syrius-warning-surface);
+  border-color: var(--syrius-warning-border);
+  --ifm-alert-border-color: var(--syrius-warning-border);
+  --ifm-alert-foreground-color: var(--syrius-text-primary);
+}
+
+.theme-admonition-warning div[class*='admonitionHeading_'],
+.theme-admonition-caution div[class*='admonitionHeading_'] {
+  color: var(--syrius-warning);
+}
+
+.theme-admonition-warning span[class*='admonitionIcon_'] svg,
+.theme-admonition-caution span[class*='admonitionIcon_'] svg {
+  fill: var(--syrius-warning);
+}
+
+.theme-admonition-danger {
+  background-color: var(--syrius-error-surface);
+  border-color: var(--syrius-error-border);
+  --ifm-alert-border-color: var(--syrius-error-border);
+  --ifm-alert-foreground-color: var(--syrius-text-primary);
+}
+
+.theme-admonition-danger div[class*='admonitionHeading_'] {
+  color: var(--syrius-error);
+}
+
+.theme-admonition-danger span[class*='admonitionIcon_'] svg {
+  fill: var(--syrius-error);
+}
+
+.theme-admonition-tip {
+  background-color: var(--syrius-success-surface);
+  border-color: var(--syrius-success-border);
+  --ifm-alert-border-color: var(--syrius-success-border);
+  --ifm-alert-foreground-color: var(--syrius-text-primary);
+}
+
+.theme-admonition-tip div[class*='admonitionHeading_'] {
+  color: var(--syrius-success-fg);
+}
+
+.theme-admonition-tip span[class*='admonitionIcon_'] svg {
+  fill: var(--syrius-success-fg);
+}
+
+.theme-admonition-info,
+.theme-admonition-note {
+  background-color: var(--syrius-info-surface);
+  border-color: var(--syrius-info-border);
+  --ifm-alert-border-color: var(--syrius-info-border);
+  --ifm-alert-foreground-color: var(--syrius-text-primary);
+}
+
+.theme-admonition-info div[class*='admonitionHeading_'],
+.theme-admonition-note div[class*='admonitionHeading_'] {
+  color: var(--syrius-info-fg);
+}
+
+.theme-admonition-info span[class*='admonitionIcon_'] svg,
+.theme-admonition-note span[class*='admonitionIcon_'] svg {
+  fill: var(--syrius-info-fg);
+}
+
+/* ============================================================================
+ * Table of Contents & Pagination Cards
+ * ========================================================================== */
+
+.table-of-contents {
+  font-size: 0.81rem;
+  border-left: 1px solid var(--syrius-border);
+}
+
+.table-of-contents__link {
+  color: var(--syrius-text-muted);
+  transition: color 0.14s ease;
+}
+
+.table-of-contents__link:hover {
+  color: var(--syrius-text-primary);
+}
+
+.table-of-contents__link--active {
+  color: var(--syrius-znn-text);
+  font-weight: 600;
+}
+
+.pagination-nav__link {
+  background-color: var(--syrius-card-bg);
+  border: 1px solid var(--syrius-border);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  box-shadow: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--syrius-border-strong);
+  background-color: var(--syrius-surface-hover);
+}
+
+.pagination-nav__sublabel {
+  font-size: 0.69rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--syrius-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.pagination-nav__label {
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: var(--syrius-text-primary);
+}
+
+.pagination-nav__link:hover .pagination-nav__label {
+  color: var(--syrius-znn-text);
+}
+
+/* Doc category index cards (generated-index pages) */
+article .card {
+  background-color: var(--syrius-card-bg);
+  border: 1px solid var(--syrius-border) !important;
+  border-radius: 12px;
+  box-shadow: none !important;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+article .card:hover {
+  border-color: var(--syrius-border-strong) !important;
+  background-color: var(--syrius-surface-hover);
+}
+
+/* ============================================================================
+ * Mermaid Diagrams
+ * ========================================================================== */
+
+.docusaurus-mermaid-container {
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--syrius-border);
+  background-color: var(--syrius-card-bg);
+  margin: 1.35rem 0;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.docusaurus-mermaid-container svg {
+  max-width: 100%;
+  height: auto;
+}
+
+[data-theme='dark'] .docusaurus-mermaid-container .node rect,
+[data-theme='dark'] .docusaurus-mermaid-container .node polygon,
+[data-theme='dark'] .docusaurus-mermaid-container .node circle {
+  stroke: var(--syrius-border-strong);
+}
+
+[data-theme='dark'] .docusaurus-mermaid-container .flowchart-link {
+  stroke: var(--syrius-qsr-text);
+}
+
+/* ============================================================================
+ * Footer (Deep Shell Tone)
+ * ========================================================================== */
+
+.footer--dark {
+  --ifm-footer-background-color: var(--syrius-footer-bg);
+  background-color: var(--syrius-footer-bg);
+  border-top: 1px solid var(--syrius-footer-border);
+  padding: 2.75rem 0 2rem;
+}
+
+.footer__title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #a0a5a0;
+  margin-bottom: 0.85rem;
+}
+
+.footer__link-item {
+  font-size: 0.88rem;
+  color: #d6dbd6;
+  transition: color 0.14s ease;
+}
+
+.footer__link-item:hover {
+  color: #4fd166;
+  text-decoration: none;
+}
+
+.footer__copyright {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--syrius-footer-border);
+  font-size: 0.82rem;
+  color: #949a94;
+}
