@@ -135,3 +135,9 @@ app.*.symbols
 /macos/libledger_ffi.dylib
 /macos/libpow_links.dylib
 /scratchpad/
+
+# Docusaurus documentation website
+website/node_modules/
+website/build/
+website/.docusaurus/
+website/.cache-loader/

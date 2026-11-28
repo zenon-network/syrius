@@ -1,0 +1,610 @@
+/* ============================================================================
+ * Syrius Documentation Landing Page — Redesign Shell & Signature Hero Card
+ * ========================================================================== */
+
+.pageShell {
+  background-color: var(--syrius-shell-bg);
+  min-height: 100%;
+}
+
+.heroWrapper {
+  padding: 2rem 0 0;
+}
+
+.heroPanel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--syrius-border);
+  background:
+    radial-gradient(
+      ellipse 64% 95% at 10% 8%,
+      var(--syrius-hero-radial-left) 0%,
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 62% 100% at 92% 76%,
+      var(--syrius-hero-radial-right) 0%,
+      transparent 70%
+    ),
+    linear-gradient(
+      118deg,
+      var(--syrius-hero-glow-left) 0%,
+      var(--syrius-surface) 48%,
+      var(--syrius-hero-glow-right) 100%
+    );
+  padding: 1.5rem 1.75rem 1.35rem;
+}
+
+.heroTopRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.heroEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.69rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--syrius-hero-subtitle);
+}
+
+.heroLogo {
+  display: block;
+  border-radius: 5px;
+  border: 1px solid var(--syrius-border);
+}
+
+.heroWordmark {
+  letter-spacing: 0.24em;
+  color: var(--syrius-text-primary);
+  font-weight: 700;
+}
+
+.eyebrowDivider {
+  color: var(--syrius-hero-subtitle);
+}
+
+.heroNetworkLabel {
+  color: var(--syrius-hero-subtitle);
+}
+
+.tokenChips {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.tokenChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.58rem;
+  border-radius: 999px;
+  border: 1px solid var(--syrius-hero-strip-border);
+  background-color: var(--syrius-hero-strip-bg);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--syrius-text-secondary);
+}
+
+.tokenDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+}
+
+.tokenDotZnn {
+  background-color: var(--syrius-znn);
+}
+
+.tokenDotQsr {
+  background-color: var(--syrius-qsr);
+}
+
+.tokenDotZts {
+  background-color: var(--syrius-zts);
+}
+
+.heroBody {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem 2rem;
+  margin-bottom: 1.75rem;
+}
+
+.heroCopy {
+  flex: 1 1 460px;
+  max-width: 640px;
+}
+
+.heroTitle {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.038em;
+  margin: 0 0 0.75rem;
+  color: var(--syrius-text-primary);
+}
+
+.heroSubtitle {
+  font-size: clamp(0.98rem, 1.5vw, 1.08rem);
+  line-height: 1.58;
+  color: var(--syrius-hero-subtitle);
+  margin: 0;
+  max-width: 580px;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  flex-shrink: 0;
+}
+
+.primaryCta,
+.secondaryCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.68rem 1.38rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1.25;
+  text-decoration: none !important;
+  transition: filter 0.15s ease, border-color 0.15s ease,
+    background-color 0.15s ease, color 0.15s ease;
+}
+
+.primaryCta {
+  background: var(--syrius-gradient-primary);
+  color: var(--syrius-gradient-fg) !important;
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+
+.primaryCta:hover {
+  filter: brightness(1.08);
+  color: var(--syrius-gradient-fg) !important;
+}
+
+.secondaryCta {
+  background-color: var(--syrius-surface-elevated);
+  border: 1px solid var(--syrius-border);
+  color: var(--syrius-text-primary) !important;
+}
+
+.secondaryCta:hover {
+  background-color: var(--syrius-surface-hover);
+  border-color: var(--syrius-border-strong);
+  color: var(--syrius-text-primary) !important;
+}
+
+/* Embedded Syrius bottom status bar */
+.statusStrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  padding: 0.62rem 0.95rem;
+  border-radius: 10px;
+  border: 1px solid var(--syrius-hero-strip-border);
+  background-color: var(--syrius-hero-strip-bg);
+}
+
+.statusMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.6rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--syrius-text-secondary);
+}
+
+.statusLive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  font-weight: 600;
+  color: var(--syrius-text-primary);
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background-color: var(--syrius-znn);
+  flex-shrink: 0;
+}
+
+.statusSep {
+  color: var(--syrius-text-muted);
+}
+
+.shortcutHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  padding: 0.16rem 0.3rem;
+  border: 0;
+  background: transparent;
+  font-family: var(--ifm-font-family-base);
+  font-size: 0.76rem;
+  color: var(--syrius-text-muted);
+  cursor: pointer;
+  transition: color 0.14s ease;
+}
+
+.shortcutHint:hover {
+  color: var(--syrius-text-primary);
+}
+
+.shortcutKey {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.12rem 0.42rem;
+  border-radius: 5px;
+  border: 1px solid var(--syrius-kbd-border);
+  background-color: var(--syrius-kbd-bg);
+  color: var(--syrius-text-secondary);
+}
+
+.main {
+  padding-bottom: 4rem;
+}
+
+/* ============================================================================
+ * Security Notice Panel (Transfer Warning / Notification Card Style)
+ * ========================================================================== */
+
+.securitySection {
+  padding: 1.5rem 0 0.25rem;
+}
+
+.securityBanner {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1.1rem 1.35rem;
+  border-radius: 12px;
+  background-color: var(--syrius-warning-surface);
+  border: 1px solid var(--syrius-warning-border);
+}
+
+.securityIcon {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--syrius-warning);
+  border: 1px solid var(--syrius-warning-border);
+  background-color: var(--syrius-hero-strip-bg);
+}
+
+.securityIcon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.securityBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.securityEyebrow {
+  display: inline-block;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--syrius-warning);
+  margin-bottom: 0.2rem;
+}
+
+.securityTitle {
+  font-size: 0.98rem;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.28rem;
+  color: var(--syrius-text-primary);
+}
+
+.securityText {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.54;
+  color: var(--syrius-warning-text);
+}
+
+.securityLink {
+  color: var(--syrius-text-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.securityLink:hover {
+  color: var(--syrius-znn-text);
+}
+
+.securityAction {
+  flex-shrink: 0;
+  font-size: 0.84rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--syrius-text-primary) !important;
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--syrius-warning-border);
+  background-color: var(--syrius-surface-elevated);
+  text-decoration: none !important;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.securityAction:hover {
+  border-color: var(--syrius-warning);
+  background-color: var(--syrius-surface-hover);
+}
+
+/* ============================================================================
+ * Dual-Track Bento Card Sections (End-User Guide & Developer Docs)
+ * ========================================================================== */
+
+.trackSection {
+  padding: 2.35rem 0 0.25rem;
+}
+
+.trackHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.trackEyebrow {
+  display: inline-block;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.69rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.35rem;
+}
+
+.trackEyebrowZnn {
+  color: var(--syrius-znn-text);
+}
+
+.trackEyebrowQsr {
+  color: var(--syrius-qsr-text);
+}
+
+.trackTitle {
+  font-size: clamp(1.45rem, 2.5vw, 1.7rem);
+  letter-spacing: -0.028em;
+  margin: 0 0 0.3rem;
+  color: var(--syrius-text-primary);
+}
+
+.trackSubtitle {
+  margin: 0;
+  color: var(--syrius-text-secondary);
+  font-size: 0.94rem;
+  line-height: 1.52;
+  max-width: 650px;
+}
+
+.trackOverviewLink {
+  flex-shrink: 0;
+  font-size: 0.84rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--syrius-text-primary) !important;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--syrius-border);
+  background-color: var(--syrius-card-bg);
+  text-decoration: none !important;
+  transition: border-color 0.15s ease, background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.trackOverviewLink:hover {
+  border-color: var(--syrius-border-strong);
+  background-color: var(--syrius-surface-hover);
+  color: var(--syrius-znn-text) !important;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--syrius-border);
+  background-color: var(--syrius-card-bg);
+  box-shadow: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--syrius-border-strong);
+  background-color: var(--syrius-surface-hover);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.95rem;
+}
+
+.cardIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+}
+
+.cardIcon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cardIconZnn {
+  background-color: var(--syrius-success-surface);
+  border-color: var(--syrius-success-border);
+  color: var(--syrius-success-fg);
+}
+
+.cardIconQsr {
+  background-color: var(--syrius-info-surface);
+  border-color: var(--syrius-info-border);
+  color: var(--syrius-info-fg);
+}
+
+.cardBadge {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.67rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--syrius-text-muted);
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--syrius-border);
+  background-color: var(--syrius-surface-subtle);
+}
+
+.cardTitle {
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.45rem;
+  line-height: 1.3;
+}
+
+.cardTitleLink {
+  color: var(--syrius-text-primary);
+  text-decoration: none !important;
+}
+
+.cardTitleLink:hover {
+  color: var(--syrius-znn-text);
+}
+
+.cardDescription {
+  flex: 1;
+  font-size: 0.875rem;
+  line-height: 1.56;
+  color: var(--syrius-text-secondary);
+  margin: 0 0 1.1rem;
+}
+
+.cardFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-top: 0.82rem;
+  border-top: 1px solid var(--syrius-border);
+}
+
+.cardPrimaryLink {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--syrius-znn-text);
+  text-decoration: none;
+}
+
+.cardPrimaryLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cardSecondaryLink {
+  font-size: 0.81rem;
+  color: var(--syrius-text-secondary);
+  text-decoration: none;
+}
+
+.cardSecondaryLink:hover {
+  color: var(--syrius-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ============================================================================
+ * Responsive Breakpoints
+ * ========================================================================== */
+
+@media screen and (max-width: 1120px) {
+  .cardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .heroWrapper {
+    padding: 1.25rem 0 0;
+  }
+
+  .heroPanel {
+    padding: 1.25rem 1.15rem 1.1rem;
+  }
+
+  .heroBody {
+    margin-bottom: 1.25rem;
+  }
+
+  .heroActions {
+    width: 100%;
+  }
+
+  .primaryCta,
+  .secondaryCta {
+    flex: 1 1 auto;
+  }
+
+  .securityBanner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .trackHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+}

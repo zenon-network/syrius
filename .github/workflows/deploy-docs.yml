@@ -1,0 +1,120 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'website/**'
+      - '.github/workflows/deploy-docs.yml'
+  pull_request:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'website/**'
+      - '.github/workflows/deploy-docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Documentation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: read
+    concurrency:
+      group: docs-build-${{ github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Configure GitHub Pages
+        id: pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Resolve Docs URL and Base URL
+        env:
+          VARS_DOCS_URL: ${{ vars.DOCS_URL }}
+          VARS_DOCS_BASE_URL: ${{ vars.DOCS_BASE_URL }}
+          PAGES_ORIGIN: ${{ steps.pages.outputs.origin }}
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: |
+          set -euo pipefail
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+          OWNER_LOWER="$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')"
+          DEFAULT_URL="https://${OWNER_LOWER}.github.io"
+          if [ "$REPO" = "${OWNER_LOWER}.github.io" ]; then
+            DEFAULT_BASE_URL="/"
+          else
+            DEFAULT_BASE_URL="/${REPO}/"
+          fi
+
+          RESOLVED_URL="${VARS_DOCS_URL:-${PAGES_ORIGIN:-$DEFAULT_URL}}"
+          if [ -n "${VARS_DOCS_BASE_URL:-}" ]; then
+            RESOLVED_BASE_URL="$VARS_DOCS_BASE_URL"
+          elif [ -n "${PAGES_ORIGIN:-}" ]; then
+            if [ -n "${PAGES_BASE_PATH:-}" ]; then
+              RESOLVED_BASE_URL="${PAGES_BASE_PATH%/}/"
+            else
+              RESOLVED_BASE_URL="/"
+            fi
+          else
+            RESOLVED_BASE_URL="$DEFAULT_BASE_URL"
+          fi
+
+          echo "DOCS_URL=${RESOLVED_URL}" >> "$GITHUB_ENV"
+          echo "DOCS_BASE_URL=${RESOLVED_BASE_URL}" >> "$GITHUB_ENV"
+          echo "Building docs for ${RESOLVED_URL}${RESOLVED_BASE_URL}"
+
+      - name: Install dependencies
+        working-directory: website
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: website
+        run: npm run typecheck
+
+      - name: Build production site
+        working-directory: website
+        run: npm run build
+
+      - name: Upload GitHub Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: website/build
+
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

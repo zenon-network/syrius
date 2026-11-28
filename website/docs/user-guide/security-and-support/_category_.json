@@ -1,0 +1,8 @@
+{
+  "label": "Security & Support",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Best practices for securing your seed phrase and keystore backups, locating wallet data folders, and troubleshooting common issues."
+  }
+}
