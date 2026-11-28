@@ -7,6 +7,7 @@ export 'extensions/extensions.dart';
 export 'functions/functions.dart';
 export 'l10n/l10n.dart';
 export 'models/models.dart';
+export 'theming/syrius_theme_tokens.dart';
 export 'url_protocol/api.dart';
 export 'wallet_connect_metadata_utils.dart';
 export 'widgets/widgets.dart';

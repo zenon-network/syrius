@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -38,6 +39,15 @@ class SettingsSecurityBloc
   }) : _signBytes = signBytes ?? walletSign,
        _verifySignature = verifySignature ?? Crypto.verify,
        _readFileBytes = readFileBytes ?? _defaultReadFileBytes,
+       _committedAutoLockMinutes =
+           initialAutoLockMinutes ??
+           kAutoLockWalletMinutes ??
+           kAutoLockWalletDefaultIntervalMinutes,
+       _committedAutoEraseAttempts =
+           initialAutoEraseAttempts ??
+           (kAutoEraseWalletEnabled == false
+               ? 0.0
+               : (kAutoEraseWalletLimit ?? kAutoEraseNumAttemptsDefault)),
        super(
          SettingsSecurityState(
            autoLockMinutes:
@@ -46,19 +56,29 @@ class SettingsSecurityBloc
                kAutoLockWalletDefaultIntervalMinutes,
            autoEraseAttempts:
                initialAutoEraseAttempts ??
-               kAutoEraseWalletLimit ??
-               kAutoEraseNumAttemptsDefault,
+               (kAutoEraseWalletEnabled == false
+                   ? 0.0
+                   : (kAutoEraseWalletLimit ?? kAutoEraseNumAttemptsDefault)),
          ),
        ) {
     on<SettingsSecurityAutoLockChanged>(_onAutoLockChanged);
-    on<SettingsSecurityAutoLockConfirmed>(_onAutoLockConfirmed);
+    on<SettingsSecurityAutoLockConfirmed>(
+      _onAutoLockConfirmed,
+      transformer: sequential(),
+    );
     on<SettingsSecurityAutoEraseChanged>(_onAutoEraseChanged);
-    on<SettingsSecurityAutoEraseConfirmed>(_onAutoEraseConfirmed);
+    on<SettingsSecurityAutoEraseConfirmed>(
+      _onAutoEraseConfirmed,
+      transformer: sequential(),
+    );
     on<SettingsSecuritySignMessageRequested>(_onSignMessageRequested);
     on<SettingsSecurityVerifyMessageRequested>(_onVerifyMessageRequested);
     on<SettingsSecuritySignFileRequested>(_onSignFileRequested);
     on<SettingsSecurityVerifyFileRequested>(_onVerifyFileRequested);
   }
+
+  int _committedAutoLockMinutes;
+  double _committedAutoEraseAttempts;
 
   final SharedPrefsService? _prefsService;
   final Future<Signature> Function(List<int> message) _signBytes;
@@ -94,6 +114,7 @@ class SettingsSecurityBloc
     try {
       await _prefs.put(kAutoLockWalletMinutesKey, minutesToSave);
       kAutoLockWalletMinutes = minutesToSave;
+      _committedAutoLockMinutes = minutesToSave;
       emit(
         state.copyWith(
           isConfirmingAutoLock: false,
@@ -102,7 +123,12 @@ class SettingsSecurityBloc
       );
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      emit(state.copyWith(isConfirmingAutoLock: false));
+      emit(
+        state.copyWith(
+          autoLockMinutes: _committedAutoLockMinutes,
+          isConfirmingAutoLock: false,
+        ),
+      );
       await _sendError(error, event.errorTitle);
     }
   }
@@ -119,13 +145,54 @@ class SettingsSecurityBloc
     Emitter<SettingsSecurityState> emit,
   ) async {
     final double attemptsToSave = state.autoEraseAttempts;
-    emit(state.copyWith(isConfirmingAutoErase: true));
+    final bool enabledToSave = attemptsToSave > 0;
+    dynamic storedThreshold;
     try {
-      await _prefs.put(kAutoEraseNumAttemptsKey, attemptsToSave);
-      kAutoEraseWalletLimit = attemptsToSave;
+      storedThreshold = _prefs.get(kAutoEraseNumAttemptsKey);
+    } on Object catch (_) {}
+    final double previousLegacyThreshold =
+        storedThreshold is num && storedThreshold > 0
+        ? storedThreshold.toDouble()
+        : ((kAutoEraseWalletLimit != null && kAutoEraseWalletLimit! > 0)
+              ? kAutoEraseWalletLimit!
+              : (_committedAutoEraseAttempts > 0
+                    ? _committedAutoEraseAttempts
+                    : kAutoEraseNumAttemptsDefault));
+    // Never persist 0 to the legacy numeric threshold key so older releases
+    // cannot interpret "Off" as an immediate-erase threshold on downgrade.
+    final double legacyThreshold = enabledToSave
+        ? attemptsToSave
+        : previousLegacyThreshold;
+    emit(state.copyWith(isConfirmingAutoErase: true));
+    bool thresholdWritten = false;
+    try {
+      await _prefs.put(kAutoEraseNumAttemptsKey, legacyThreshold);
+      thresholdWritten = true;
+      await _prefs.put(kAutoEraseEnabledKey, enabledToSave);
+      kAutoEraseWalletLimit = legacyThreshold;
+      kAutoEraseWalletEnabled = enabledToSave;
+      _committedAutoEraseAttempts = enabledToSave ? attemptsToSave : 0.0;
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
-      emit(state.copyWith(isConfirmingAutoErase: false));
+      if (thresholdWritten && legacyThreshold != previousLegacyThreshold) {
+        try {
+          await _prefs.put(kAutoEraseNumAttemptsKey, previousLegacyThreshold);
+        } on Object catch (rollbackError, rollbackStackTrace) {
+          addError(rollbackError, rollbackStackTrace);
+          kAutoEraseWalletLimit = legacyThreshold;
+          final bool persistedEnabled =
+              kAutoEraseWalletEnabled ?? (legacyThreshold > 0);
+          _committedAutoEraseAttempts = persistedEnabled
+              ? legacyThreshold
+              : 0.0;
+        }
+      }
+      emit(
+        state.copyWith(
+          autoEraseAttempts: _committedAutoEraseAttempts,
+          isConfirmingAutoErase: false,
+        ),
+      );
       await _sendError(error, event.errorTitle);
       return;
     }

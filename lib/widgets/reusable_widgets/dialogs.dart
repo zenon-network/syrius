@@ -1,5 +1,8 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/theming/syrius_theme_tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 /// Displays a non-dismissible warning dialog and returns whether the user
@@ -103,7 +106,8 @@ Future<bool?> showDialogWithNoAndYesOptions({
   ),
 );
 
-/// Displays a centered card dialog styled with the new application theme.
+/// Displays a centered card dialog styled with the redesigned theme and blurred
+/// backdrop.
 Future<T?> showCustomDialog<T>({
   required BuildContext context,
   required Widget content,
@@ -111,26 +115,36 @@ Future<T?> showCustomDialog<T>({
   context: context,
   barrierLabel: '',
   barrierDismissible: true,
+  barrierColor: context.syriusTheme.modalBarrierColor,
   pageBuilder:
       (
         BuildContext context,
         Animation<double> animation,
         Animation<double> secondaryAnimation,
       ) {
-        return Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: context.customDialogMaxHeight,
-              maxWidth: context.customDialogMaxWidth,
-            ),
-            child: Theme(
-              data: context.newThemeData,
-              child: Card.filled(
-                clipBehavior: Clip.hardEdge,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
+        final SyriusThemeTokens tokens = context.syriusTheme;
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: context.customDialogMaxHeight,
+                maxWidth: context.customDialogMaxWidth,
+              ),
+              child: Theme(
+                data: context.newThemeData,
+                child: Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: tokens.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: tokens.border),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: SingleChildScrollView(child: content),
+                  ),
                 ),
-                child: SingleChildScrollView(child: content),
               ),
             ),
           ),

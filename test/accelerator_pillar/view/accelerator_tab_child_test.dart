@@ -224,7 +224,8 @@ void main() {
     }
 
     testWidgets(
-      'renders all cards and hides voting filter chips for non-pillar account',
+      'renders redesigned workspace and hides voting filter chips for '
+      'non-pillar account',
       (WidgetTester tester) async {
         when(() => pillarBloc.state).thenReturn(
           AcceleratorPillarPopulated(
@@ -236,16 +237,13 @@ void main() {
 
         await pumpTab(tester);
 
-        expect(find.byType(AcceleratorDonationsCard), findsOneWidget);
-        expect(find.byType(AcceleratorStatsCard), findsOneWidget);
-        expect(find.byType(CreateProjectCard), findsOneWidget);
-        expect(find.byType(AcceleratorProjectsCard), findsOneWidget);
-        expect(find.text('Accelerator Donations'), findsWidgets);
-        expect(find.text('Accelerator Stats'), findsWidgets);
-        expect(find.text('Create project'), findsWidgets);
-        expect(find.text('Project List'), findsWidgets);
-        expect(find.text('My projects'), findsOneWidget);
-        expect(find.text('Only accepted'), findsOneWidget);
+        expect(find.text('FUND'), findsOneWidget);
+        expect(find.text('Donate'), findsOneWidget);
+        expect(find.text('Create project'), findsOneWidget);
+        expect(find.text('Voting'), findsOneWidget);
+        expect(find.text('Active'), findsOneWidget);
+        expect(find.text('Mine'), findsOneWidget);
+        expect(find.text('All'), findsOneWidget);
         expect(find.text('Needs voting'), findsNothing);
         expect(find.text('Already voted'), findsNothing);
       },

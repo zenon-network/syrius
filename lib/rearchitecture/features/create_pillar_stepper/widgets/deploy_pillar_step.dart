@@ -11,10 +11,18 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// Deploy step for registering a pillar.
 class DeployPillarStep extends StatefulWidget {
   /// Creates a [DeployPillarStep].
-  const DeployPillarStep({required this.onDeployDone, super.key});
+  const DeployPillarStep({
+    required this.onDeployDone,
+    this.onDeployDoneWithName,
+    super.key,
+  });
 
   /// Called when deployment completes.
   final VoidCallback onDeployDone;
+
+  /// Optional callback invoked with the registered Pillar's name when
+  /// deployment completes.
+  final ValueChanged<String>? onDeployDoneWithName;
 
   @override
   State<DeployPillarStep> createState() => _DeployPillarStepState();
@@ -45,6 +53,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
 
   final ValueNotifier<double> _momentumRewardPercentage = .new(0);
   final ValueNotifier<double> _delegateRewardPercentage = .new(0);
+  String? _submittedPillarName;
 
   @override
   void initState() {
@@ -173,12 +182,17 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
 
   void _onDeployStateChanged(DeployPillarState state) {
     if (state is DeployPillarDone) {
+      final String registeredName =
+          _submittedPillarName ?? _pillarNameController.text;
+      _submittedPillarName = null;
       _registerButtonKey.currentState?.animateReverse();
       _pillarNameController.clear();
       _pillarRewardAddressController.clear();
       _pillarMomentumController.clear();
+      widget.onDeployDoneWithName?.call(registeredName);
       widget.onDeployDone();
     } else if (state is DeployPillarFailure) {
+      _submittedPillarName = null;
       _registerButtonKey.currentState?.animateReverse();
       unawaited(
         NotificationUtils.sendNotificationError(
@@ -197,9 +211,11 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
       _pillarMomentumError == null;
 
   void _onDeployPressed() {
+    final String pillarName = _pillarNameController.text;
+    _submittedPillarName = pillarName;
     context.read<DeployPillarBloc>().add(
       DeployPillarRequested(
-        pillarName: _pillarNameController.text,
+        pillarName: pillarName,
         rewardAddress: Address.parse(_pillarRewardAddressController.text),
         blockProducingAddress: Address.parse(_pillarMomentumController.text),
         giveBlockRewardPercentage: _momentumRewardPercentage.value.toInt(),

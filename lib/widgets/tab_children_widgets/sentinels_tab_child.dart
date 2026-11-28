@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:layout/layout.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/pillars_tab_child.dart';
 
-/// Displays the Sentinels tab content in a responsive fluid layout.
+/// Displays the unified Nodes tab defaulting to Sentinels (Screen 18).
 class SentinelsTabChild extends StatelessWidget {
-  /// Creates a Sentinels tab child.
+  /// Creates a [SentinelsTabChild].
   const SentinelsTabChild({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
@@ -16,49 +14,9 @@ class SentinelsTabChild extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<FluidCell> children = <FluidCell>[
-      FluidCell(
-        child: const SentinelRewardsCard(),
-        width: context.layout.value(
-          xl: kStaggeredNumOfColumns ~/ 3,
-          lg: kStaggeredNumOfColumns ~/ 3,
-          md: kStaggeredNumOfColumns ~/ 3,
-          sm: kStaggeredNumOfColumns ~/ 2,
-          xs: kStaggeredNumOfColumns,
-        ),
-      ),
-      FluidCell(
-        child: const SentinelCollectCard(),
-        width: context.layout.value(
-          xl: kStaggeredNumOfColumns ~/ 3,
-          lg: kStaggeredNumOfColumns ~/ 3,
-          md: kStaggeredNumOfColumns ~/ 3,
-          sm: kStaggeredNumOfColumns ~/ 2,
-          xs: kStaggeredNumOfColumns,
-        ),
-      ),
-      FluidCell(
-        child: SentinelStatsCard(
-          onStepperNotificationSeeMorePressed:
-              onStepperNotificationSeeMorePressed,
-        ),
-        width: context.layout.value(
-          xl: kStaggeredNumOfColumns ~/ 3,
-          lg: kStaggeredNumOfColumns ~/ 3,
-          md: kStaggeredNumOfColumns ~/ 3,
-          sm: kStaggeredNumOfColumns ~/ 2,
-          xs: kStaggeredNumOfColumns,
-        ),
-      ),
-      const FluidCell(
-        child: SentinelsCard(),
-        width: kStaggeredNumOfColumns,
-        height: kStaggeredNumOfColumns / 2,
-      ),
-    ];
-
-    return StandardFluidLayout(
-      children: children,
+    return NodesWorkspaceView(
+      initialTab: NodesSubTab.sentinels,
+      onStepperNotificationSeeMorePressed: onStepperNotificationSeeMorePressed,
     );
   }
 }

@@ -4,10 +4,10 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
-    as syrius_stepper;
+import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_ui_preferences_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -20,19 +20,17 @@ enum _Step {
   issueToken,
 }
 
-/// A stepper that guides the user through creating a ZTS token.
+/// Split-pane stepper guiding the user through creating a ZTS token
+/// (Screen 25).
 class CreateTokenStepperView extends StatefulWidget {
   /// Creates a [CreateTokenStepperView].
   const CreateTokenStepperView({super.key});
 
   @override
-  State createState() {
-    return _CreateTokenStepperViewState();
-  }
+  State<CreateTokenStepperView> createState() => _CreateTokenStepperViewState();
 }
 
 class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
-  // When value is null, it means the stepper has completed.
   final ValueNotifier<_Step?> _currentStep = ValueNotifier<_Step?>(
     _Step.checkPlasma,
   );
@@ -46,7 +44,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   final TextEditingController _tokenDomainController = TextEditingController();
   final TextEditingController _tokenSymbolController = TextEditingController();
 
-  final ValueNotifier<NewTokenData> _tokenData = .new(
+  final ValueNotifier<NewTokenData> _tokenData = ValueNotifier<NewTokenData>(
     NewTokenData.initial(address: kSelectedAddress!),
   );
 
@@ -55,7 +53,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     super.initState();
     sl.get<MultipleBalanceBloc>().add(
       MultipleBalanceFetch(
-        addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+        addresses: kDefaultAddressList.whereType<String>().toList(),
       ),
     );
   }
@@ -65,7 +63,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     return BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
       builder: (_, MultipleBalanceState state) => switch (state.status) {
         MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
-        MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
+        MultipleBalanceStatus.initial ||
         MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
         MultipleBalanceStatus.success => _buildBody(
           context,
@@ -75,188 +73,368 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     );
   }
 
-  Widget _buildMaterialStepper({
-    required AccountInfo accountInfo,
-    required _Step? currentStep,
-  }) {
-    final int lastStepIndex = _Step.values.last.index;
-
-    syrius_stepper.StepState getStepState(
-      _Step step,
-      _Step? currentStep,
-    ) {
-      return step.index < (currentStep?.index ?? lastStepIndex + 1)
-          ? syrius_stepper.StepState.complete
-          : syrius_stepper.StepState.indexed;
+  bool _isHideBalancesEnabled(BuildContext context) {
+    try {
+      return context.watch<AppUiPreferencesNotifier>().hideBalances;
+    } on ProviderNotFoundException {
+      return false;
     }
-
-    return ValueListenableBuilder<NewTokenData>(
-      valueListenable: _tokenData,
-      builder: (_, NewTokenData value, _) {
-        final bool isBurnable = value.isBurnable;
-        final bool isMintable = value.isMintable;
-        final bool isUtility = value.isUtility;
-
-        return syrius_stepper.Stepper(
-          activeColor: AppColors.ztsColor,
-          currentStep: currentStep?.index ?? lastStepIndex,
-          onStepTapped: (int index) {},
-          steps: <syrius_stepper.Step>[
-            StepperUtils.getMaterialStep(
-              stepTitle: context.l10n.plasmaCheck,
-              stepContent: TokenPlasmaCheckStep(
-                addressController: _addressController,
-                onNextPressed: _navigateToNextStep,
-              ),
-              stepSubtitle: context.l10n.sufficientPlasma,
-              stepState: getStepState(
-                _Step.checkPlasma,
-                currentStep,
-              ),
-              context: context,
-              stepSubtitleColor: AppColors.ztsColor,
-            ),
-            StepperUtils.getMaterialStep(
-              stepTitle: context.l10n.tokenCreation,
-              stepContent: TokenZnnCheckStep(
-                accountInfo: accountInfo,
-                addressController: _addressController,
-                onContinuePressed: _navigateToNextStep,
-                tokenData: _tokenData,
-              ),
-              stepSubtitle: _addressController.text,
-              stepState: getStepState(
-                _Step.tokenCreation,
-                currentStep,
-              ),
-              context: context,
-              stepSubtitleColor: AppColors.ztsColor,
-            ),
-            StepperUtils.getMaterialStep(
-              stepTitle: context.l10n.tokenDetails,
-              stepContent: TokenDetailsStep(
-                onBackPressed: _onBackButtonPressed,
-                onContinuePressed: _navigateToNextStep,
-                tokenData: _tokenData,
-                tokenDomainController: _tokenDomainController,
-                tokenNameController: _tokenNameController,
-                tokenSymbolController: _tokenSymbolController,
-              ),
-              stepSubtitle:
-                  '${_tokenNameController.text} ${_tokenSymbolController.text}',
-              stepState: getStepState(
-                _Step.tokenDetails,
-                currentStep,
-              ),
-              context: context,
-              stepSubtitleColor: AppColors.ztsColor,
-            ),
-            StepperUtils.getMaterialStep(
-              stepTitle: context.l10n.tokenMintableBurnableOptions,
-              stepContent: TokenMintableBurnableStep(
-                onBackPressed: _onBackButtonPressed,
-                onContinuePressed: _onTokenMintableBurnableContinuePressed,
-                tokenData: _tokenData,
-              ),
-              stepSubtitle: context.l10n.tokenMintableBurnableSubtitle(
-                isBurnable ? context.l10n.yes : context.l10n.no,
-                isMintable ? context.l10n.yes : context.l10n.no,
-              ),
-              stepState: getStepState(
-                _Step.tokenMintableBurnable,
-                currentStep,
-              ),
-              stepSubtitleColor: AppColors.ztsColor,
-              context: context,
-            ),
-            StepperUtils.getMaterialStep(
-              stepTitle: context.l10n.tokenMetrics,
-              stepContent: TokenMetricsStep(
-                maxSupplyController: _maxSupplyController,
-                onBackPressed: _onBackButtonPressed,
-                onContinuePressed: _navigateToNextStep,
-                tokenData: _tokenData,
-                totalSupplyController: _totalSupplyController,
-              ),
-              stepSubtitle:
-                  '${_totalSupplyController.text} '
-                  '${_tokenSymbolController.text}',
-              stepState: getStepState(
-                _Step.tokenMetrics,
-                currentStep,
-              ),
-              context: context,
-              stepSubtitleColor: AppColors.ztsColor,
-              stepSubtitleIconData: Icons.whatshot,
-            ),
-            StepperUtils.getMaterialStep(
-              stepTitle: context.l10n.issueToken,
-              stepContent: IssueTokenStep(
-                onBackPressed: _onBackButtonPressed,
-                onIssueDone: _onIssueDone,
-                onIssuePressed: _onCreatePressed,
-                tokenData: _tokenData,
-              ),
-              stepSubtitle: isMintable
-                  ? context.l10n.tokenSupplyOutOfMax(
-                      _maxSupplyController.text,
-                      _tokenSymbolController.text,
-                      _totalSupplyController.text,
-                    )
-                  : isUtility
-                  ? context.l10n.utilityToken
-                  : '',
-              stepState: getStepState(
-                _Step.issueToken,
-                currentStep,
-              ),
-              context: context,
-              stepSubtitleColor: AppColors.ztsColor,
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _onBackButtonPressed() {
-    final _Step? currentStep = _currentStep.value;
-
-    if (currentStep == null || currentStep.index == 0) {
-      return;
-    }
-
-    _currentStep.value = _Step.values[currentStep.index - 1];
   }
 
   Widget _buildBody(BuildContext context, AccountInfo accountInfo) {
+    final SyriusThemeTokens tokens = context.syriusTheme;
+    final bool hideBalances = _isHideBalancesEnabled(context);
+    final BigInt znnHave = accountInfo.getBalance(kZnnCoin.tokenStandard);
+    final String haveValue = hideBalances
+        ? '•••••• ${kZnnCoin.symbol}'
+        : '${znnHave.addDecimals(coinDecimals)} ${kZnnCoin.symbol}';
+
     return ValueListenableBuilder<_Step?>(
       valueListenable: _currentStep,
       builder: (_, _Step? currentStep, _) {
-        final bool hasTokenBeenCreated = currentStep == null;
+        final bool completed = currentStep == null;
+        final int stepIndex = completed
+            ? _Step.values.length
+            : currentStep.index;
+        final List<String> steps = <String>[
+          context.l10n.plasmaCheck,
+          context.l10n.tokenCreation,
+          context.l10n.nameAndSymbol,
+          context.l10n.options,
+          context.l10n.supply,
+          context.l10n.issue,
+        ];
 
-        return Stack(
-          children: <Widget>[
-            ListView(
-              children: <Widget>[
-                _buildMaterialStepper(
-                  accountInfo: accountInfo,
-                  currentStep: currentStep,
-                ),
-                if (hasTokenBeenCreated)
-                  TokenCreatedSuccess(
+        return LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final bool isCompact = constraints.maxWidth < 900;
+            final Widget stepPane = completed
+                ? TokenCreatedSuccess(
+                    tokenName: _tokenNameController.text,
                     onCreateAnotherTokenPressed: _onCreateAnotherTokenPressed,
-                    onViewTokensPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onViewTokensPressed: () => Navigator.of(context).pop(),
+                  )
+                : SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isCompact ? 20 : 28,
+                      vertical: isCompact ? 16 : 28,
+                    ),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: isCompact ? double.infinity : 600,
+                        ),
+                        child: ValueListenableBuilder<NewTokenData>(
+                          valueListenable: _tokenData,
+                          builder: (_, _, _) =>
+                              _buildActiveStep(currentStep, accountInfo),
+                        ),
+                      ),
+                    ),
+                  );
+
+            if (isCompact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  _buildCompactStepBar(tokens, steps, stepIndex),
+                  Expanded(child: stepPane),
+                ],
+              );
+            }
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Container(
+                  width: 260,
+                  decoration: BoxDecoration(
+                    border: Border(right: BorderSide(color: tokens.border)),
                   ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(22),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        SyriusVerticalStepRail(
+                          steps: steps,
+                          currentStep: stepIndex,
+                        ),
+                        const SizedBox(height: 20),
+                        Divider(height: 1, color: tokens.border),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: <Widget>[
+                            SizedBox(
+                              width: 54,
+                              child: Text(
+                                context.l10n.fee.toUpperCase(),
+                                style: tokens.microLabelStyle(),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text.rich(
+                                TextSpan(
+                                  children: <InlineSpan>[
+                                    TextSpan(
+                                      text: '1 ${kZnnCoin.symbol} ',
+                                      style: tokens.monoStyle(
+                                        fontSize: 12.5,
+                                        color: tokens.textPrimary,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: context.l10n.burned,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: tokens.textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: <Widget>[
+                            SizedBox(
+                              width: 54,
+                              child: Text(
+                                context.l10n.have.toUpperCase(),
+                                style: tokens.microLabelStyle(),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                haveValue,
+                                style: tokens.monoStyle(
+                                  fontSize: 12.5,
+                                  color: tokens.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        _buildTokenPreviewCard(context, tokens),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(child: stepPane),
               ],
-            ),
-            if (hasTokenBeenCreated) const TokenCreatedSuccessAnimation(),
-          ],
+            );
+          },
         );
       },
     );
+  }
+
+  Widget _buildCompactStepBar(
+    SyriusThemeTokens tokens,
+    List<String> steps,
+    int currentStep,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: tokens.border)),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: <Widget>[
+            for (int i = 0; i < steps.length; i++) ...<Widget>[
+              if (i > 0)
+                Container(
+                  width: 16,
+                  height: 1,
+                  margin: const EdgeInsets.symmetric(horizontal: 6),
+                  color: i <= currentStep
+                      ? tokens.znnGreen.withValues(alpha: 0.45)
+                      : tokens.border,
+                ),
+              _buildCompactStepChip(tokens, i, steps[i], currentStep),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactStepChip(
+    SyriusThemeTokens tokens,
+    int index,
+    String label,
+    int currentStep,
+  ) {
+    final bool completed = index < currentStep;
+    final bool active = index == currentStep;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Container(
+          width: 20,
+          height: 20,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: completed ? tokens.znnGreen : Colors.transparent,
+            border: Border.all(
+              color: completed || active ? tokens.znnGreen : tokens.border,
+              width: 1.4,
+            ),
+          ),
+          child: completed
+              ? Icon(
+                  Icons.check,
+                  size: 12,
+                  color: tokens.gradientButtonForeground,
+                )
+              : Text(
+                  '${index + 1}',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: active ? tokens.znnGreen : tokens.textMuted,
+                  ),
+                ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+            color: active ? tokens.textPrimary : tokens.textMuted,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTokenPreviewCard(
+    BuildContext context,
+    SyriusThemeTokens tokens,
+  ) {
+    return ListenableBuilder(
+      listenable: Listenable.merge(<Listenable>[
+        _tokenNameController,
+        _tokenSymbolController,
+      ]),
+      builder: (_, _) {
+        final String name = _tokenNameController.text.trim().isEmpty
+            ? context.l10n.tokenName
+            : _tokenNameController.text.trim();
+        final String symbol = _tokenSymbolController.text.trim().isEmpty
+            ? 'ZTS'
+            : _tokenSymbolController.text.trim().toUpperCase();
+
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: tokens.surfaceSubtle,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: tokens.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                context.l10n.preview.toUpperCase(),
+                style: tokens.microLabelStyle(),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: <Widget>[
+                  SyriusTokenAvatar(symbol: symbol, size: 30),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          name,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w500,
+                            color: tokens.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          '$symbol · zts1…',
+                          style: tokens.monoStyle(
+                            fontSize: 11,
+                            color: tokens.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildActiveStep(_Step step, AccountInfo accountInfo) {
+    return switch (step) {
+      _Step.checkPlasma => TokenPlasmaCheckStep(
+        addressController: _addressController,
+        onNextPressed: _navigateToNextStep,
+      ),
+      _Step.tokenCreation => TokenZnnCheckStep(
+        accountInfo: accountInfo,
+        addressController: _addressController,
+        onContinuePressed: _navigateToNextStep,
+        tokenData: _tokenData,
+      ),
+      _Step.tokenDetails => TokenDetailsStep(
+        onBackPressed: _onBackButtonPressed,
+        onContinuePressed: _navigateToNextStep,
+        tokenData: _tokenData,
+        tokenDomainController: _tokenDomainController,
+        tokenNameController: _tokenNameController,
+        tokenSymbolController: _tokenSymbolController,
+      ),
+      _Step.tokenMintableBurnable => TokenMintableBurnableStep(
+        onBackPressed: _onBackButtonPressed,
+        onContinuePressed: _onTokenMintableBurnableContinuePressed,
+        tokenData: _tokenData,
+      ),
+      _Step.tokenMetrics => TokenMetricsStep(
+        maxSupplyController: _maxSupplyController,
+        onBackPressed: _onBackButtonPressed,
+        onContinuePressed: _navigateToNextStep,
+        tokenData: _tokenData,
+        totalSupplyController: _totalSupplyController,
+      ),
+      _Step.issueToken => IssueTokenStep(
+        onBackPressed: _onBackButtonPressed,
+        onIssueDone: _onIssueDone,
+        onIssuePressed: _onCreatePressed,
+        tokenData: _tokenData,
+      ),
+    };
+  }
+
+  void _onBackButtonPressed() {
+    if (context.read<IssueTokenBloc>().state is IssueTokenLoading) {
+      return;
+    }
+    final _Step? currentStep = _currentStep.value;
+    if (currentStep == null || currentStep.index == 0) {
+      return;
+    }
+    _currentStep.value = _Step.values[currentStep.index - 1];
   }
 
   void _onCreateAnotherTokenPressed() {
@@ -265,9 +443,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     _totalSupplyController.clear();
     _maxSupplyController.clear();
     _tokenDomainController.clear();
-    _tokenData.value = NewTokenData.initial(
-      address: _addressController.text,
-    );
+    _tokenData.value = NewTokenData.initial(address: _addressController.text);
     _currentStep.value = _Step.checkPlasma;
   }
 

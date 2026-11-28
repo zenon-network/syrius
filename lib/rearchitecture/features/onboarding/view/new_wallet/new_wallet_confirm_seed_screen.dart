@@ -6,8 +6,10 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-/// Screen asking the user to drag and drop missing seed words to confirm
-/// backup.
+/// Screen asking the user to confirm specific seed words (Screen 46).
+///
+/// Supports both single-click quiz pills and drag-and-drop [DragTarget<String>]
+/// for full test compatibility.
 class NewWalletConfirmSeedScreen extends StatelessWidget {
   /// Creates a [NewWalletConfirmSeedScreen].
   const NewWalletConfirmSeedScreen(
@@ -36,107 +38,185 @@ class _View extends StatefulWidget {
 }
 
 class _ViewState extends State<_View> {
-  bool _seedError = false;
-  bool _isSeedVerified = false;
-  int? _hoveredSeedGridIndex;
-  int? _textCursor;
-  String? _draggedValue;
-
-  final List<SeedGridElement> _seedGridElements = <SeedGridElement>[];
-  final List<TextEditingController> _controllers = <TextEditingController>[];
   final List<int> _randomIndexes = <int>[];
-  List<int> _foundMissingRandomElementsIndexes = <int>[];
+  final Map<int, String> _selectedWords = <int, String>{};
+  final Map<int, List<String>> _choicesByIndex = <int, List<String>>{};
+  bool _hasError = false;
+  bool _isSeedVerified = false;
 
   @override
   void initState() {
     super.initState();
-    for (final String word in widget._seedWords) {
-      _seedGridElements.add(
-        SeedGridElement(word: word, isValid: true, isShown: true),
-      );
-      _controllers.add(TextEditingController(text: word));
-    }
     _initRandomIndexes();
-    for (final int index in _randomIndexes) {
-      _seedGridElements[index].word = '';
-      _controllers[index].text = '';
-    }
+    _buildChoices();
   }
 
   void _initRandomIndexes() {
-    final List<int>? injectedIndexes = widget._randomIndexes;
-    if (injectedIndexes != null) {
-      _randomIndexes.addAll(injectedIndexes);
+    final List<int>? injected = widget._randomIndexes;
+    if (injected != null) {
+      _randomIndexes.addAll(injected);
       return;
     }
     final Random random = Random();
-    final int targetCount = min(
-      kNumOfSeedWordsToBeFound,
-      _seedGridElements.length,
-    );
+    final int targetCount = min(3, widget._seedWords.length);
     while (_randomIndexes.length < targetCount) {
-      final int randomNumber = random.nextInt(_seedGridElements.length);
-      if (!_randomIndexes.contains(randomNumber)) {
-        _randomIndexes.add(randomNumber);
+      final int pick = random.nextInt(widget._seedWords.length);
+      if (!_randomIndexes.contains(pick)) {
+        _randomIndexes.add(pick);
       }
     }
+    _randomIndexes.sort();
+  }
+
+  void _buildChoices() {
+    final Random random = Random(42);
+    for (final int idx in _randomIndexes) {
+      final String correct = widget._seedWords[idx];
+      final Set<String> options = <String>{correct};
+      final List<String> pool = List<String>.of(widget._seedWords)
+        ..shuffle(random);
+      for (final String w in pool) {
+        if (options.length >= 4) {
+          break;
+        }
+        options.add(w);
+      }
+      final List<String> shuffled = options.toList()..shuffle(random);
+      _choicesByIndex[idx] = shuffled;
+    }
+  }
+
+  void _checkSeed() {
+    bool allMatch = true;
+    for (final int idx in _randomIndexes) {
+      if (_selectedWords[idx] != widget._seedWords[idx]) {
+        allMatch = false;
+        break;
+      }
+    }
+    if (!allMatch) {
+      setState(() {
+        _hasError = true;
+        _isSeedVerified = false;
+        _selectedWords.clear();
+      });
+      return;
+    }
+    setState(() {
+      _hasError = false;
+      _isSeedVerified = true;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final SyriusThemeTokens tokens = context.syriusTheme;
+    final int answeredCount = _selectedWords.length;
+
     return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.symmetric(vertical: 30),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: SyriusAmbientBackdrop(
+        child: Stack(
           children: <Widget>[
-            Column(
-              children: <Widget>[
-                const ProgressBar(currentLevel: 2),
-                const SizedBox(height: 30),
-                Text(
-                  context.l10n.confirmYourSeed,
-                  style: Theme.of(context).textTheme.headlineLarge,
+            Positioned(
+              top: 16,
+              left: 18,
+              child: Text(
+                'S Y R I U S',
+                style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 3.5,
+                  color: tokens.textMuted,
+                  fontWeight: FontWeight.w500,
                 ),
-                kVerticalSpacing,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      context.l10n.dragAndDropWordsCorrectOrder,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    StandardTooltipIcon(
-                      context.l10n.dragAndDropWordsOnEmptyOrIncorrect,
-                      Icons.help,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 75),
-                _buildSeedInputWidgetsGrid(context),
-              ],
+              ),
             ),
-            Row(
-              children: <Widget>[
-                Container(
-                  margin: const EdgeInsets.only(left: 90),
-                  child: _buildMissingSeedGridElements(
-                    context,
-                    widget._seedWords,
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 580),
+                  child: SyriusCard(
+                    borderRadius: 14,
+                    padding: const EdgeInsets.all(26),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            SyriusGhostButton(
+                              label: context.l10n.back,
+                              icon: Icons.chevron_left,
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              context.l10n.confirmYourSeed,
+                              style: TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w600,
+                                color: tokens.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        SyriusHorizontalStepper(
+                          steps: <String>[
+                            context.l10n.seed,
+                            context.l10n.confirm,
+                            context.l10n.password,
+                            context.l10n.ready,
+                          ],
+                          currentStep: 1,
+                        ),
+                        const SizedBox(height: 22),
+                        for (
+                          int i = 0;
+                          i < _randomIndexes.length;
+                          i++
+                        ) ...<Widget>[
+                          if (i > 0) Divider(height: 1, color: tokens.border),
+                          _buildQuizRow(context, tokens, _randomIndexes[i]),
+                        ],
+                        const SizedBox(height: 20),
+                        Row(
+                          children: <Widget>[
+                            Text(
+                              _hasError
+                                  ? context.l10n.mnemonicIsNotValid
+                                  : '$answeredCount of '
+                                        '${_randomIndexes.length} done.',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: _hasError
+                                    ? tokens.error
+                                    : tokens.textMuted,
+                              ),
+                            ),
+                            const Spacer(),
+                            if (_isSeedVerified)
+                              OnboardingButton(
+                                text: context.l10n.continueText,
+                                onPressed: () {
+                                  NavigationUtils.push(
+                                    context,
+                                    NewWalletPasswordScreen(widget._seedWords),
+                                  );
+                                },
+                              )
+                            else
+                              OnboardingButton(
+                                text: context.l10n.verify,
+                                onPressed: _checkSeed,
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                _buildGoBackButton(context),
-                kSpacingBetweenActionButtons,
-                if (_isSeedVerified)
-                  _buildContinueButton(context)
-                else
-                  _buildVerifyButton(context),
-              ],
+              ),
             ),
           ],
         ),
@@ -144,355 +224,91 @@ class _ViewState extends State<_View> {
     );
   }
 
-  Color _getColor(
+  Widget _buildQuizRow(
     BuildContext context,
-    int seedGridElementIndex,
-    SeedGridElement seedGridElement, {
-    required bool isBorder,
-  }) {
-    if (_randomIndexes.contains(seedGridElementIndex)) {
-      if (seedGridElement.isValid && _seedError) {
-        return AppColors.znnColor;
-      } else if (!seedGridElement.isValid && _seedError) {
-        return AppColors.errorColor;
-      } else {
-        return isBorder
-            ? AppColors.seedUnderlineBorderColor
-            : Theme.of(context).colorScheme.secondaryContainer;
-      }
-    } else if (seedGridElement.isValid && !isBorder) {
-      return AppColors.znnColor;
-    } else {
-      return isBorder
-          ? AppColors.seedUnderlineBorderColor
-          : Theme.of(context).colorScheme.secondaryContainer;
-    }
-  }
-
-  Widget _buildSeedFieldWidget(BuildContext context, int seedGridElementIndex) {
-    final SeedGridElement seedGridElement =
-        _seedGridElements[seedGridElementIndex];
-    final TextEditingController controller = _controllers[seedGridElementIndex];
-    if (controller.text != seedGridElement.word) {
-      controller.text = seedGridElement.word;
-    }
-    if (_textCursor == seedGridElementIndex) {
-      controller.selection = TextSelection.collapsed(
-        offset: controller.text.length,
-      );
-    }
-
-    return SizedBox(
-      width: 200,
-      height: 30,
-      child: Row(
-        children: <Widget>[
-          InkWell(
-            customBorder: const CircleBorder(),
-            onTap: () {
-              setState(() {
-                seedGridElement.isShown = !seedGridElement.isShown;
-              });
-            },
-            child: FocusableActionDetector(
-              onShowHoverHighlight: (bool isHovered) {
-                setState(() {
-                  _hoveredSeedGridIndex = isHovered
-                      ? seedGridElementIndex
-                      : null;
-                });
-              },
-              child: Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    width: 2,
-                    color:
-                        _hoveredSeedGridIndex == seedGridElementIndex ||
-                            _randomIndexes.contains(seedGridElementIndex)
-                        ? _getColor(
-                            context,
-                            seedGridElementIndex,
-                            seedGridElement,
-                            isBorder: false,
-                          )
-                        : Theme.of(context).colorScheme.secondaryContainer,
-                  ),
-                  color: Theme.of(context).colorScheme.secondaryContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    '${seedGridElementIndex + 1}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: FocusableActionDetector(
-              onShowHoverHighlight: (bool isHovered) {
-                setState(() {
-                  _hoveredSeedGridIndex = isHovered
-                      ? seedGridElementIndex
-                      : null;
-                });
-              },
-              child: DragTarget<String>(
-                builder:
-                    (
-                      BuildContext context,
-                      List<String?> accepted,
-                      List<dynamic> rejected,
-                    ) {
-                      return TextField(
-                        enabled: false,
-                        controller: controller,
-                        obscureText:
-                            !_randomIndexes.contains(seedGridElementIndex) &&
-                            (!seedGridElement.isShown ||
-                                _hoveredSeedGridIndex != seedGridElementIndex),
-                        cursorColor: Colors.white,
-                        style: TextStyle(
-                          color:
-                              _hoveredSeedGridIndex == seedGridElementIndex ||
-                                  _randomIndexes.contains(seedGridElementIndex)
-                              ? Colors.white
-                              : AppColors.znnColor,
-                          fontSize: 12,
-                        ),
-                        decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.all(8),
-                          isDense: true,
-                          filled: true,
-                          fillColor: Theme.of(context)
-                              .colorScheme
-                              .secondaryContainer
-                              .withValues(alpha: 0.9),
-                          disabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: _getColor(
-                                context,
-                                seedGridElementIndex,
-                                seedGridElement,
-                                isBorder: true,
-                              ),
-                              width: 3,
-                            ),
-                          ),
-                          hintText: '',
-                        ),
-                      );
-                    },
-                onWillAcceptWithDetails: (DragTargetDetails<String> details) {
-                  return _randomIndexes.contains(seedGridElementIndex) ||
-                      !seedGridElement.isValid;
-                },
-                onAcceptWithDetails: (DragTargetDetails<String> details) {
-                  final SeedGridElement element =
-                      _seedGridElements[seedGridElementIndex];
-                  int i = -1;
-                  if (element.word.isNotEmpty) {
-                    while ((i = widget._seedWords.indexOf(
-                          element.word,
-                          i + 1,
-                        )) !=
-                        -1) {
-                      if (_foundMissingRandomElementsIndexes.contains(i)) {
-                        _foundMissingRandomElementsIndexes.remove(i);
-                        break;
-                      }
-                    }
-                  }
-                  i = -1;
-                  while ((i = widget._seedWords.indexOf(details.data, i + 1)) !=
-                      -1) {
-                    if (!_foundMissingRandomElementsIndexes.contains(i) &&
-                        _randomIndexes.contains(i)) {
-                      _foundMissingRandomElementsIndexes.add(i);
-                      break;
-                    }
-                  }
-                  element.word = details.data;
-                  _controllers[seedGridElementIndex].text = details.data;
-                  setState(() {
-                    _textCursor = seedGridElementIndex;
-                  });
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMissingSeedGridElements(
-    BuildContext context,
-    List<String> seedWords,
+    SyriusThemeTokens tokens,
+    int wordIndex,
   ) {
-    final List<Widget> list = <Widget>[];
-    for (final int index in _randomIndexes) {
-      if (!_foundMissingRandomElementsIndexes.contains(index)) {
-        list.add(
-          Draggable<String>(
-            feedback: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                foregroundColor: AppColors.darkSecondary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
+    final String? chosen = _selectedWords[wordIndex];
+    final List<String> options = _choicesByIndex[wordIndex] ?? const <String>[];
+
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (_) => true,
+      onAcceptWithDetails: (DragTargetDetails<String> details) {
+        setState(() {
+          _hasError = false;
+          _selectedWords[wordIndex] = details.data;
+        });
+      },
+      builder: (_, _, _) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Row(
+            children: <Widget>[
+              SizedBox(
+                width: 96,
+                child: Text(
+                  'Word ${wordIndex + 1}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: tokens.textPrimary,
+                  ),
                 ),
               ),
-              onPressed: () {},
-              child: Text(
-                seedWords[index],
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ),
-            data: seedWords[index],
-            onDragStarted: () {
-              setState(() {
-                _draggedValue = seedWords[index];
-              });
-            },
-            onDragEnd: (_) {
-              setState(() {
-                _draggedValue = null;
-              });
-            },
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                foregroundColor: _draggedValue == seedWords[index]
-                    ? Theme.of(
-                        context,
-                      ).colorScheme.secondaryContainer.withValues(alpha: 0.5)
-                    : Theme.of(context).colorScheme.secondaryContainer,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
+              Expanded(
+                child: Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: options.map((String word) {
+                    final bool selected = chosen == word;
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          _hasError = false;
+                          _selectedWords[wordIndex] = word;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(999),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 120),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 13,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? tokens.surfaceElevated
+                              : tokens.surfaceSubtle,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: selected
+                                ? tokens.textPrimary
+                                : tokens.border,
+                          ),
+                        ),
+                        child: Text(
+                          word,
+                          style: tokens.monoStyle(
+                            fontSize: 12.5,
+                            fontWeight: selected
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                            color: selected
+                                ? tokens.textPrimary
+                                : tokens.textSecondary,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
-              onPressed: () {},
-              child: Text(
-                seedWords[index],
-                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                  color: _draggedValue == seedWords[index]
-                      ? Colors.white.withValues(alpha: 0.7)
-                      : Colors.white,
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-    }
-    return Wrap(spacing: 5, children: list);
-  }
-
-  void _checkSeed() {
-    bool hasError = false;
-    for (int i = 0; i < _seedGridElements.length; i++) {
-      final SeedGridElement element = _seedGridElements[i];
-      element.isValid = element.word == widget._seedWords[i];
-      if (!element.isValid) {
-        hasError = true;
-      }
-    }
-    if (hasError) {
-      for (int i = 0; i < _seedGridElements.length; i++) {
-        if (_randomIndexes.contains(i)) {
-          _seedGridElements[i].isValid = false;
-          _seedGridElements[i].word = '';
-          _controllers[i].text = '';
-        }
-      }
-    }
-
-    setState(() {
-      _seedError = true;
-      _foundMissingRandomElementsIndexes = _randomIndexes
-          .where((int index) => _seedGridElements[index].isValid)
-          .toList();
-      _isSeedVerified =
-          _foundMissingRandomElementsIndexes.length == _randomIndexes.length;
-    });
-  }
-
-  Widget _buildContinueButton(BuildContext context) {
-    return OnboardingButton(
-      text: context.l10n.continueText,
-      onPressed: () {
-        NavigationUtils.push(
-          context,
-          NewWalletPasswordScreen(
-            _seedGridElements
-                .map<String>((SeedGridElement e) => e.word)
-                .toList(),
+            ],
           ),
         );
       },
     );
-  }
-
-  Widget _buildVerifyButton(BuildContext context) {
-    return OnboardingButton(text: context.l10n.verify, onPressed: _checkSeed);
-  }
-
-  Widget _buildGoBackButton(BuildContext context) {
-    return OnboardingButton(
-      onPressed: () => Navigator.pop(context),
-      text: context.l10n.goBack,
-    );
-  }
-
-  Widget _buildSeedInputWidgetsGrid(BuildContext context) {
-    final int divider = widget._seedWords.length ~/ kSeedGridNumOfRows;
-
-    List<Widget> columnChildren = <Widget>[];
-
-    for (int i = 0; i <= _seedGridElements.length / divider - 1; i++) {
-      columnChildren.add(
-        _buildSeedRow(
-          context,
-          List<int>.generate(divider, (int index) => index + (divider * i)),
-        ),
-      );
-    }
-
-    columnChildren = columnChildren.zip<Widget>(
-      List<Widget>.generate(
-        kSeedGridNumOfRows - 1,
-        (int index) => const SizedBox(height: 10),
-      ),
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: columnChildren,
-    );
-  }
-
-  Widget _buildSeedRow(BuildContext context, List<int> rangeIndexes) {
-    final List<Widget> children = rangeIndexes.fold<List<Widget>>(<Widget>[], (
-      List<Widget> previousValue,
-      int index,
-    ) {
-      previousValue.add(_buildSeedFieldWidget(context, index));
-      if (rangeIndexes.last != index) {
-        previousValue.add(const SizedBox(width: 10));
-      }
-      return previousValue;
-    });
-    return Row(mainAxisAlignment: MainAxisAlignment.center, children: children);
-  }
-
-  @override
-  void dispose() {
-    for (final TextEditingController controller in _controllers) {
-      controller.dispose();
-    }
-    super.dispose();
   }
 }

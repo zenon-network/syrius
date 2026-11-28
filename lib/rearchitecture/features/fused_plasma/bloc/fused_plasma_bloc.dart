@@ -15,9 +15,13 @@ class FusedPlasmaBloc extends InfiniteListBloc<FusionEntryWrapper> {
       );
 
   int? _lastMomentumHeight;
+  BigInt? _totalFusedQsr;
 
   /// The latest known momentum height, used for cancellation countdowns.
   int? get lastMomentumHeight => _lastMomentumHeight;
+
+  /// The authoritative total fused QSR across all pages from the last fetch.
+  BigInt? get totalFusedQsr => _totalFusedQsr;
 
   @override
   Future<List<FusionEntryWrapper>> paginationFetch({
@@ -33,6 +37,7 @@ class FusedPlasmaBloc extends InfiniteListBloc<FusionEntryWrapper> {
         );
     final Momentum lastMomentum = await zenon.ledger.getFrontierMomentum();
     _lastMomentumHeight = lastMomentum.height;
+    _totalFusedQsr = fusionEntryList.qsrAmount;
 
     return fusionEntryList.list
         .map(

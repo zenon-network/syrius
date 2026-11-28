@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
 /// Success UI shown after a token has been created.
 class TokenCreatedSuccess extends StatelessWidget {
@@ -9,6 +8,7 @@ class TokenCreatedSuccess extends StatelessWidget {
   const TokenCreatedSuccess({
     required this.onCreateAnotherTokenPressed,
     required this.onViewTokensPressed,
+    this.tokenName,
     super.key,
   });
 
@@ -18,37 +18,57 @@ class TokenCreatedSuccess extends StatelessWidget {
   /// Called when the user wants to return to the tokens view.
   final VoidCallback onViewTokensPressed;
 
+  /// Optional name of the newly issued token.
+  final String? tokenName;
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(
-        top: 50,
-        bottom: 20,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          OutlinedButton.icon(
-            label: Text(context.l10n.createAnotherToken),
-            onPressed: onCreateAnotherTokenPressed,
-            icon: const Icon(
-              Icons.refresh,
-              color: Colors.white,
+    final SyriusThemeTokens tokens = context.syriusTheme;
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox.square(
+              dimension: 160,
+              child: Lottie.asset(
+                'assets/lottie/ic_anim_zts.json',
+                repeat: false,
+              ),
             ),
-            iconAlignment: .end,
-          ),
-          const SizedBox(
-            width: 80,
-          ),
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.ztsColor,
-              side: const BorderSide(color: AppColors.ztsColor),
+            const SizedBox(height: 16),
+            Text(
+              (tokenName != null && tokenName!.isNotEmpty)
+                  ? tokenName!
+                  : context.l10n.issueToken,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: tokens.textPrimary,
+              ),
             ),
-            onPressed: onViewTokensPressed,
-            child: Text(context.l10n.viewMyTokens),
-          ),
-        ],
+            const SizedBox(height: 22),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
+              children: <Widget>[
+                SyriusGradientButton(
+                  label: context.l10n.viewMyTokens,
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 22),
+                  onPressed: onViewTokensPressed,
+                ),
+                SyriusPillButton(
+                  label: context.l10n.createAnotherToken,
+                  height: 38,
+                  onPressed: onCreateAnotherTokenPressed,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

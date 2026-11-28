@@ -198,9 +198,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // The content is scrolled under the header, hence we need to cover it up
-    final Color background = context.isDarkMode
-        ? AppColors.darkPrimary
-        : Colors.white;
+    final Color background = context.syriusTheme.surface;
 
     final List<Widget> children = List<Widget>.generate(
       columns.length,

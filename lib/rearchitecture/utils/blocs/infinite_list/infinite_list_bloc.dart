@@ -44,35 +44,27 @@ abstract class InfiniteListBloc<T>
     required this.toJsonT,
     required this.zenon,
     required this.pageSize,
-  }) : super(
-         InfiniteListState<T>.initial(),
-       ) {
-    listenToWsRestart(
-      () {
-        if (isClosed) {
-          return;
-        }
-        if (_activeFirstPageRequestId > 0) {
-          add(InfiniteListRefreshRequested(address: _activeAddress));
-          return;
-        }
-        final String? selectedAddress = kSelectedAddress;
-        if (selectedAddress != null) {
-          add(
-            InfiniteListRefreshRequested(
-              address: Address.parse(selectedAddress),
-            ),
-          );
-        }
-      },
-    );
+  }) : super(InfiniteListState<T>.initial()) {
+    listenToWsRestart(() {
+      if (isClosed) {
+        return;
+      }
+      if (_activeFirstPageRequestId > 0) {
+        add(InfiniteListRefreshRequested(address: _activeAddress));
+        return;
+      }
+      final String? selectedAddress = kSelectedAddress;
+      if (selectedAddress != null) {
+        add(
+          InfiniteListRefreshRequested(address: Address.parse(selectedAddress)),
+        );
+      }
+    });
     on<InfiniteListRequested>(
       _onInfiniteListRequested,
       transformer: throttleDroppable(kThrottleDuration),
     );
-    on<InfiniteListMoreRequested>(
-      _onInfiniteListMoreRequested,
-    );
+    on<InfiniteListMoreRequested>(_onInfiniteListMoreRequested);
     on<InfiniteListRefreshRequested>(
       _onInfiniteListRefreshRequested,
       transformer: restartable(),
@@ -92,6 +84,8 @@ abstract class InfiniteListBloc<T>
   final Object? Function(T) toJsonT;
 
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _isLoadingMore = ValueNotifier<bool>(false);
+  int _activeMoreRequests = 0;
   bool _isLoadingDisposed = false;
   int _activeFirstPageRequestId = 0;
   Address? _activeAddress;
@@ -99,6 +93,10 @@ abstract class InfiniteListBloc<T>
   /// Notifies listeners while the latest initial or refresh page-0 fetch is in
   /// flight.
   ValueListenable<bool> get isLoadingListenable => _isLoading;
+
+  /// Notifies listeners while a subsequent page (`InfiniteListMoreRequested`)
+  /// fetch is in flight.
+  ValueListenable<bool> get isLoadingMoreListenable => _isLoadingMore;
 
   /// Retrieves the data in a pagination manner, with the first page being 0
   Future<List<T>> paginationFetch({
@@ -174,6 +172,12 @@ abstract class InfiniteListBloc<T>
     final List<T> currentData = snapshotData ?? <T>[];
     final int previousNumOfItems = currentData.length;
     final int pageIndex = previousNumOfItems ~/ pageSize;
+    if (!isClosed) {
+      _activeMoreRequests += 1;
+      if (!_isLoadingMore.value) {
+        _isLoadingMore.value = true;
+      }
+    }
     try {
       final List<T> data = await paginationFetch(
         address: event.address,
@@ -190,10 +194,7 @@ abstract class InfiniteListBloc<T>
 
       emit(
         state.copyWith(
-          data: <T>[
-            ...currentData,
-            ...data,
-          ],
+          data: <T>[...currentData, ...data],
           hasReachedMax: hasReachedMax,
           status: InfiniteListStatus.success,
         ),
@@ -211,6 +212,16 @@ abstract class InfiniteListBloc<T>
           error: FailureException(),
         ),
       );
+    } finally {
+      if (!isClosed) {
+        _activeMoreRequests = _activeMoreRequests > 0
+            ? _activeMoreRequests - 1
+            : 0;
+        final bool stillLoading = _activeMoreRequests > 0;
+        if (_isLoadingMore.value != stillLoading) {
+          _isLoadingMore.value = stillLoading;
+        }
+      }
     }
   }
 
@@ -229,9 +240,8 @@ abstract class InfiniteListBloc<T>
 
   /// Serializes the current state into a JSON map.
   @override
-  Map<String, dynamic>? toJson(InfiniteListState<T> state) => state.toJson(
-    toJsonT,
-  );
+  Map<String, dynamic>? toJson(InfiniteListState<T> state) =>
+      state.toJson(toJsonT);
 
   @override
   Future<void> close() async {
@@ -240,6 +250,7 @@ abstract class InfiniteListBloc<T>
     if (!_isLoadingDisposed) {
       _isLoadingDisposed = true;
       _isLoading.dispose();
+      _isLoadingMore.dispose();
     }
   }
 }

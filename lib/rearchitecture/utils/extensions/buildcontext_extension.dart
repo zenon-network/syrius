@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/theming/new_app_themes.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/theming/syrius_theme_tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 
 /// Extension on the [BuildContext] class
@@ -17,6 +18,11 @@ extension BuildContextExtension on BuildContext {
 
   /// Whether the app is currently in dark mode
   bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;
+
+  /// Returns the semantic [SyriusThemeTokens] for the active theme brightness.
+  SyriusThemeTokens get syriusTheme =>
+      Theme.of(this).extension<SyriusThemeTokens>() ??
+      (isDarkMode ? SyriusThemeTokens.dark : SyriusThemeTokens.light);
 
   /// Return the current new theme data
   //TODO(maznnwell): to be deleted/replaced

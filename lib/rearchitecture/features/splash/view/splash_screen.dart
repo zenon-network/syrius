@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
@@ -9,8 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buil
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-/// Animated startup screen coordinating app initialization, cache deletion,
-/// and wallet reset flows.
+/// Animated startup screen matching mockups Screens 39–40.
 class SplashScreen extends StatelessWidget {
   /// Creates a [SplashScreen].
   const SplashScreen({
@@ -71,8 +71,10 @@ class _View extends StatefulWidget {
 
 class _ViewState extends State<_View> {
   late final Future<LottieComposition> _composition;
+  final FocusNode _focusNode = FocusNode();
   Timer? _initTimer;
   bool _initScheduled = false;
+  bool _flowStarted = false;
 
   @override
   void initState() {
@@ -86,7 +88,7 @@ class _ViewState extends State<_View> {
   Future<void> _scheduleInitializationOnLoad() async {
     try {
       final LottieComposition composition = await _composition;
-      if (!mounted || _initScheduled) {
+      if (!mounted || _initScheduled || _flowStarted) {
         return;
       }
       _initScheduled = true;
@@ -97,7 +99,7 @@ class _ViewState extends State<_View> {
         _startSplashFlow();
       });
     } on Object catch (_) {
-      if (!mounted || _initScheduled) {
+      if (!mounted || _initScheduled || _flowStarted) {
         return;
       }
       _initScheduled = true;
@@ -105,7 +107,20 @@ class _ViewState extends State<_View> {
     }
   }
 
-  void _startSplashFlow() {
+  void _skipIntro() {
+    if (_flowStarted) {
+      return;
+    }
+    _initTimer?.cancel();
+    _initScheduled = true;
+    _startSplashFlow();
+  }
+
+  void _startSplashFlow({bool force = false}) {
+    if (_flowStarted && !force) {
+      return;
+    }
+    _flowStarted = true;
     context.read<SplashBloc>().add(
       SplashStarted(
         flow: widget._flow,
@@ -122,16 +137,75 @@ class _ViewState extends State<_View> {
   Widget build(BuildContext context) {
     return BlocListener<SplashBloc, SplashState>(
       listener: _onSplashStateChanged,
-      child: FutureBuilder<LottieComposition>(
-        future: _composition,
-        builder:
-            (BuildContext context, AsyncSnapshot<LottieComposition> snapshot) {
-              final LottieComposition? composition = snapshot.data;
-              if (composition != null) {
-                return Lottie(composition: composition, repeat: false);
-              }
-              return const Center(child: CircularProgressIndicator());
-            },
+      child: Focus(
+        focusNode: _focusNode,
+        autofocus: true,
+        onKeyEvent: (FocusNode node, KeyEvent event) {
+          if (event is KeyDownEvent) {
+            _skipIntro();
+          }
+          return KeyEventResult.ignored;
+        },
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _skipIntro,
+          child: ColoredBox(
+            color: Colors.black,
+            child: Stack(
+              children: <Widget>[
+                const Positioned(
+                  top: 16,
+                  left: 18,
+                  child: Text(
+                    'S Y R I U S',
+                    style: TextStyle(
+                      fontSize: 11,
+                      letterSpacing: 3.5,
+                      color: Colors.white38,
+                      fontWeight: FontWeight.w500,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ),
+                Center(
+                  child: FutureBuilder<LottieComposition>(
+                    future: _composition,
+                    builder:
+                        (
+                          BuildContext context,
+                          AsyncSnapshot<LottieComposition> snapshot,
+                        ) {
+                          final LottieComposition? composition = snapshot.data;
+                          if (composition != null) {
+                            return Lottie(
+                              composition: composition,
+                              repeat: false,
+                            );
+                          }
+                          return const CircularProgressIndicator();
+                        },
+                  ),
+                ),
+                Positioned(
+                  bottom: 32,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Text(
+                      context.l10n.clickOrPressAKeyToSkip,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.white38,
+                        fontWeight: FontWeight.w400,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -174,7 +248,7 @@ class _ViewState extends State<_View> {
         return;
       }
       if (retry) {
-        _startSplashFlow();
+        _startSplashFlow(force: true);
         return;
       }
     }
@@ -209,6 +283,7 @@ class _ViewState extends State<_View> {
   @override
   void dispose() {
     _initTimer?.cancel();
+    _focusNode.dispose();
     super.dispose();
   }
 }

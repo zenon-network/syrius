@@ -12,6 +12,11 @@ class StakesBloc extends InfiniteListBloc<StakeEntry> {
         toJsonT: (StakeEntry stakeEntry) => stakeEntry.toJson(),
       );
 
+  BigInt? _totalStakedAmount;
+
+  /// The authoritative total staked ZNN across all pages from the last fetch.
+  BigInt? get totalStakedAmount => _totalStakedAmount;
+
   @override
   Future<List<StakeEntry>> paginationFetch({
     required Address? address,
@@ -23,6 +28,7 @@ class StakesBloc extends InfiniteListBloc<StakeEntry> {
       pageIndex: pageIndex,
       pageSize: pageSize,
     );
+    _totalStakedAmount = stakeList.totalAmount;
 
     return stakeList.list;
   }

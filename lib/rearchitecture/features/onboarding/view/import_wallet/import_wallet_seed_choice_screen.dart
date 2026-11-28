@@ -9,8 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// Screen allowing the user to import a wallet via mnemonic words or
-/// Seed Vault.
+/// Redesigned wallet import screen matching mockup Screen 45.
 class ImportWalletSeedChoiceScreen extends StatelessWidget {
   /// Creates an [ImportWalletSeedChoiceScreen].
   const ImportWalletSeedChoiceScreen({this._clearAddressesBox, super.key});
@@ -45,10 +44,17 @@ class _View extends StatefulWidget {
 }
 
 class _ViewState extends State<_View> {
-  bool _isSeed12Selected = false;
+  bool _isSeed12Selected = true;
   String? _walletFilePath;
+  final TextEditingController _seedController = TextEditingController();
 
-  final GlobalKey<SeedGridState> _seedGridKey = GlobalKey<SeedGridState>();
+  int get _expectedWordCount => _isSeed12Selected ? 12 : 24;
+
+  List<String> get _enteredWords => _seedController.text
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((String w) => w.isNotEmpty)
+      .toList();
 
   @override
   void initState() {
@@ -67,44 +73,165 @@ class _ViewState extends State<_View> {
   }
 
   @override
+  void dispose() {
+    _seedController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final SyriusThemeTokens tokens = context.syriusTheme;
+    final List<String> words = _enteredWords;
+    final bool hasFullSeed = words.length == _expectedWordCount;
+    final bool canContinue = hasFullSeed || _walletFilePath != null;
+
     return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.symmetric(vertical: 30),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: SyriusAmbientBackdrop(
+        child: Stack(
           children: <Widget>[
-            Column(
-              children: <Widget>[
-                ProgressBar(
-                  currentLevel: 1,
-                  // Importing from a file adds a decrypt step.
-                  numLevels: _walletFilePath == null ? 4 : 5,
+            Positioned(
+              top: 16,
+              left: 18,
+              child: Text(
+                'S Y R I U S',
+                style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 3.5,
+                  color: tokens.textMuted,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 30),
-                Text(
-                  context.l10n.importYourWallet,
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-                kVerticalSpacing,
-                Text(
-                  context.l10n.inputSeedOrImportSeedVault,
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                kVerticalSpacing,
-                SizedBox(height: 45, child: _buildSeedChoice()),
-                kVerticalSpacing,
-                _buildSeedGrid(),
-              ],
+              ),
             ),
-            _buildUploadFileContainer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                _buildGoBackButton(context),
-                kSpacingBetweenActionButtons,
-                _buildContinueButton(context),
-              ],
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: SyriusCard(
+                    borderRadius: 14,
+                    padding: const EdgeInsets.all(26),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            SyriusGhostButton(
+                              label: context.l10n.back,
+                              icon: Icons.chevron_left,
+                              onPressed: () {
+                                Navigator.popUntil(
+                                  context,
+                                  ModalRoute.withName(AccessWalletScreen.route),
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              context.l10n.importYourWallet,
+                              style: TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w600,
+                                color: tokens.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        SyriusHorizontalStepper(
+                          steps: <String>[
+                            context.l10n.seedOrFile,
+                            context.l10n.password,
+                            context.l10n.ready,
+                          ],
+                          currentStep: 0,
+                        ),
+                        const SizedBox(height: 22),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: tokens.surfaceSubtle,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: tokens.borderStrong),
+                          ),
+                          child: SelectFileWidget(
+                            fileExtension: 'json',
+                            onPathFoundCallback: (String path) {
+                              setState(() {
+                                _walletFilePath = path;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Stack(
+                          children: <Widget>[
+                            TextField(
+                              controller: _seedController,
+                              maxLines: 3,
+                              onChanged: (_) => setState(() {}),
+                              style: tokens.monoStyle(
+                                color: tokens.textPrimary,
+                              ),
+                              decoration: InputDecoration(
+                                hintText:
+                                    context.l10n.inputSeedOrImportSeedVault,
+                                contentPadding: const EdgeInsets.fromLTRB(
+                                  14,
+                                  14,
+                                  14,
+                                  30,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              right: 12,
+                              bottom: 8,
+                              child: Text(
+                                '${words.length} of $_expectedWordCount',
+                                style: tokens.monoStyle(
+                                  fontSize: 11.5,
+                                  color: hasFullSeed
+                                      ? tokens.znnGreen
+                                      : tokens.textMuted,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: <Widget>[
+                            SyriusSegmentedControl<bool>(
+                              selected: _isSeed12Selected,
+                              onChanged: (bool is12) {
+                                setState(() => _isSeed12Selected = is12);
+                              },
+                              options: const <SyriusSegmentOption<bool>>[
+                                SyriusSegmentOption<bool>(
+                                  value: true,
+                                  label: '12 words',
+                                ),
+                                SyriusSegmentOption<bool>(
+                                  value: false,
+                                  label: '24 words',
+                                ),
+                              ],
+                            ),
+                            const Spacer(),
+                            OnboardingButton(
+                              onPressed: canContinue
+                                  ? () => _onContinuePressed(context)
+                                  : null,
+                              text: context.l10n.continueText,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -112,109 +239,40 @@ class _ViewState extends State<_View> {
     );
   }
 
-  Widget _buildUploadFileContainer() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: _isSeed12Selected ? 0 : 20),
-      width: _isSeed12Selected ? 3 * kSeedWordCellWidth : double.infinity,
-      child: SelectFileWidget(
-        fileExtension: 'json',
-        onPathFoundCallback: (String path) {
-          setState(() {
-            _walletFilePath = path;
-            _seedGridKey.currentState?.continueButtonDisabled = false;
-          });
-        },
-      ),
-    );
-  }
-
-  Widget _buildContinueButton(BuildContext context) {
-    final SeedGridState? seedGridState = _seedGridKey.currentState;
-    final bool canContinue =
-        (seedGridState != null &&
-            seedGridState.continueButtonDisabled == false) ||
-        _walletFilePath != null;
-
-    return OnboardingButton(
-      onPressed: canContinue ? () => _onContinuePressed(context) : null,
-      text: context.l10n.continueText,
-    );
-  }
-
   void _onContinuePressed(BuildContext context) {
-    final SeedGridState? seedGridState = _seedGridKey.currentState;
-    if (seedGridState != null &&
-        seedGridState.continueButtonDisabled == false &&
-        _walletFilePath == null) {
-      if (Mnemonic.validateMnemonic(seedGridState.getSeedWords)) {
-        NavigationUtils.push(
-          context,
-          ImportWalletPasswordScreen(
-            seedGridState.getSeed,
-            progressBarNumLevels: 4,
-          ),
-        );
-      } else {
-        unawaited(
-          showDialog<void>(
-            context: context,
-            builder: (BuildContext dialogContext) => AlertDialog(
-              title: Text(context.l10n.importingSeed),
-              content: Text(context.l10n.mnemonicIsNotValid),
-              actions: <Widget>[
-                TextButton(
-                  child: Text(context.l10n.ok),
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                ),
-              ],
-            ),
-          ),
-        );
-      }
-    } else if (_walletFilePath != null) {
+    if (_walletFilePath != null) {
       NavigationUtils.push(
         context,
         ImportWalletDecryptScreen(_walletFilePath!),
       );
+      return;
     }
-  }
 
-  Widget _buildGoBackButton(BuildContext context) {
-    return OnboardingButton(
-      onPressed: () {
-        Navigator.popUntil(
-          context,
-          ModalRoute.withName(AccessWalletScreen.route),
-        );
-      },
-      text: context.l10n.goBack,
-    );
-  }
-
-  Widget _buildSeedChoice() {
-    return SeedChoice(
-      isSeed12Selected: _isSeed12Selected,
-      onSeed24Selected: () {
-        setState(() {
-          _isSeed12Selected = false;
-          _seedGridKey.currentState?.changedSeed(List<String>.filled(24, ''));
-        });
-      },
-      onSeed12Selected: () {
-        setState(() {
-          _isSeed12Selected = true;
-          _seedGridKey.currentState?.changedSeed(List<String>.filled(12, ''));
-        });
-      },
-    );
-  }
-
-  Widget _buildSeedGrid() {
-    return SeedGrid(
-      List<String>.filled(_isSeed12Selected ? 12 : 24, ''),
-      key: _seedGridKey,
-      isContinueButtonDisabled: true,
-      onTextFieldChangedCallback: () => setState(() {}),
-    );
+    final List<String> words = _enteredWords;
+    if (Mnemonic.validateMnemonic(words)) {
+      NavigationUtils.push(
+        context,
+        ImportWalletPasswordScreen(words.join(' '), progressBarNumLevels: 4),
+      );
+    } else {
+      unawaited(
+        showSyriusBlurredDialog<void>(
+          context: context,
+          maxWidth: 400,
+          builder: (BuildContext dialogContext) => SyriusModalShell(
+            title: context.l10n.importingSeed,
+            actions: <Widget>[
+              SyriusGradientButton(
+                label: context.l10n.ok,
+                height: 36,
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+              ),
+            ],
+            child: Text(context.l10n.mnemonicIsNotValid),
+          ),
+        ),
+      );
+    }
   }
 }

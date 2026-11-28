@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/theming/syrius_theme_tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
 final ElevatedButtonThemeData _kElevatedButtonThemeData =
@@ -7,7 +8,10 @@ final ElevatedButtonThemeData _kElevatedButtonThemeData =
         backgroundColor: AppColors.znnColor,
         disabledMouseCursor: SystemMouseCursors.forbidden,
         enabledMouseCursor: SystemMouseCursors.click,
-        foregroundColor: Colors.white,
+        foregroundColor: const Color(0xFF0A140E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(999),
+        ),
       ),
     );
 
@@ -15,6 +19,9 @@ final FilledButtonThemeData _kFilledButtonThemeData = FilledButtonThemeData(
   style: FilledButton.styleFrom(
     disabledMouseCursor: SystemMouseCursors.forbidden,
     enabledMouseCursor: SystemMouseCursors.click,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(999),
+    ),
   ),
 );
 
@@ -30,6 +37,9 @@ final OutlinedButtonThemeData _kOutlinedButtonThemeData =
       style: OutlinedButton.styleFrom(
         disabledMouseCursor: SystemMouseCursors.forbidden,
         enabledMouseCursor: SystemMouseCursors.click,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(999),
+        ),
         side: const BorderSide(
           color: AppColors.znnColor,
         ),
@@ -43,115 +53,126 @@ final TextButtonThemeData _kTextButtonThemeData = TextButtonThemeData(
   ),
 );
 
-/// The new light theme closer to the default Material ThemeData
+/// The new light theme aligned with the Syrius redesign tokens.
 final ThemeData newLightTheme = ThemeData(
+  useMaterial3: true,
+  extensions: const <ThemeExtension<dynamic>>[SyriusThemeTokens.light],
   cardTheme: CardThemeData(
-    //TODO(maznnwell): check if it's okay
-    color: AppColors.darkPrimary,
+    color: SyriusThemeTokens.light.surface,
+    elevation: 0,
     margin: EdgeInsets.zero,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(12),
+      side: BorderSide(color: SyriusThemeTokens.light.border),
     ),
   ),
   colorScheme: ColorScheme.fromSeed(
     seedColor: AppColors.znnColor,
+    surface: SyriusThemeTokens.light.surface,
   ),
-  dividerTheme: kDefaultDividerThemeData,
+  dividerTheme: kDefaultDividerThemeData.copyWith(
+    color: SyriusThemeTokens.light.border,
+  ),
   elevatedButtonTheme: _kElevatedButtonThemeData,
   filledButtonTheme: _kFilledButtonThemeData,
   iconButtonTheme: _kIconButtonThemeData,
   inputDecorationTheme: InputDecorationTheme(
-    fillColor: AppColors.lightTextFormFieldFill,
+    fillColor: SyriusThemeTokens.light.surfaceElevated,
     filled: true,
     floatingLabelBehavior: FloatingLabelBehavior.always,
     errorStyle: kTextFormFieldErrorStyle,
     hintStyle: kHintTextStyle.copyWith(
-      color: AppColors.lightHintTextColor,
+      color: SyriusThemeTokens.light.textMuted,
     ),
     enabledBorder: kOutlineInputBorder.copyWith(
-      borderSide: BorderSide.none,
+      borderSide: BorderSide(color: SyriusThemeTokens.light.border),
     ),
     disabledBorder: kOutlineInputBorder.copyWith(
-      borderSide: const BorderSide(color: AppColors.inactiveIconsGray),
+      borderSide: BorderSide(color: SyriusThemeTokens.light.border),
     ),
     focusedBorder: kOutlineInputBorder.copyWith(
-      borderSide: const BorderSide(color: AppColors.inactiveIconsGray),
+      borderSide: BorderSide(color: SyriusThemeTokens.light.borderStrong),
     ),
     errorBorder: kOutlineInputBorder.copyWith(
       borderSide: const BorderSide(
         color: AppColors.errorColor,
-        width: 2,
+        width: 1.5,
       ),
     ),
     focusedErrorBorder: kOutlineInputBorder.copyWith(
       borderSide: const BorderSide(
         color: AppColors.errorColor,
-        width: 2,
+        width: 1.5,
       ),
     ),
-    iconColor: AppColors.znnColor,
-    prefixIconColor: AppColors.znnColor,
-    suffixIconColor: AppColors.znnColor,
+    iconColor: SyriusThemeTokens.light.znnGreen,
+    prefixIconColor: SyriusThemeTokens.light.textMuted,
+    suffixIconColor: SyriusThemeTokens.light.textSecondary,
   ),
   outlinedButtonTheme: _kOutlinedButtonThemeData,
-  scaffoldBackgroundColor: AppColors.backgroundLight,
+  scaffoldBackgroundColor: SyriusThemeTokens.light.shellBackground,
   textButtonTheme: _kTextButtonThemeData,
 );
 
-/// The new dark theme closer to the default Material ThemeData
+/// The new dark theme aligned with the Syrius redesign tokens.
 final ThemeData newDarkTheme = ThemeData(
+  useMaterial3: true,
   brightness: Brightness.dark,
+  extensions: const <ThemeExtension<dynamic>>[SyriusThemeTokens.dark],
   cardTheme: CardThemeData(
-    color: AppColors.darkPrimary,
+    color: SyriusThemeTokens.dark.surface,
+    elevation: 0,
     margin: EdgeInsets.zero,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(12),
+      side: BorderSide(color: SyriusThemeTokens.dark.border),
     ),
   ),
   colorScheme: ColorScheme.fromSeed(
     brightness: Brightness.dark,
     seedColor: AppColors.znnColor,
+    surface: SyriusThemeTokens.dark.surface,
   ),
-  dividerTheme: kDefaultDividerThemeData,
+  dividerTheme: kDefaultDividerThemeData.copyWith(
+    color: SyriusThemeTokens.dark.border,
+  ),
   elevatedButtonTheme: _kElevatedButtonThemeData,
   filledButtonTheme: _kFilledButtonThemeData,
   iconButtonTheme: _kIconButtonThemeData,
   inputDecorationTheme: InputDecorationTheme(
-    fillColor: AppColors.darkTextFormFieldFill,
+    fillColor: SyriusThemeTokens.dark.surfaceElevated,
     filled: true,
     floatingLabelBehavior: FloatingLabelBehavior.always,
     errorStyle: kTextFormFieldErrorStyle,
     hintStyle: kHintTextStyle.copyWith(
-      color: AppColors.darkHintTextColor,
+      color: SyriusThemeTokens.dark.textMuted,
     ),
     enabledBorder: kOutlineInputBorder.copyWith(
-      borderSide: BorderSide.none,
+      borderSide: BorderSide(color: SyriusThemeTokens.dark.border),
     ),
     disabledBorder: kOutlineInputBorder.copyWith(
-      borderSide: BorderSide(
-        color: Colors.white.withValues(alpha: 0.1),
-      ),
+      borderSide: BorderSide(color: SyriusThemeTokens.dark.border),
     ),
     focusedBorder: kOutlineInputBorder.copyWith(
-      borderSide: const BorderSide(color: AppColors.znnColor),
+      borderSide: BorderSide(color: SyriusThemeTokens.dark.borderStrong),
     ),
     errorBorder: kOutlineInputBorder.copyWith(
       borderSide: const BorderSide(
         color: AppColors.errorColor,
-        width: 2,
+        width: 1.5,
       ),
     ),
     focusedErrorBorder: kOutlineInputBorder.copyWith(
       borderSide: const BorderSide(
         color: AppColors.errorColor,
-        width: 2,
+        width: 1.5,
       ),
     ),
-    iconColor: AppColors.znnColor,
-    prefixIconColor: AppColors.znnColor,
-    suffixIconColor: AppColors.znnColor,
+    iconColor: SyriusThemeTokens.dark.znnGreen,
+    prefixIconColor: SyriusThemeTokens.dark.textMuted,
+    suffixIconColor: SyriusThemeTokens.dark.textSecondary,
   ),
   outlinedButtonTheme: _kOutlinedButtonThemeData,
-  scaffoldBackgroundColor: AppColors.backgroundDark,
+  scaffoldBackgroundColor: SyriusThemeTokens.dark.shellBackground,
   textButtonTheme: _kTextButtonThemeData,
 );

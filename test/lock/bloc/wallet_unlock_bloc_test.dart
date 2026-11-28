@@ -475,5 +475,35 @@ void main() {
         verifyNever(walletFile.close);
       },
     );
+
+    blocTest<WalletUnlockBloc, WalletUnlockState>(
+      'never triggers auto-erase when autoEraseLimit is disabled (0)',
+      setUp: () {
+        autoEraseLimit = 0;
+        failedAttempts = 5;
+      },
+      build: () => buildBloc(
+        decryptWallet: (_, _) =>
+            Future<WalletFile>.error(IncorrectPasswordException()),
+      ),
+      act: (WalletUnlockBloc bloc) => bloc.add(buildEvent('bad')),
+      expect: () => const <WalletUnlockState>[
+        WalletUnlockState(
+          status: WalletUnlockStatus.decrypting,
+          remainingAttempts: 0,
+          autoEraseEnabled: false,
+          nonce: 1,
+        ),
+        WalletUnlockState(
+          status: WalletUnlockStatus.failure,
+          remainingAttempts: 0,
+          autoEraseEnabled: false,
+          nonce: 2,
+        ),
+      ],
+      verify: (_) {
+        expect(failedAttempts, 6);
+      },
+    );
   });
 }
