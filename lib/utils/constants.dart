@@ -352,6 +352,9 @@ const String kAutoLockWalletMinutesKey = 'auto_lock_interval_minutes';
 /// Shared preferences key for the wallet auto-erase failed attempt threshold.
 const String kAutoEraseNumAttemptsKey = 'auto_erase_num_attempts';
 
+/// Shared preferences key for whether wallet auto-erase is enabled.
+const String kAutoEraseEnabledKey = 'auto_erase_enabled';
+
 // Wallet preferences
 /// Shared preferences key for launching Syrius at OS login.
 const String kLaunchAtStartupKey = 'launch_at_startup';

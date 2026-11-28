@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
@@ -318,6 +319,69 @@ void main() {
 
         expect(loadMoreCalls, 1);
         expect(find.byType(CircularProgressIndicator), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'SyriusPaginatedListView releases request guard after failed or '
+      'filtered-empty load-more completions',
+      (WidgetTester tester) async {
+        final ValueNotifier<bool> isLoadingMore = ValueNotifier<bool>(false);
+        addTearDown(isLoadingMore.dispose);
+        int loadMoreCalls = 0;
+        List<int> snapshot = <int>[0, 1, 2];
+
+        Widget buildTree({required List<int> dataIdentity}) => _wrapThemed(
+          SizedBox(
+            height: 200,
+            child: SyriusPaginatedListView(
+              itemCount: 10,
+              hasReachedMax: false,
+              isLoadingMore: isLoadingMore,
+              dataIdentity: dataIdentity,
+              onLoadMore: () {
+                loadMoreCalls += 1;
+                isLoadingMore.value = true;
+              },
+              itemBuilder: (_, int i) =>
+                  SizedBox(height: 40, child: Text('Row $i')),
+            ),
+          ),
+        );
+
+        await tester.pumpWidget(buildTree(dataIdentity: snapshot));
+        await tester.pump();
+        expect(loadMoreCalls, 0);
+
+        // Scroll to bottom -> triggers load-more #1.
+        await tester.drag(find.byType(ListView), const Offset(0, -500));
+        await tester.pump();
+        expect(loadMoreCalls, 1);
+
+        // Simulate failure / discarded request: isLoadingMore returns false
+        // without changing itemCount, hasReachedMax, or dataIdentity.
+        isLoadingMore.value = false;
+        await tester.pump();
+
+        // Scrolling again must retry cleanly (flag was released).
+        await tester.drag(find.byType(ListView), const Offset(0, 80));
+        await tester.pump();
+        await tester.drag(find.byType(ListView), const Offset(0, -120));
+        await tester.pump();
+        expect(loadMoreCalls, 2);
+
+        // Simulate filtered-empty page: dataIdentity changes while itemCount
+        // stays unchanged, then isLoadingMore settles.
+        snapshot = <int>[0, 1, 2, 3, 4];
+        await tester.pumpWidget(buildTree(dataIdentity: snapshot));
+        isLoadingMore.value = false;
+        await tester.pump();
+
+        await tester.drag(find.byType(ListView), const Offset(0, 80));
+        await tester.pump();
+        await tester.drag(find.byType(ListView), const Offset(0, -120));
+        await tester.pump();
+        expect(loadMoreCalls, 3);
       },
     );
   });
@@ -636,6 +700,16 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
 
+        // Go back from Issue -> decimals slider must preserve draft value (8).
+        await tester.tap(find.text('Go back'));
+        await tester.pumpAndSettle();
+        final Slider restoredSlider = tester.widget<Slider>(
+          find.byKey(const Key('token_decimals_slider')),
+        );
+        expect(restoredSlider.value, 8.0);
+        await tester.tap(find.byKey(const Key('token_metrics_next_button')));
+        await tester.pumpAndSettle();
+
         final Finder utilityCheckbox = find.byKey(
           const Key('token_utility_checkbox'),
         );
@@ -748,21 +822,29 @@ void main() {
 
         final MultipleBalanceBloc multipleBalanceBloc =
             await createTestBalanceBloc();
+        final AppUiPreferencesNotifier uiPrefs = AppUiPreferencesNotifier()
+          ..toggleHideBalances();
+        addTearDown(uiPrefs.dispose);
+
         await tester.pumpWidget(
-          MaterialApp(
-            theme: AppTheme.darkTheme,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: BlocProvider<MultipleBalanceBloc>.value(
-                value: multipleBalanceBloc,
-                child: const CreatePillarStepperPage(),
+          ChangeNotifierProvider<AppUiPreferencesNotifier>.value(
+            value: uiPrefs,
+            child: MaterialApp(
+              theme: AppTheme.darkTheme,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: BlocProvider<MultipleBalanceBloc>.value(
+                  value: multipleBalanceBloc,
+                  child: const CreatePillarStepperPage(),
+                ),
               ),
             ),
           ),
         );
         await tester.pumpAndSettle();
         expect(find.byType(SyriusVerticalStepRail), findsOneWidget);
+        expect(find.text('•••••• ZNN'), findsOneWidget);
 
         await tester.tap(find.byKey(const Key('pillar_plasma_next_button')));
         await tester.pumpAndSettle();
@@ -773,7 +855,7 @@ void main() {
 
     testWidgets(
       'CreateTokenStepperPage renders desktop split-pane rail at 1280x900 '
-      'without overflow',
+      'and masks ZNN balance when Hide Balances is enabled',
       (WidgetTester tester) async {
         tester.view.physicalSize = const Size(1280, 900);
         tester.view.devicePixelRatio = 1.0;
@@ -781,17 +863,24 @@ void main() {
 
         final MultipleBalanceBloc multipleBalanceBloc =
             await createTestBalanceBloc();
+        final AppUiPreferencesNotifier uiPrefs = AppUiPreferencesNotifier()
+          ..toggleHideBalances();
+        addTearDown(uiPrefs.dispose);
+
         await tester.pumpWidget(
-          MaterialApp(
-            theme: AppTheme.darkTheme,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: BlocProvider<MultipleBalanceBloc>.value(
-                value: multipleBalanceBloc,
-                child: BlocProvider<AllTokensBloc>(
-                  create: (_) => AllTokensBloc(zenon: mockZenon),
-                  child: const CreateTokenStepperPage(),
+          ChangeNotifierProvider<AppUiPreferencesNotifier>.value(
+            value: uiPrefs,
+            child: MaterialApp(
+              theme: AppTheme.darkTheme,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: BlocProvider<MultipleBalanceBloc>.value(
+                  value: multipleBalanceBloc,
+                  child: BlocProvider<AllTokensBloc>(
+                    create: (_) => AllTokensBloc(zenon: mockZenon),
+                    child: const CreateTokenStepperPage(),
+                  ),
                 ),
               ),
             ),
@@ -799,6 +888,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.byType(SyriusVerticalStepRail), findsOneWidget);
+        expect(find.text('•••••• ZNN'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
     );

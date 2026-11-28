@@ -994,6 +994,12 @@ abstract class AppLocalizations {
   /// **'Copy image'**
   String get copyImage;
 
+  /// No description provided for @copyPaymentRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy payment request'**
+  String get copyPaymentRequest;
+
   /// No description provided for @couldNotReconnectToNode.
   ///
   /// In en, this message translates to:

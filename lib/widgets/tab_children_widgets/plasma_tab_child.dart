@@ -784,6 +784,10 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
           child: SyriusPaginatedListView(
             itemCount: entries.length,
             hasReachedMax: hasReachedMax,
+            isLoadingMore: context
+                .read<FusedPlasmaBloc>()
+                .isLoadingMoreListenable,
+            dataIdentity: entries,
             separatorBuilder: (_, _) => const SyriusDivider(),
             onLoadMore: () {
               final String? addr = kSelectedAddress;

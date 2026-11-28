@@ -405,7 +405,7 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
             icon: Icon(Icons.more_horiz, color: tokens.textSecondary),
             onSelected: (String value) {
               if (value == 'spawn') {
-                _openSpawnPillar(context);
+                unawaited(_openSpawnPillar(context));
               } else if (value == 'mine' && ownedPillar != null) {
                 setState(() => _showMyPillarPanel = true);
               }
@@ -445,7 +445,10 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
         ownedState.data.isEmpty) {
       return const SizedBox.shrink();
     }
-    final PillarInfo p = ownedState.data.first;
+    final PillarInfo p = ownedState.data.firstWhere(
+      (PillarInfo item) => item.name == _expandedPillarName,
+      orElse: () => ownedState.data.first,
+    );
     final double uptime = p.expectedMomentums > 0
         ? (p.producedMomentums / p.expectedMomentums) * 100
         : 0;
@@ -952,6 +955,8 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
           child: SyriusPaginatedListView(
             itemCount: filtered.length,
             hasReachedMax: hasReachedMax,
+            isLoadingMore: context.read<PillarsBloc>().isLoadingMoreListenable,
+            dataIdentity: pillars,
             separatorBuilder: (_, _) => const SyriusDivider(),
             onLoadMore: () => context.read<PillarsBloc>().add(
               const InfiniteListMoreRequested(),
@@ -1252,6 +1257,10 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
           child: SyriusPaginatedListView(
             itemCount: sentinels.length,
             hasReachedMax: hasReachedMax,
+            isLoadingMore: context
+                .read<SentinelsBloc>()
+                .isLoadingMoreListenable,
+            dataIdentity: sentinels,
             separatorBuilder: (_, _) => const SyriusDivider(),
             onLoadMore: () => context.read<SentinelsBloc>().add(
               const InfiniteListMoreRequested(),
@@ -1365,20 +1374,40 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
     );
   }
 
-  void _openSpawnPillar(BuildContext context) {
-    
-      Navigator.push<void>(
-        context,
-        MaterialPageRoute<void>(
-          builder: (_) => StepperScreen(
-            breadcrumbParent: context.l10n.nodes,
-            title: context.l10n.spawnPillar,
-            stepper: const CreatePillarStepperPage(),
-            onStepperNotificationSeeMorePressed:
-                widget.onStepperNotificationSeeMorePressed,
-          ),
+  Future<void> _openSpawnPillar(BuildContext context) async {
+    final PillarsBloc pillarsBloc = context.read<PillarsBloc>();
+    final PillarsByOwnerBloc pillarsByOwnerBloc = context
+        .read<PillarsByOwnerBloc>();
+    final String? registeredPillarName = await Navigator.push<String>(
+      context,
+      MaterialPageRoute<String>(
+        builder: (_) => StepperScreen(
+          breadcrumbParent: context.l10n.nodes,
+          title: context.l10n.spawnPillar,
+          stepper: const CreatePillarStepperPage(),
+          onStepperNotificationSeeMorePressed:
+              widget.onStepperNotificationSeeMorePressed,
         ),
-      );
+      ),
+    );
+    if (!mounted) {
+      return;
+    }
+    if (registeredPillarName != null && registeredPillarName.isNotEmpty) {
+      pillarsBloc.add(const InfiniteListRefreshRequested());
+      final String? selected = kSelectedAddress;
+      if (selected != null) {
+        pillarsByOwnerBloc.add(
+          FetchRequestData(address: Address.parse(selected)),
+        );
+      }
+      setState(() {
+        _activeSubTab = NodesSubTab.pillars;
+        _showMyPillarPanel = true;
+        _expandedPillarName = registeredPillarName;
+        _searchController.clear();
+      });
+    }
   }
 
   void _openSpawnSentinel(BuildContext context) {

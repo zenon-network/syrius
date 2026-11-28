@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_ui_preferences_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -31,6 +32,15 @@ class _MainPillarState extends State<CreatePillarStepperView> {
   final ValueNotifier<_Step?> _currentStep = ValueNotifier<_Step?>(
     _Step.checkPlasma,
   );
+  String? _registeredPillarName;
+
+  bool _isHideBalancesEnabled(BuildContext context) {
+    try {
+      return context.watch<AppUiPreferencesNotifier>().hideBalances;
+    } on ProviderNotFoundException {
+      return false;
+    }
+  }
 
   @override
   void initState() {
@@ -71,7 +81,11 @@ class _MainPillarState extends State<CreatePillarStepperView> {
         final int stepIndex = completed
             ? _Step.values.length
             : currentStep.index;
+        final bool hideBalances = _isHideBalancesEnabled(context);
         final BigInt znnHave = accountInfo.getBalance(kZnnCoin.tokenStandard);
+        final String haveValue = hideBalances
+            ? '•••••• ${kZnnCoin.symbol}'
+            : '${znnHave.addDecimals(coinDecimals)} ${kZnnCoin.symbol}';
         final String lockedZnn = pillarRegisterZnnAmount.addDecimals(
           coinDecimals,
         );
@@ -167,12 +181,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
                           '$lockedZnn ${kZnnCoin.symbol}',
                         ),
                         const SizedBox(height: 8),
-                        _summaryRow(
-                          tokens,
-                          context.l10n.have,
-                          '${znnHave.addDecimals(coinDecimals)} '
-                          '${kZnnCoin.symbol}',
-                        ),
+                        _summaryRow(tokens, context.l10n.have, haveValue),
                       ],
                     ),
                   ),
@@ -304,51 +313,80 @@ class _MainPillarState extends State<CreatePillarStepperView> {
         onNextPressed: _navigateToNextStep,
         znnAmountController: _znnAmountController,
       ),
-      _Step.deployPillar => DeployPillarStep(onDeployDone: _onDeployDone),
+      _Step.deployPillar => DeployPillarStep(
+        onDeployDone: _onDeployDone,
+        onDeployDoneWithName: (String name) {
+          _registeredPillarName = name;
+        },
+      ),
     };
   }
 
   Widget _buildCompletionPane(BuildContext context, SyriusThemeTokens tokens) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          SizedBox.square(
-            dimension: 180,
-            child: Lottie.asset(
-              'assets/lottie/ic_anim_pillar.json',
-              repeat: false,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            context.l10n.pillarRegistered,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: tokens.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 22),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              SyriusGradientButton(
-                label: context.l10n.viewPillar,
-                height: 38,
-                padding: const EdgeInsets.symmetric(horizontal: 22),
-                onPressed: () => Navigator.of(context).pop(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox.square(
+              dimension: 180,
+              child: Lottie.asset(
+                'assets/lottie/ic_anim_pillar.json',
+                repeat: false,
               ),
-              const SizedBox(width: 10),
-              SyriusPillButton(
-                label: context.l10n.done,
-                height: 38,
-                onPressed: () => Navigator.of(context).pop(),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.pillarRegistered,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: tokens.textPrimary,
               ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 22),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
+              children: <Widget>[
+                SyriusGradientButton(
+                  label: context.l10n.viewPillar,
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 22),
+                  onPressed: () =>
+                      Navigator.of(context).pop<String>(_registeredPillarName),
+                ),
+                SyriusPillButton(
+                  label: context.l10n.registerAnotherPillar,
+                  height: 38,
+                  onPressed: _onRegisterAnotherPressed,
+                ),
+                SyriusPillButton(
+                  label: context.l10n.done,
+                  height: 38,
+                  onPressed: () => Navigator.of(context).pop<String>(),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  void _onRegisterAnotherPressed() {
+    _registeredPillarName = null;
+    _qsrAmountController.clear();
+    _currentStep.value = _Step.checkPlasma;
+    sl.get<MultipleBalanceBloc>().add(
+      MultipleBalanceFetch(
+        addresses: kDefaultAddressList.whereType<String>().toList(),
+      ),
+    );
+    context.read<CreatePillarQsrInfoBloc>().add(
+      FetchRequestData(address: Address.parse(_addressController.text)),
     );
   }
 

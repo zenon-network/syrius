@@ -534,6 +534,8 @@ class _StakingTabChildState extends State<StakingTabChild> {
           child: SyriusPaginatedListView(
             itemCount: stakes.length,
             hasReachedMax: hasReachedMax,
+            isLoadingMore: context.read<StakesBloc>().isLoadingMoreListenable,
+            dataIdentity: stakes,
             separatorBuilder: (_, _) => const SyriusDivider(),
             onLoadMore: () {
               final String? addr = kSelectedAddress;

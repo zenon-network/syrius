@@ -76,7 +76,7 @@ class _TokenMetricsStepState extends State<TokenMetricsStep> {
         CustomSlider(
           activeColor: AppColors.ztsColor,
           description: context.l10n.numberOfDecimals(_decimals),
-          startValue: 0,
+          startValue: _decimals.toDouble(),
           min: 0,
           maxValue: 18,
           sliderKey: const Key('token_decimals_slider'),

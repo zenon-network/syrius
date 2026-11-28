@@ -543,8 +543,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   Future<void> _mainLockCallback(String password) async {
     _navigateToLockTimer = _createAutoLockTimer();
     if (kLastWalletConnectUriNotifier.value != null) {
-      _shellNavigation.requestSettingsSection(SettingsSection.apps);
-      _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
+      _navigateTo(Tabs.walletConnect);
     } else {
       _lockBloc.add(const LockNavigateToPreviousTabRequested());
     }
@@ -583,8 +582,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     requestInitialTransactionsForAddress(kSelectedAddress);
     _navigateToLockTimer = _createAutoLockTimer();
     if (kLastWalletConnectUriNotifier.value != null) {
-      _shellNavigation.requestSettingsSection(SettingsSection.apps);
-      _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
+      _navigateTo(Tabs.walletConnect);
     } else {
       _lockBloc.add(const LockNavigateToDashboardRequested());
     }

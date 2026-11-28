@@ -508,6 +508,10 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
     return SyriusPaginatedListView(
       itemCount: blocks.length,
       hasReachedMax: hasReachedMax,
+      isLoadingMore: context
+          .read<LatestTransactionsBloc>()
+          .isLoadingMoreListenable,
+      dataIdentity: blocks,
       separatorBuilder: (_, _) => const SyriusDivider(),
       onLoadMore: () {
         final String? addr = kSelectedAddress;

@@ -20,10 +20,12 @@ void main() {
     late List<String> errorTitles;
     late int? previousAutoLock;
     late double? previousAutoErase;
+    late bool? previousAutoEraseEnabled;
 
     setUp(() {
       previousAutoLock = kAutoLockWalletMinutes;
       previousAutoErase = kAutoEraseWalletLimit;
+      previousAutoEraseEnabled = kAutoEraseWalletEnabled;
       prefs = MockSharedPrefsService();
       notifications = <WalletNotification>[];
       errorTitles = <String>[];
@@ -33,6 +35,7 @@ void main() {
     tearDown(() {
       kAutoLockWalletMinutes = previousAutoLock;
       kAutoEraseWalletLimit = previousAutoErase;
+      kAutoEraseWalletEnabled = previousAutoEraseEnabled;
     });
 
     SettingsSecurityBloc buildBloc({
@@ -365,6 +368,59 @@ void main() {
       verify: (_) {
         expect(notifications, hasLength(1));
         expect(errorTitles, isEmpty);
+      },
+    );
+
+    blocTest<SettingsSecurityBloc, SettingsSecurityState>(
+      'persists auto-erase Off via separate enabled flag while keeping a '
+      'positive legacy threshold for downgrade safety',
+      setUp: () {
+        kAutoEraseWalletLimit = 5.0;
+        kAutoEraseWalletEnabled = true;
+      },
+      build: buildBloc,
+      act: (SettingsSecurityBloc bloc) {
+        bloc
+          ..add(const SettingsSecurityAutoEraseChanged(attempts: 0))
+          ..add(
+            const SettingsSecurityAutoEraseConfirmed(
+              notificationTitle: 'Changed',
+              notificationDetails: 'Off',
+              errorTitle: 'Error',
+            ),
+          );
+      },
+      verify: (_) {
+        verify(() => prefs.put(kAutoEraseEnabledKey, false)).called(1);
+        verify(() => prefs.put(kAutoEraseNumAttemptsKey, 5.0)).called(1);
+        expect(kAutoEraseWalletEnabled, isFalse);
+        expect(kAutoEraseWalletLimit, 5.0);
+      },
+    );
+
+    blocTest<SettingsSecurityBloc, SettingsSecurityState>(
+      'restores committed auto-erase policy when persistence fails',
+      setUp: () {
+        when(
+          () => prefs.put(kAutoEraseNumAttemptsKey, any<dynamic>()),
+        ).thenThrow(Exception('disk full'));
+      },
+      build: buildBloc,
+      act: (SettingsSecurityBloc bloc) {
+        bloc
+          ..add(const SettingsSecurityAutoEraseChanged(attempts: 10))
+          ..add(
+            const SettingsSecurityAutoEraseConfirmed(
+              notificationTitle: 'Changed',
+              notificationDetails: 'Now 10',
+              errorTitle: 'Save failed',
+            ),
+          );
+      },
+      verify: (SettingsSecurityBloc bloc) {
+        expect(bloc.state.autoEraseAttempts, 3.0);
+        expect(bloc.state.isConfirmingAutoErase, isFalse);
+        expect(errorTitles, <String>['Save failed']);
       },
     );
   });

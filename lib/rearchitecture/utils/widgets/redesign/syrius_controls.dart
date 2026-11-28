@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
@@ -137,6 +138,7 @@ class SyriusSegmentedControl<T> extends StatelessWidget {
     required this.selected,
     required this.onChanged,
     this.compact = false,
+    this.enabled = true,
     super.key,
   });
 
@@ -152,49 +154,61 @@ class SyriusSegmentedControl<T> extends StatelessWidget {
   /// Compact height for dense toolbars and settings rows.
   final bool compact;
 
+  /// Whether user selection is enabled.
+  final bool enabled;
+
   @override
   Widget build(BuildContext context) {
     final SyriusThemeTokens tokens = context.syriusTheme;
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: tokens.surfaceSubtle,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: tokens.border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: options.map((SyriusSegmentOption<T> opt) {
-          final bool isActive = opt.value == selected;
-          return MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-              onTap: () => onChanged(opt.value),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 140),
-                padding: EdgeInsets.symmetric(
-                  horizontal: compact ? 11 : 14,
-                  vertical: compact ? 5 : 6,
-                ),
-                decoration: BoxDecoration(
-                  color: isActive ? tokens.surfaceElevated : Colors.transparent,
-                  borderRadius: BorderRadius.circular(999),
-                  border: isActive
-                      ? Border.all(color: tokens.borderStrong)
-                      : Border.all(color: Colors.transparent),
-                ),
-                child: Text(
-                  opt.label,
-                  style: TextStyle(
-                    fontSize: compact ? 12 : 12.5,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                    color: isActive ? tokens.textPrimary : tokens.textSecondary,
+    return Opacity(
+      opacity: enabled ? 1.0 : 0.6,
+      child: Container(
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: tokens.surfaceSubtle,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: tokens.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: options.map((SyriusSegmentOption<T> opt) {
+            final bool isActive = opt.value == selected;
+            return MouseRegion(
+              cursor: enabled
+                  ? SystemMouseCursors.click
+                  : SystemMouseCursors.basic,
+              child: GestureDetector(
+                onTap: enabled ? () => onChanged(opt.value) : null,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 140),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: compact ? 11 : 14,
+                    vertical: compact ? 5 : 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? tokens.surfaceElevated
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(999),
+                    border: isActive
+                        ? Border.all(color: tokens.borderStrong)
+                        : Border.all(color: Colors.transparent),
+                  ),
+                  child: Text(
+                    opt.label,
+                    style: TextStyle(
+                      fontSize: compact ? 12 : 12.5,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                      color: isActive
+                          ? tokens.textPrimary
+                          : tokens.textSecondary,
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -526,10 +540,7 @@ class SyriusHorizontalStepper extends StatelessWidget {
     }
     return FittedBox(
       fit: BoxFit.scaleDown,
-      child: SizedBox(
-        width: 460,
-        child: Row(children: children),
-      ),
+      child: SizedBox(width: 460, child: Row(children: children)),
     );
   }
 }
@@ -636,6 +647,8 @@ class SyriusPaginatedListView extends StatefulWidget {
     required this.itemBuilder,
     required this.hasReachedMax,
     required this.onLoadMore,
+    this.isLoadingMore,
+    this.dataIdentity,
     this.separatorBuilder,
     this.padding = EdgeInsets.zero,
     super.key,
@@ -653,6 +666,16 @@ class SyriusPaginatedListView extends StatefulWidget {
   /// Dispatches the next page request when reaching the end of the list.
   final VoidCallback onLoadMore;
 
+  /// Optional in-flight signal from the backing paginated BLoC so failed,
+  /// filtered-empty, or discarded page requests reliably release the request
+  /// guard when they settle.
+  final ValueListenable<bool>? isLoadingMore;
+
+  /// Optional backing data snapshot reference (e.g., `state.data`). Changes in
+  /// identity release the request guard even when filtered [itemCount] and
+  /// [hasReachedMax] stay unchanged.
+  final Object? dataIdentity;
+
   /// Optional separator between rows. Defaults to a hairline [Divider].
   final IndexedWidgetBuilder? separatorBuilder;
 
@@ -667,28 +690,60 @@ class SyriusPaginatedListView extends StatefulWidget {
 class _SyriusPaginatedListViewState extends State<SyriusPaginatedListView> {
   final ScrollController _controller = ScrollController();
   bool _isRequesting = false;
+  bool _wasLoadingMore = false;
+  bool _dataChangedSinceRequest = false;
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(_onScroll);
+    _wasLoadingMore = widget.isLoadingMore?.value ?? false;
+    widget.isLoadingMore?.addListener(_onLoadingMoreChanged);
     _requestIfViewportUnfilled();
   }
 
   @override
   void didUpdateWidget(covariant SyriusPaginatedListView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.itemCount != widget.itemCount ||
-        oldWidget.hasReachedMax != widget.hasReachedMax) {
-      _isRequesting = false;
-      _requestIfViewportUnfilled();
+    if (oldWidget.isLoadingMore != widget.isLoadingMore) {
+      oldWidget.isLoadingMore?.removeListener(_onLoadingMoreChanged);
+      _wasLoadingMore = widget.isLoadingMore?.value ?? false;
+      widget.isLoadingMore?.addListener(_onLoadingMoreChanged);
+    }
+    final bool dataReplaced =
+        widget.dataIdentity != null &&
+        !identical(oldWidget.dataIdentity, widget.dataIdentity);
+    final bool metricsChanged =
+        oldWidget.itemCount != widget.itemCount ||
+        oldWidget.hasReachedMax != widget.hasReachedMax;
+    if (dataReplaced || metricsChanged) {
+      _dataChangedSinceRequest = true;
+      if (!(widget.isLoadingMore?.value ?? false)) {
+        _isRequesting = false;
+        _requestIfViewportUnfilled();
+      }
     }
   }
 
   @override
   void dispose() {
+    widget.isLoadingMore?.removeListener(_onLoadingMoreChanged);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onLoadingMoreChanged() {
+    final bool loading = widget.isLoadingMore?.value ?? false;
+    if (_wasLoadingMore && !loading) {
+      // Request settled (success, failure, filtered-empty, or discarded).
+      _isRequesting = false;
+      final bool hadDataProgress = _dataChangedSinceRequest;
+      _dataChangedSinceRequest = false;
+      if (hadDataProgress) {
+        _requestIfViewportUnfilled();
+      }
+    }
+    _wasLoadingMore = loading;
   }
 
   void _onScroll() {
@@ -716,11 +771,19 @@ class _SyriusPaginatedListViewState extends State<SyriusPaginatedListView> {
   }
 
   void _triggerLoadMore() {
-    if (_isRequesting || widget.hasReachedMax) {
+    if (_isRequesting ||
+        (widget.isLoadingMore?.value ?? false) ||
+        widget.hasReachedMax) {
       return;
     }
     _isRequesting = true;
-    widget.onLoadMore();
+    _dataChangedSinceRequest = false;
+    try {
+      widget.onLoadMore();
+    } on Object {
+      _isRequesting = false;
+      rethrow;
+    }
   }
 
   @override
@@ -737,6 +800,25 @@ class _SyriusPaginatedListViewState extends State<SyriusPaginatedListView> {
           (_, _) => Divider(height: 1, color: tokens.border),
       itemBuilder: (BuildContext context, int index) {
         if (index >= widget.itemCount) {
+          if (widget.isLoadingMore != null) {
+            return ValueListenableBuilder<bool>(
+              valueListenable: widget.isLoadingMore!,
+              builder: (_, bool loading, _) {
+                if (!loading) {
+                  return const SizedBox(height: 16);
+                }
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  child: Center(
+                    child: SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                );
+              },
+            );
+          }
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 14),
             child: Center(

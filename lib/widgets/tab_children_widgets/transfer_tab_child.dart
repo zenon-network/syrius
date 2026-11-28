@@ -141,6 +141,19 @@ class _TransferTabChildState extends State<TransferTabChild> {
     );
   }
 
+  int _nodeBlocksBehind(BuildContext context) {
+    final NodeSyncStatusCubit? syncCubit = _tryReadSyncCubit(context);
+    final SyncInfo? syncInfo = syncCubit?.state.data?.second;
+    if (syncInfo == null || syncInfo.state != SyncState.syncing) {
+      return 0;
+    }
+    return syncInfo.targetHeight > syncInfo.currentHeight
+        ? syncInfo.targetHeight - syncInfo.currentHeight
+        : 0;
+  }
+
+  bool _isNodeBehind(BuildContext context) => _nodeBlocksBehind(context) > 2;
+
   Widget _buildMainCard(
     BuildContext context,
     SyriusThemeTokens tokens,
@@ -164,16 +177,8 @@ class _TransferTabChildState extends State<TransferTabChild> {
           );
         }
 
-        final NodeSyncStatusCubit? syncCubit = _tryReadSyncCubit(context);
-        final SyncInfo? syncInfo = syncCubit?.state.data?.second;
-        final int behind =
-            syncInfo != null && syncInfo.targetHeight > syncInfo.currentHeight
-            ? syncInfo.targetHeight - syncInfo.currentHeight
-            : 0;
-        final bool isBehind =
-            syncInfo != null &&
-            syncInfo.state == SyncState.syncing &&
-            behind > 2;
+        final int behind = _nodeBlocksBehind(context);
+        final bool isBehind = behind > 2;
 
         return SyriusCard(
           child: Column(
@@ -853,6 +858,15 @@ class _TransferTabChildState extends State<TransferTabChild> {
     if (!context.mounted) {
       return;
     }
+    if (_isNodeBehind(context)) {
+      unawaited(
+        NotificationUtils.sendNotificationError(
+          SyriusException(context.l10n.waitingForNode),
+          context.l10n.send,
+        ),
+      );
+      return;
+    }
     setState(() {
       _isSending = true;
       _pendingSendSummary = _PendingSendSummary(
@@ -991,7 +1005,7 @@ class _TransferTabChildState extends State<TransferTabChild> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   SyriusGhostButton(
-                    label: context.l10n.copyAddress,
+                    label: context.l10n.copyPaymentRequest,
                     icon: Icons.copy_rounded,
                     fontSize: 11.5,
                     onPressed: () => unawaited(

@@ -74,10 +74,17 @@ class _SettingsCollapsibleCardState extends State<_SettingsCollapsibleCard> {
               ),
             ),
           ),
-          if (_expanded) ...<Widget>[
-            Divider(height: 1, color: tokens.border),
-            Padding(padding: const EdgeInsets.all(18), child: widget.child),
-          ],
+          Visibility(
+            visible: _expanded,
+            maintainState: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Divider(height: 1, color: tokens.border),
+                Padding(padding: const EdgeInsets.all(18), child: widget.child),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -1497,6 +1504,7 @@ class _SecuritySettingsPaneState extends State<_SecuritySettingsPane> {
                             ),
                       trailing: SyriusSegmentedControl<int>(
                         selected: _nearestLockPreset(state.autoLockMinutes),
+                        enabled: !state.isConfirmingAutoLock,
                         onChanged: (int minutes) {
                           secBloc
                             ..add(
@@ -1540,6 +1548,7 @@ class _SecuritySettingsPaneState extends State<_SecuritySettingsPane> {
                             ),
                       trailing: SyriusSegmentedControl<int>(
                         selected: _nearestErasePreset(state.autoEraseAttempts),
+                        enabled: !state.isConfirmingAutoErase,
                         onChanged: (int attempts) {
                           final double val = attempts.toDouble();
                           secBloc

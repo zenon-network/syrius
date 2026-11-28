@@ -39,87 +39,99 @@ class IssueTokenStep extends StatefulWidget {
 class _IssueTokenStepState extends State<IssueTokenStep> {
   final GlobalKey<LoadingButtonState> _createButtonKey = GlobalKey();
 
-  bool get _isLoading =>
-      (_createButtonKey.currentState?.btnState ?? ButtonState.idle) !=
-      ButtonState.idle;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      if (context.read<IssueTokenBloc>().state is IssueTokenLoading) {
+        _createButtonKey.currentState?.animateForward();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<IssueTokenBloc, IssueTokenState>(
+    return BlocConsumer<IssueTokenBloc, IssueTokenState>(
       listener: (_, IssueTokenState state) => _onIssueTokenStateChanged(state),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Checkbox(
-                key: const Key('token_utility_checkbox'),
-                activeColor: AppColors.ztsColor,
-                value: widget.tokenData.value.isUtility,
-                onChanged: (bool? value) {
-                  if (value != null) {
-                    widget.tokenData.value = widget.tokenData.value.copyWith(
-                      isUtility: value,
-                    );
-                  }
-                },
-              ),
-              Text(
-                context.l10n.utilityToken,
-                style: Theme.of(context).inputDecorationTheme.hintStyle,
-              ),
-              kHorizontalGap8,
-              const Icon(
-                Icons.settings,
-                color: AppColors.ztsColor,
-              ),
-              StandardTooltipIcon(
-                context.l10n.tokenStatusUtilityTooltip,
-                Icons.help,
-                iconColor: AppColors.ztsColor,
-              ),
-            ],
-          ),
-          kVerticalGap25,
-          DottedBorderInfoWidget(
-            text: context.l10n.burnTokenIssueFee(
-              tokenZtsIssueFeeInZnn.addDecimals(coinDecimals),
-              kZnnCoin.symbol,
+      builder: (BuildContext context, IssueTokenState state) {
+        final bool isIssuing = state is IssueTokenLoading;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Checkbox(
+                  key: const Key('token_utility_checkbox'),
+                  activeColor: AppColors.ztsColor,
+                  value: widget.tokenData.value.isUtility,
+                  onChanged: isIssuing
+                      ? null
+                      : (bool? value) {
+                          if (value != null) {
+                            widget.tokenData.value = widget.tokenData.value
+                                .copyWith(isUtility: value);
+                          }
+                        },
+                ),
+                Text(
+                  context.l10n.utilityToken,
+                  style: Theme.of(context).inputDecorationTheme.hintStyle,
+                ),
+                kHorizontalGap8,
+                const Icon(Icons.settings, color: AppColors.ztsColor),
+                StandardTooltipIcon(
+                  context.l10n.tokenStatusUtilityTooltip,
+                  Icons.help,
+                  iconColor: AppColors.ztsColor,
+                ),
+              ],
             ),
-            borderColor: AppColors.ztsColor,
-          ),
-          kVerticalGap25,
-          Row(
-            children: <Widget>[
-              Visibility(
-                visible: !_isLoading,
-                child: Row(
-                  children: <Widget>[
-                    OutlinedButton(
-                      onPressed: widget.onBackPressed,
-                      child: Text(context.l10n.goBack),
-                    ),
-                    kHorizontalGap25,
-                  ],
-                ),
+            kVerticalGap25,
+            DottedBorderInfoWidget(
+              text: context.l10n.burnTokenIssueFee(
+                tokenZtsIssueFeeInZnn.addDecimals(coinDecimals),
+                kZnnCoin.symbol,
               ),
-              KeyedSubtree(
-                key: const Key('token_create_button'),
-                child: LoadingButton.stepper(
-                  textColor: AppColors.ztsColor,
-                  text: context.l10n.create,
-                  outlineColor: AppColors.ztsColor,
-                  onPressed: () {
-                    widget.onIssuePressed();
-                  },
-                  key: _createButtonKey,
+              borderColor: AppColors.ztsColor,
+            ),
+            kVerticalGap25,
+            Row(
+              children: <Widget>[
+                Visibility(
+                  visible: !isIssuing,
+                  child: Row(
+                    children: <Widget>[
+                      OutlinedButton(
+                        onPressed: isIssuing ? null : widget.onBackPressed,
+                        child: Text(context.l10n.goBack),
+                      ),
+                      kHorizontalGap25,
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          kVerticalGap25,
-        ],
-      ),
+                KeyedSubtree(
+                  key: const Key('token_create_button'),
+                  child: LoadingButton.stepper(
+                    textColor: AppColors.ztsColor,
+                    text: context.l10n.create,
+                    outlineColor: AppColors.ztsColor,
+                    onPressed: isIssuing
+                        ? null
+                        : () {
+                            widget.onIssuePressed();
+                          },
+                    key: _createButtonKey,
+                  ),
+                ),
+              ],
+            ),
+            kVerticalGap25,
+          ],
+        );
+      },
     );
   }
 

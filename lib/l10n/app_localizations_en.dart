@@ -524,6 +524,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copyImage => 'Copy image';
 
   @override
+  String get copyPaymentRequest => 'Copy payment request';
+
+  @override
   String couldNotReconnectToNode(String node) {
     return 'Could not reconnect to $node';
   }

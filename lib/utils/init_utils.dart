@@ -62,11 +62,17 @@ class InitUtils {
     );
   }
 
-  static void _setAutoEraseWalletNumAttempts() =>
-      kAutoEraseWalletLimit = sharedPrefsService!.get(
-        kAutoEraseNumAttemptsKey,
-        defaultValue: kAutoEraseNumAttemptsDefault,
-      );
+  static void _setAutoEraseWalletNumAttempts() {
+    kAutoEraseWalletLimit = sharedPrefsService!.get(
+      kAutoEraseNumAttemptsKey,
+      defaultValue: kAutoEraseNumAttemptsDefault,
+    );
+    kAutoEraseWalletEnabled = sharedPrefsService!.get(
+      kAutoEraseEnabledKey,
+      defaultValue:
+          (kAutoEraseWalletLimit ?? kAutoEraseNumAttemptsDefault) > 0,
+    );
+  }
 
   static void _setAutoLockWalletTimeInterval() =>
       kAutoLockWalletMinutes = sharedPrefsService!.get(

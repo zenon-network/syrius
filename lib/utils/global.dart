@@ -32,6 +32,9 @@ int? kNumFailedUnlockAttempts;
 /// Maximum failed unlock attempts allowed before erasing the wallet.
 double? kAutoEraseWalletLimit;
 
+/// Whether auto-erasing the wallet after failed unlock attempts is enabled.
+bool? kAutoEraseWalletEnabled;
+
 /// Whether post-decryption wallet initialization has completed.
 bool kWalletInitCompleted = false;
 

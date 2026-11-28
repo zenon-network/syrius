@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_ui_preferences_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -72,9 +73,21 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     );
   }
 
+  bool _isHideBalancesEnabled(BuildContext context) {
+    try {
+      return context.watch<AppUiPreferencesNotifier>().hideBalances;
+    } on ProviderNotFoundException {
+      return false;
+    }
+  }
+
   Widget _buildBody(BuildContext context, AccountInfo accountInfo) {
     final SyriusThemeTokens tokens = context.syriusTheme;
+    final bool hideBalances = _isHideBalancesEnabled(context);
     final BigInt znnHave = accountInfo.getBalance(kZnnCoin.tokenStandard);
+    final String haveValue = hideBalances
+        ? '•••••• ${kZnnCoin.symbol}'
+        : '${znnHave.addDecimals(coinDecimals)} ${kZnnCoin.symbol}';
 
     return ValueListenableBuilder<_Step?>(
       valueListenable: _currentStep,
@@ -188,8 +201,7 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
                             ),
                             Expanded(
                               child: Text(
-                                '${znnHave.addDecimals(coinDecimals)} '
-                                '${kZnnCoin.symbol}',
+                                haveValue,
                                 style: tokens.monoStyle(
                                   fontSize: 12.5,
                                   color: tokens.textPrimary,
@@ -406,6 +418,9 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
   }
 
   void _onBackButtonPressed() {
+    if (context.read<IssueTokenBloc>().state is IssueTokenLoading) {
+      return;
+    }
     final _Step? currentStep = _currentStep.value;
     if (currentStep == null || currentStep.index == 0) {
       return;

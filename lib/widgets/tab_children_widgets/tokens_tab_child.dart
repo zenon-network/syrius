@@ -421,7 +421,8 @@ class _TokensWorkspaceViewState extends State<_TokensWorkspaceView> {
             accountInfo,
             uiPrefs,
             _filterTokens(state.data ?? const <Token>[], accountInfo),
-            hasReachedMax: state.hasReachedMax || _filter != _TokenFilter.all,
+            hasReachedMax: state.hasReachedMax || _filter == _TokenFilter.held,
+            dataIdentity: state.data,
           ),
         };
       },
@@ -482,6 +483,7 @@ class _TokensWorkspaceViewState extends State<_TokensWorkspaceView> {
     AppUiPreferencesNotifier uiPrefs,
     List<Token> items, {
     required bool hasReachedMax,
+    Object? dataIdentity,
   }) {
     if (items.isEmpty && hasReachedMax) {
       return SyriusEmptyState(message: context.l10n.noTokensYet);
@@ -490,6 +492,8 @@ class _TokensWorkspaceViewState extends State<_TokensWorkspaceView> {
     return SyriusPaginatedListView(
       itemCount: items.length,
       hasReachedMax: hasReachedMax,
+      isLoadingMore: context.read<TokensBloc>().isLoadingMoreListenable,
+      dataIdentity: dataIdentity ?? items,
       onLoadMore: () =>
           context.read<TokensBloc>().add(const InfiniteListMoreRequested()),
       itemBuilder: (BuildContext context, int index) {

@@ -11,10 +11,18 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// Deploy step for registering a pillar.
 class DeployPillarStep extends StatefulWidget {
   /// Creates a [DeployPillarStep].
-  const DeployPillarStep({required this.onDeployDone, super.key});
+  const DeployPillarStep({
+    required this.onDeployDone,
+    this.onDeployDoneWithName,
+    super.key,
+  });
 
   /// Called when deployment completes.
   final VoidCallback onDeployDone;
+
+  /// Optional callback invoked with the registered Pillar's name when
+  /// deployment completes.
+  final ValueChanged<String>? onDeployDoneWithName;
 
   @override
   State<DeployPillarStep> createState() => _DeployPillarStepState();
@@ -173,10 +181,12 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
 
   void _onDeployStateChanged(DeployPillarState state) {
     if (state is DeployPillarDone) {
+      final String registeredName = _pillarNameController.text;
       _registerButtonKey.currentState?.animateReverse();
       _pillarNameController.clear();
       _pillarRewardAddressController.clear();
       _pillarMomentumController.clear();
+      widget.onDeployDoneWithName?.call(registeredName);
       widget.onDeployDone();
     } else if (state is DeployPillarFailure) {
       _registerButtonKey.currentState?.animateReverse();

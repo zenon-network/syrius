@@ -47,19 +47,26 @@ class ProjectDetailsScreen extends StatelessWidget {
       onStepperNotificationSeeMorePressed: _onStepperNotificationSeeMorePressed,
     );
 
-    if (providedBloc != null) {
-      return BlocProvider<RefreshProjectBloc>.value(
-        value: providedBloc,
-        child: view,
-      );
-    }
+    final Zenon? znn = zenon;
+    final List<SingleChildWidget> providers = <SingleChildWidget>[
+      if (providedBloc != null)
+        BlocProvider<RefreshProjectBloc>.value(value: providedBloc)
+      else
+        BlocProvider<RefreshProjectBloc>(
+          create: (_) =>
+              RefreshProjectBloc(zenon: znn!)
+                ..add(RefreshProjectRequested(projectId: _project.id)),
+        ),
+      if (znn != null)
+        BlocProvider<VoteProjectBloc>(
+          create: (_) => VoteProjectBloc(
+            accountBlockUtils: AccountBlockUtils(),
+            zenon: znn,
+          ),
+        ),
+    ];
 
-    return BlocProvider<RefreshProjectBloc>(
-      create: (_) =>
-          RefreshProjectBloc(zenon: zenon!)
-            ..add(RefreshProjectRequested(projectId: _project.id)),
-      child: view,
-    );
+    return MultiBlocProvider(providers: providers, child: view);
   }
 }
 
@@ -88,7 +95,7 @@ class _ViewState extends State<_View> {
   Widget build(BuildContext context) {
     final SyriusThemeTokens tokens = context.syriusTheme;
 
-    return Scaffold(
+    final Widget scaffold = Scaffold(
       backgroundColor: tokens.shellBackground,
       body: SafeArea(
         child: Padding(
@@ -135,6 +142,36 @@ class _ViewState extends State<_View> {
           ),
         ),
       ),
+    );
+
+    if (zenon == null) {
+      return scaffold;
+    }
+
+    return BlocListener<VoteProjectBloc, VoteProjectState>(
+      listener: (BuildContext context, VoteProjectState state) {
+        if (state is VoteProjectDone) {
+          final Project? current = _lastProject;
+          if (current != null) {
+            context.read<RefreshProjectBloc>().add(
+              RefreshProjectRequested(projectId: current.id),
+            );
+          }
+          setState(() {
+            _refreshGeneration++;
+          });
+        } else if (state is VoteProjectFailure) {
+          unawaited(
+            NotificationUtils.sendNotificationError(
+              state.exception is NoPillarForAddressException
+                  ? context.l10n.addressOwnsOrProducesNoPillar
+                  : state.exception,
+              context.l10n.errorVotingProject,
+            ),
+          );
+        }
+      },
+      child: scaffold,
     );
   }
 
@@ -437,11 +474,8 @@ class _ViewState extends State<_View> {
                     label: context.l10n.createPhase,
                     compact: true,
                     onPressed: canCreatePhase
-                        ? () => _openCreatePhase(
-                            context,
-                            project,
-                            refreshProject,
-                          )
+                        ? () =>
+                              _openCreatePhase(context, project, refreshProject)
                         : null,
                   ),
               ],
@@ -684,24 +718,14 @@ class _ProjectVotingSidebar extends StatelessWidget {
       );
     }
 
-    return MultiBlocProvider(
-      providers: <SingleChildWidget>[
-        BlocProvider<ProjectVoteBreakdownBloc>(
-          create: (_) => ProjectVoteBreakdownBloc(zenon: znn)
-            ..add(
-              ProjectVoteBreakdownRequested(
-                pillarName: pillarInfo?.name,
-                projectId: target.id,
-              ),
-            ),
-        ),
-        BlocProvider<VoteProjectBloc>(
-          create: (_) => VoteProjectBloc(
-            accountBlockUtils: AccountBlockUtils(),
-            zenon: znn,
+    return BlocProvider<ProjectVoteBreakdownBloc>(
+      create: (_) => ProjectVoteBreakdownBloc(zenon: znn)
+        ..add(
+          ProjectVoteBreakdownRequested(
+            pillarName: pillarInfo?.name,
+            projectId: target.id,
           ),
         ),
-      ],
       child: _ProjectVotingSidebarView(
         target: target,
         phaseNumber: phaseNumber,
@@ -820,27 +844,7 @@ class _ProjectVotingSidebarView extends StatelessWidget {
     final bool canVote =
         pillarInfo != null && target.status == AcceleratorProjectStatus.voting;
 
-    return BlocConsumer<VoteProjectBloc, VoteProjectState>(
-      listener: (BuildContext context, VoteProjectState state) {
-        if (state is VoteProjectDone) {
-          context.read<ProjectVoteBreakdownBloc>().add(
-            ProjectVoteBreakdownRequested(
-              pillarName: pillarInfo?.name,
-              projectId: target.id,
-            ),
-          );
-          onVoted();
-        } else if (state is VoteProjectFailure) {
-          unawaited(
-            NotificationUtils.sendNotificationError(
-              state.exception is NoPillarForAddressException
-                  ? context.l10n.addressOwnsOrProducesNoPillar
-                  : state.exception,
-              context.l10n.errorVotingProject,
-            ),
-          );
-        }
-      },
+    return BlocBuilder<VoteProjectBloc, VoteProjectState>(
       builder: (BuildContext context, VoteProjectState voteState) {
         return BlocBuilder<ProjectVoteBreakdownBloc, ProjectVoteBreakdownState>(
           builder: (BuildContext context, ProjectVoteBreakdownState state) {

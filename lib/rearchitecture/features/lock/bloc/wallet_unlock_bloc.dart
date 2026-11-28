@@ -242,8 +242,12 @@ class WalletUnlockBloc extends Bloc<WalletUnlockEvent, WalletUnlockState> {
     await sharedPrefsService!.put(kNumUnlockFailedAttemptsKey, numAttempts);
   }
 
-  static int _defaultGetAutoEraseWalletLimit() =>
-      (kAutoEraseWalletLimit ?? kAutoEraseNumAttemptsDefault).toInt();
+  static int _defaultGetAutoEraseWalletLimit() {
+    if (kAutoEraseWalletEnabled == false) {
+      return 0;
+    }
+    return (kAutoEraseWalletLimit ?? kAutoEraseNumAttemptsDefault).toInt();
+  }
 
   static void _defaultFetchBalances() {
     sl.get<MultipleBalanceBloc>().add(
