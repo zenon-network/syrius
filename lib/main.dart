@@ -498,6 +498,9 @@ class _MyAppState extends State<MyApp> with WindowListener {
           ChangeNotifierProvider<AppThemeNotifier>(
             create: (_) => AppThemeNotifier(),
           ),
+          ChangeNotifierProvider<AppUiPreferencesNotifier>(
+            create: (_) => AppUiPreferencesNotifier(),
+          ),
           ChangeNotifierProvider<ValueNotifier<List<String>>>(
             create: (_) => ValueNotifier<List<String>>(
               <String>[],

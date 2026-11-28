@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/theming/syrius_theme_tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
 /// Default divider styling shared across light and dark themes.
@@ -13,21 +14,18 @@ const DividerThemeData kDefaultDividerThemeData = DividerThemeData(
 final ButtonStyle kElevatedButtonStyle = ElevatedButton.styleFrom(
   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
   shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(
-      6,
-    ),
+    borderRadius: BorderRadius.circular(999),
   ),
-  minimumSize: const Size(55, 42),
+  minimumSize: const Size(55, 40),
   backgroundColor: AppColors.znnColor,
+  foregroundColor: const Color(0xFF0A140E),
 );
 
 /// Default styling for [OutlinedButton] widgets.
 final ButtonStyle kOutlinedButtonStyle = OutlinedButton.styleFrom(
   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
   shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(
-      6,
-    ),
+    borderRadius: BorderRadius.circular(999),
   ),
   side: const BorderSide(
     color: AppColors.znnColor,
@@ -131,7 +129,7 @@ const TextStyle kTextFormFieldErrorStyle = TextStyle(
 
 /// Default rounded outline border for text input fields.
 const OutlineInputBorder kOutlineInputBorder = OutlineInputBorder(
-  borderRadius: BorderRadius.all(Radius.circular(5)),
+  borderRadius: BorderRadius.all(Radius.circular(10)),
 );
 
 /// Light and dark [ThemeData] definitions for Syrius.
@@ -142,7 +140,24 @@ class AppTheme {
   /// Light mode application theme.
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
-    hoverColor: AppColors.lightTextFormFieldFill,
+    extensions: const <ThemeExtension<dynamic>>[SyriusThemeTokens.light],
+    hoverColor: SyriusThemeTokens.light.surfaceSubtle,
+    dialogTheme: DialogThemeData(
+      backgroundColor: SyriusThemeTokens.light.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: SyriusThemeTokens.light.border),
+      ),
+    ),
+    cardTheme: CardThemeData(
+      color: SyriusThemeTokens.light.surface,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: SyriusThemeTokens.light.border),
+      ),
+    ),
     textButtonTheme: kTextButtonThemeData,
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: kOutlinedButtonStyle.copyWith(
@@ -151,7 +166,7 @@ class AppTheme {
             if (states.contains(WidgetState.disabled)) {
               return Colors.black38;
             }
-            return Colors.black;
+            return SyriusThemeTokens.light.textPrimary;
           },
         ),
       ),
@@ -159,90 +174,93 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: kElevatedButtonStyle,
     ),
-    scaffoldBackgroundColor: AppColors.backgroundLight,
-    textSelectionTheme: const TextSelectionThemeData(
-      cursorColor: AppColors.znnColor,
-      selectionHandleColor: AppColors.znnColor,
+    scaffoldBackgroundColor: SyriusThemeTokens.light.shellBackground,
+    textSelectionTheme: TextSelectionThemeData(
+      cursorColor: SyriusThemeTokens.light.znnGreen,
+      selectionHandleColor: SyriusThemeTokens.light.znnGreen,
     ),
     fontFamily: 'Roboto',
     inputDecorationTheme: InputDecorationTheme(
-      fillColor: AppColors.lightTextFormFieldFill,
+      fillColor: SyriusThemeTokens.light.surfaceElevated,
       hintStyle: kHintTextStyle.copyWith(
-        color: AppColors.lightHintTextColor,
+        color: SyriusThemeTokens.light.textMuted,
       ),
       errorStyle: kTextFormFieldErrorStyle,
       enabledBorder: kOutlineInputBorder.copyWith(
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(color: SyriusThemeTokens.light.border),
       ),
       disabledBorder: kOutlineInputBorder.copyWith(
-        borderSide: const BorderSide(color: AppColors.inactiveIconsGray),
+        borderSide: BorderSide(color: SyriusThemeTokens.light.border),
       ),
       focusedBorder: kOutlineInputBorder.copyWith(
-        borderSide: const BorderSide(color: AppColors.inactiveIconsGray),
+        borderSide: BorderSide(color: SyriusThemeTokens.light.borderStrong),
       ),
       errorBorder: kOutlineInputBorder.copyWith(
         borderSide: const BorderSide(
           color: AppColors.errorColor,
-          width: 2,
+          width: 1.5,
         ),
       ),
       focusedErrorBorder: kOutlineInputBorder.copyWith(
         borderSide: const BorderSide(
           color: AppColors.errorColor,
-          width: 2,
+          width: 1.5,
         ),
       ),
     ),
     dividerTheme: kDefaultDividerThemeData.copyWith(
-      color: AppColors.lightDividerColor,
+      color: SyriusThemeTokens.light.border,
     ),
-    iconTheme: const IconThemeData(
-      color: AppColors.lightSecondary,
+    iconTheme: IconThemeData(
+      color: SyriusThemeTokens.light.textSecondary,
     ),
     textTheme: TextTheme(
-      bodyLarge: kBodyMediumTextStyle.copyWith(
-        color: Colors.black,
+      bodyLarge: kBodyLargeTextStyle.copyWith(
+        color: SyriusThemeTokens.light.textPrimary,
       ),
       bodyMedium: kBodyMediumTextStyle.copyWith(
-        color: Colors.black,
+        color: SyriusThemeTokens.light.textPrimary,
       ),
       bodySmall: kBodySmallTextStyle.copyWith(
-        color: Colors.black,
+        color: SyriusThemeTokens.light.textSecondary,
       ),
-      titleMedium: kTitleMediumTextStyle,
-      titleSmall: kTitleSmallTextStyle,
+      titleMedium: kTitleMediumTextStyle.copyWith(
+        color: SyriusThemeTokens.light.textSecondary,
+      ),
+      titleSmall: kTitleSmallTextStyle.copyWith(
+        color: SyriusThemeTokens.light.textMuted,
+      ),
       headlineLarge: kHeadlineLargeTextStyle.copyWith(
-        color: Colors.black,
+        color: SyriusThemeTokens.light.textPrimary,
       ),
       headlineMedium: kHeadlineMediumTextStyle.copyWith(
-        color: Colors.black,
+        color: SyriusThemeTokens.light.textPrimary,
       ),
       headlineSmall: kHeadlineSmallTextStyle.copyWith(
-        color: Colors.black,
+        color: SyriusThemeTokens.light.textPrimary,
       ),
     ),
-    unselectedWidgetColor: AppColors.lightSecondaryContainer,
+    unselectedWidgetColor: SyriusThemeTokens.light.textMuted,
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith<Color?>(
-          (Set<WidgetState> states) {
-        if (states.contains(WidgetState.disabled)) {
-          return null;
-        }
-        if (states.contains(WidgetState.selected)) {
-          return AppColors.znnColor;
-        }
-        return null;
-      }),
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.selected)) {
+            return const Color(0xFF0A140E);
+          }
+          return SyriusThemeTokens.light.textPrimary;
+        },
+      ),
       trackColor: WidgetStateProperty.resolveWith<Color?>(
-          (Set<WidgetState> states) {
-        if (states.contains(WidgetState.disabled)) {
-          return null;
-        }
-        if (states.contains(WidgetState.selected)) {
-          return AppColors.znnColor;
-        }
-        return null;
-      }),
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.znnColor;
+          }
+          return SyriusThemeTokens.light.border;
+        },
+      ),
+      trackOutlineColor: const WidgetStatePropertyAll<Color>(
+        Colors.transparent,
+      ),
     ),
     radioTheme: RadioThemeData(
       fillColor: WidgetStateProperty.resolveWith<Color?>(
@@ -257,6 +275,8 @@ class AppTheme {
       }),
     ),
     checkboxTheme: CheckboxThemeData(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      side: BorderSide(color: SyriusThemeTokens.light.borderStrong),
       fillColor: WidgetStateProperty.resolveWith<Color?>(
           (Set<WidgetState> states) {
         if (states.contains(WidgetState.disabled)) {
@@ -267,20 +287,38 @@ class AppTheme {
         }
         return null;
       }),
+      checkColor: const WidgetStatePropertyAll<Color>(Color(0xFF0A140E)),
     ),
-    colorScheme: const ColorScheme.light(
-      primary: Colors.white,
-      primaryContainer: AppColors.lightPrimaryContainer,
-      secondary: AppColors.lightSecondary,
-      secondaryContainer: AppColors.lightSecondaryContainer,
+    colorScheme: ColorScheme.light(
+      primary: SyriusThemeTokens.light.surface,
+      primaryContainer: SyriusThemeTokens.light.surfaceElevated,
+      secondary: SyriusThemeTokens.light.textSecondary,
+      secondaryContainer: SyriusThemeTokens.light.surfaceSubtle,
       error: AppColors.errorColor,
-    ).copyWith(surface: AppColors.backgroundLight),
+    ).copyWith(surface: SyriusThemeTokens.light.shellBackground),
   );
 
   /// Dark mode application theme.
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
-    hoverColor: AppColors.darkTextFormFieldFill,
+    extensions: const <ThemeExtension<dynamic>>[SyriusThemeTokens.dark],
+    hoverColor: SyriusThemeTokens.dark.surfaceElevated,
+    dialogTheme: DialogThemeData(
+      backgroundColor: SyriusThemeTokens.dark.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: SyriusThemeTokens.dark.border),
+      ),
+    ),
+    cardTheme: CardThemeData(
+      color: SyriusThemeTokens.dark.surface,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: SyriusThemeTokens.dark.border),
+      ),
+    ),
     textButtonTheme: kTextButtonThemeData,
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: kOutlinedButtonStyle.copyWith(
@@ -289,7 +327,7 @@ class AppTheme {
             if (states.contains(WidgetState.disabled)) {
               return Colors.white38;
             }
-            return Colors.white;
+            return SyriusThemeTokens.dark.textPrimary;
           },
         ),
       ),
@@ -297,93 +335,94 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: kElevatedButtonStyle,
     ),
-    scaffoldBackgroundColor: AppColors.backgroundDark,
+    scaffoldBackgroundColor: SyriusThemeTokens.dark.shellBackground,
     textSelectionTheme: TextSelectionThemeData(
-      selectionColor: Colors.white.withValues(alpha: 0.1),
+      selectionColor: Colors.white.withValues(alpha: 0.12),
       cursorColor: AppColors.znnColor,
       selectionHandleColor: AppColors.znnColor,
     ),
     fontFamily: 'Roboto',
     inputDecorationTheme: InputDecorationTheme(
-      fillColor: AppColors.darkTextFormFieldFill,
+      fillColor: SyriusThemeTokens.dark.surfaceElevated,
       hintStyle: kHintTextStyle.copyWith(
-        color: AppColors.darkHintTextColor,
+        color: SyriusThemeTokens.dark.textMuted,
       ),
       errorStyle: kTextFormFieldErrorStyle,
       enabledBorder: kOutlineInputBorder.copyWith(
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(color: SyriusThemeTokens.dark.border),
       ),
       disabledBorder: kOutlineInputBorder.copyWith(
-        borderSide: BorderSide(
-          color: Colors.white.withValues(alpha: 0.1),
-        ),
+        borderSide: BorderSide(color: SyriusThemeTokens.dark.border),
       ),
       focusedBorder: kOutlineInputBorder.copyWith(
-        borderSide: const BorderSide(color: AppColors.znnColor),
+        borderSide: BorderSide(color: SyriusThemeTokens.dark.borderStrong),
       ),
       errorBorder: kOutlineInputBorder.copyWith(
         borderSide: const BorderSide(
           color: AppColors.errorColor,
-          width: 2,
+          width: 1.5,
         ),
       ),
       focusedErrorBorder: kOutlineInputBorder.copyWith(
         borderSide: const BorderSide(
           color: AppColors.errorColor,
-          width: 2,
+          width: 1.5,
         ),
       ),
     ),
     dividerTheme: kDefaultDividerThemeData.copyWith(
-      color: AppColors.darkDividerColor,
+      color: SyriusThemeTokens.dark.border,
     ),
-    iconTheme: const IconThemeData(
-      color: AppColors.lightSecondary,
+    iconTheme: IconThemeData(
+      color: SyriusThemeTokens.dark.textSecondary,
     ),
     textTheme: TextTheme(
       bodyLarge: kBodyLargeTextStyle.copyWith(
-        color: Colors.white,
+        color: SyriusThemeTokens.dark.textPrimary,
       ),
       bodyMedium: kBodyMediumTextStyle.copyWith(
-        color: Colors.white,
+        color: SyriusThemeTokens.dark.textPrimary,
       ),
       bodySmall: kBodySmallTextStyle.copyWith(
-        color: Colors.white,
+        color: SyriusThemeTokens.dark.textSecondary,
       ),
-      titleMedium: kTitleMediumTextStyle,
-      titleSmall: kTitleSmallTextStyle,
+      titleMedium: kTitleMediumTextStyle.copyWith(
+        color: SyriusThemeTokens.dark.textSecondary,
+      ),
+      titleSmall: kTitleSmallTextStyle.copyWith(
+        color: SyriusThemeTokens.dark.textMuted,
+      ),
       headlineLarge: kHeadlineLargeTextStyle.copyWith(
-        color: Colors.white,
+        color: SyriusThemeTokens.dark.textPrimary,
       ),
       headlineMedium: kHeadlineMediumTextStyle.copyWith(
-        color: Colors.white,
+        color: SyriusThemeTokens.dark.textPrimary,
       ),
       headlineSmall: kHeadlineSmallTextStyle.copyWith(
-        color: Colors.white,
+        color: SyriusThemeTokens.dark.textPrimary,
       ),
     ),
-    unselectedWidgetColor: AppColors.darkSecondaryContainer,
+    unselectedWidgetColor: SyriusThemeTokens.dark.textMuted,
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith<Color?>(
-          (Set<WidgetState> states) {
-        if (states.contains(WidgetState.disabled)) {
-          return null;
-        }
-        if (states.contains(WidgetState.selected)) {
-          return AppColors.znnColor;
-        }
-        return null;
-      }),
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.selected)) {
+            return const Color(0xFF0A140E);
+          }
+          return SyriusThemeTokens.dark.textPrimary;
+        },
+      ),
       trackColor: WidgetStateProperty.resolveWith<Color?>(
-          (Set<WidgetState> states) {
-        if (states.contains(WidgetState.disabled)) {
-          return null;
-        }
-        if (states.contains(WidgetState.selected)) {
-          return AppColors.znnColor;
-        }
-        return null;
-      }),
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.znnColor;
+          }
+          return SyriusThemeTokens.dark.border;
+        },
+      ),
+      trackOutlineColor: const WidgetStatePropertyAll<Color>(
+        Colors.transparent,
+      ),
     ),
     radioTheme: RadioThemeData(
       fillColor: WidgetStateProperty.resolveWith<Color?>(
@@ -398,6 +437,8 @@ class AppTheme {
       }),
     ),
     checkboxTheme: CheckboxThemeData(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      side: BorderSide(color: SyriusThemeTokens.dark.borderStrong),
       fillColor: WidgetStateProperty.resolveWith<Color?>(
           (Set<WidgetState> states) {
         if (states.contains(WidgetState.disabled)) {
@@ -408,13 +449,14 @@ class AppTheme {
         }
         return null;
       }),
+      checkColor: const WidgetStatePropertyAll<Color>(Color(0xFF0A140E)),
     ),
-    colorScheme: const ColorScheme.dark(
-      primary: AppColors.darkPrimary,
-      primaryContainer: AppColors.darkPrimaryContainer,
-      secondary: AppColors.darkSecondary,
-      secondaryContainer: AppColors.darkSecondaryContainer,
+    colorScheme: ColorScheme.dark(
+      primary: SyriusThemeTokens.dark.surface,
+      primaryContainer: SyriusThemeTokens.dark.surfaceElevated,
+      secondary: SyriusThemeTokens.dark.textSecondary,
+      secondaryContainer: SyriusThemeTokens.dark.surfaceElevated,
       error: AppColors.errorColor,
-    ).copyWith(surface: AppColors.backgroundDark),
+    ).copyWith(surface: SyriusThemeTokens.dark.shellBackground),
   );
 }

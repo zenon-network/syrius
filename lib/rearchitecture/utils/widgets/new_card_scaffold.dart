@@ -97,9 +97,8 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
 
     final Widget front = isHidden ? _getHiddenInfoWidget() : widget.body;
 
-    final Color background = context.isDarkMode
-        ? AppColors.darkPrimary
-        : Colors.white;
+    final SyriusThemeTokens tokens = context.syriusTheme;
+    final Color background = tokens.surface;
 
     final ThemeData themeData = context.isDarkMode
         ? newDarkTheme
@@ -113,31 +112,35 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
             flipOnTouch: false,
             key: cardKey,
             onFlipDone: (bool status) {},
-            front: ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: ColoredBox(
+            front: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
                 color: background,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    frontHeader,
-                    const Divider(),
-                    Expanded(child: front),
-                  ],
-                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: tokens.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  frontHeader,
+                  Divider(height: 1, color: tokens.border),
+                  Expanded(child: front),
+                ],
               ),
             ),
-            back: ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: ColoredBox(
+            back: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
                 color: background,
-                child: Column(
-                  children: <Widget>[
-                    backHeader,
-                    const Divider(),
-                    Expanded(child: _getHideWidgetInfoViewModel()),
-                  ],
-                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: tokens.border),
+              ),
+              child: Column(
+                children: <Widget>[
+                  backHeader,
+                  Divider(height: 1, color: tokens.border),
+                  Expanded(child: _getHideWidgetInfoViewModel()),
+                ],
               ),
             ),
           );

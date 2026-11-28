@@ -4,6 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/bloc/notifications_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/theming/syrius_theme_tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -117,36 +118,40 @@ class _View extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        return Theme(
-          // TODO(maznnwell): remove when the new theme data becomes default.
-          data: context.newThemeData,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 15),
-            child: WidgetAnimator(
-              child: Card.filled(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 15,
-                    horizontal: 50,
+        final SyriusThemeTokens tokens = context.syriusTheme;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: WidgetAnimator(
+            child: Container(
+              decoration: BoxDecoration(
+                color: tokens.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: tokens.borderStrong),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.22),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Expanded(
-                        child: _buildNotificationDetails(context, notification),
-                      ),
-                      const SizedBox(width: 15),
-                      _buildNotificationOptions(
-                        context,
-                        notification,
-                        state.revision,
-                      ),
-                    ],
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(
+                vertical: 11,
+                horizontal: 16,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Expanded(
+                    child: _buildNotificationDetails(context, notification),
                   ),
-                ),
+                  const SizedBox(width: 14),
+                  _buildNotificationOptions(
+                    context,
+                    notification,
+                    state.revision,
+                  ),
+                ],
               ),
             ),
           ),

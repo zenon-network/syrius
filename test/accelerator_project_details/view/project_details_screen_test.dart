@@ -137,7 +137,7 @@ void main() {
     }
 
     testWidgets(
-      'shows Project Stats, Create phase, and empty Phase List for project '
+      'shows project metadata, Create phase, and empty phases list for project '
       'owner',
       (WidgetTester tester) async {
         final Project project = _project(projectId, owner);
@@ -148,17 +148,15 @@ void main() {
 
         await pumpScreen(tester, project);
 
-        expect(find.byType(ProjectStatsCard), findsOneWidget);
-        expect(find.byType(CreatePhaseCard), findsOneWidget);
-        expect(find.byType(PhaseListCard), findsOneWidget);
-        expect(find.text('Project Stats'), findsWidgets);
-        expect(find.text('Create phase'), findsWidgets);
-        expect(find.text('Phase List'), findsWidgets);
+        expect(find.text('Hyperion'), findsOneWidget);
+        expect(find.text('BUDGET'), findsOneWidget);
+        expect(find.text('Create phase'), findsOneWidget);
+        expect(find.text('Phases'), findsOneWidget);
         expect(find.text('The project has no phases'), findsOneWidget);
       },
     );
 
-    testWidgets('hides Create phase card for non-owner viewer', (
+    testWidgets('hides Create phase action for non-owner viewer', (
       WidgetTester tester,
     ) async {
       final Project project = _project(projectId, owner);
@@ -169,16 +167,13 @@ void main() {
 
       await pumpScreen(tester, project);
 
-      expect(find.byType(ProjectStatsCard), findsOneWidget);
-      expect(find.byType(CreatePhaseCard), findsNothing);
-      expect(find.byType(PhaseListCard), findsOneWidget);
-      expect(find.text('Project Stats'), findsWidgets);
+      expect(find.text('Hyperion'), findsOneWidget);
       expect(find.text('Create phase'), findsNothing);
-      expect(find.text('Phase List'), findsWidgets);
+      expect(find.text('Phases'), findsOneWidget);
     });
 
     testWidgets(
-      'keeps PhaseListCard mounted and shows RefreshButton loading during '
+      'keeps phases mounted and shows RefreshButton loading during '
       'subsequent RefreshProjectLoading',
       (WidgetTester tester) async {
         final Project project = _project(projectId, owner);
@@ -195,26 +190,26 @@ void main() {
 
         await pumpScreen(tester, project);
 
-        expect(find.byType(PhaseListCard), findsOneWidget);
+        expect(find.text('Phases'), findsOneWidget);
         expect(
           find.descendant(
             of: find.byType(RefreshButton),
             matching: find.byIcon(Icons.refresh),
           ),
-          findsNWidgets(2),
+          findsOneWidget,
         );
 
         states.add(const RefreshProjectLoading());
         await tester.pump();
         await tester.pump();
 
-        expect(find.byType(PhaseListCard), findsOneWidget);
+        expect(find.text('Phases'), findsOneWidget);
         expect(
           find.descendant(
             of: find.byType(RefreshButton),
             matching: find.byType(SyriusLoadingWidget),
           ),
-          findsNWidgets(2),
+          findsOneWidget,
         );
 
         states.add(RefreshProjectPopulated(project: project));
@@ -226,7 +221,7 @@ void main() {
             of: find.byType(RefreshButton),
             matching: find.byIcon(Icons.refresh),
           ),
-          findsNWidgets(2),
+          findsOneWidget,
         );
 
         // A failure clears the retained project so a later loading state shows
@@ -234,13 +229,13 @@ void main() {
         states.add(RefreshProjectFailure(exception: FailureException()));
         await tester.pump();
         await tester.pump();
-        expect(find.byType(PhaseListCard), findsNothing);
+        expect(find.text('Phases'), findsNothing);
         expect(find.byType(SyriusErrorWidget), findsOneWidget);
 
         states.add(const RefreshProjectLoading());
         await tester.pump();
         await tester.pump();
-        expect(find.byType(PhaseListCard), findsNothing);
+        expect(find.text('Phases'), findsNothing);
         expect(find.byType(SyriusLoadingWidget), findsOneWidget);
       },
     );
@@ -329,7 +324,7 @@ void main() {
         states.add(const RefreshProjectLoading());
         await tester.pump();
         await tester.pump();
-        expect(find.byType(AcceleratorProjectListItem), findsOneWidget);
+        expect(find.text('1 · Phase 1'), findsOneWidget);
 
         states.add(RefreshProjectPopulated(project: projectWithPhase));
         await tester.pump();
