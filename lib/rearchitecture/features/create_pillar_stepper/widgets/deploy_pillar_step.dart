@@ -194,7 +194,9 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
   bool _isInputValid() =>
       _pillarNameError == null &&
       _pillarRewardAddressError == null &&
-      _pillarMomentumError == null;
+      _pillarMomentumError == null &&
+      isValidPillarRewardPercentage(_momentumRewardPercentage.value.toInt()) &&
+      isValidPillarRewardPercentage(_delegateRewardPercentage.value.toInt());
 
   void _onDeployPressed() {
     context.read<DeployPillarBloc>().add(

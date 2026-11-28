@@ -17,6 +17,8 @@ export 'node_utils.dart';
 export 'notification_utils.dart';
 export 'notifiers/notifiers.dart';
 export 'pair.dart';
+export 'password_strength_utils.dart';
+export 'plasma_tier_utils.dart';
 export 'toast_utils.dart';
 export 'utils.dart';
 export 'wallet_connect_request_utils.dart';

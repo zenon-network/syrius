@@ -141,25 +141,31 @@ class _PopulatedState extends State<_Populated> {
 
   AccountInfo? get _accountInfo => widget.mapAccountInfo[kSelectedAddress!];
 
-  String? get _qsrAmountError => InputValidators.correctValue(
-    _qsrAmountController.text,
-    _maxQsrAmount,
-    kQsrCoin.decimals,
-    fuseMinQsrAmount,
-    canBeEqualToMin: true,
-    l10n: context.l10n,
-  );
+  String? get _qsrAmountError {
+    final String text = _qsrAmountController.text;
+    if (text.isNotEmpty && !isIntegerQsrAmount(text)) {
+      return context.l10n.enterWholeNumberAmount;
+    }
+    return InputValidators.correctValue(
+      text,
+      _maxQsrAmount,
+      kQsrCoin.decimals,
+      fuseMinQsrAmount,
+      canBeEqualToMin: true,
+      l10n: context.l10n,
+    );
+  }
 
   String? get _beneficiaryAddressError => InputValidators.checkAddress(
     _beneficiaryAddressController.text,
     l10n: context.l10n,
   );
 
-  bool get _isInputValid =>
-      _qsrAmountController.text.isNotEmpty &&
-      _qsrAmountError == null &&
-      _beneficiaryAddressController.text.isNotEmpty &&
-      _beneficiaryAddressError == null;
+  bool get _isInputValid => canFusePlasma(
+    amountText: _qsrAmountController.text,
+    maxQsrBalance: _maxQsrAmount,
+    beneficiaryAddress: _beneficiaryAddressController.text,
+  );
 
   @override
   void initState() {
@@ -398,10 +404,17 @@ class _PopulatedState extends State<_Populated> {
   }
 
   void _onMaxPressed() {
-    if (_qsrAmountController.text.isEmpty ||
-        _qsrAmountController.text.extractDecimals(kQsrCoin.decimals) !=
-            _maxQsrAmount) {
-      _qsrAmountController.text = _maxQsrAmount.addDecimals(kQsrCoin.decimals);
+    final BigInt wholeMax = truncateToWholeQsr(_maxQsrAmount);
+    final BigInt? currentAmount = isIntegerQsrAmount(_qsrAmountController.text)
+        ? _qsrAmountController.text.extractDecimals(kQsrCoin.decimals)
+        : null;
+    final String? nextText = resolveMaxAmountText(
+      maxBalance: wholeMax,
+      decimals: kQsrCoin.decimals,
+      currentAmount: currentAmount,
+    );
+    if (nextText != null) {
+      _qsrAmountController.text = nextText;
     }
   }
 

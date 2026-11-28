@@ -73,6 +73,16 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   Widget _getFrontOfCard() {
+    final String ownerAddress = widget._token.owner.toString();
+    final TokenCapabilities capabilities = evaluateTokenCapabilities(
+      isMintable: widget._token.isMintable,
+      isBurnable: widget._token.isBurnable,
+      totalSupply: widget._token.totalSupply,
+      maxSupply: widget._token.maxSupply,
+      isSelectedOwner: kSelectedAddress == ownerAddress,
+      isWalletOwner: kDefaultAddressList.contains(ownerAddress),
+    );
+
     return Card.filled(
       color: context.newThemeData.inputDecorationTheme.fillColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
@@ -89,9 +99,7 @@ class _TokenCardState extends State<TokenCard> {
                   widget._token.name,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
-                if (kDefaultAddressList.contains(
-                  widget._token.owner.toString(),
-                ))
+                if (capabilities.showOwnBadge)
                   Tooltip(
                     message: context.l10n.ownZtsToken,
                     child: const Icon(
@@ -137,22 +145,17 @@ class _TokenCardState extends State<TokenCard> {
                       kHorizontalGap8,
                       Wrap(
                         children: <Widget>[
-                          if (kSelectedAddress ==
-                              widget._token.owner.toString())
+                          if (capabilities.canTransferOwnership)
                             _buildTokenOptionIconButton(
                               tooltip: context.l10n.transferTokenOwnership,
                               iconData: Icons.compare_arrows,
                               onPressed: _onTransferTokenIconPressed,
                               iconColor: AppColors.znnColor,
                             ),
-                          if (widget._token.isMintable &&
-                              widget._token.totalSupply <
-                                  widget._token.maxSupply)
+                          if (capabilities.showMintButton)
                             _buildTokenOptionIconButton(
                               tooltip: context.l10n.mintableToken,
-                              onPressed:
-                                  kSelectedAddress ==
-                                      widget._token.owner.toString()
+                              onPressed: capabilities.canMint
                                   ? () {
                                       _backOfCardVersion = _BackVersion.mint;
                                       _flipCard();
@@ -161,9 +164,7 @@ class _TokenCardState extends State<TokenCard> {
                                   : null,
                               iconData: Icons.build,
                             ),
-                          if (widget._token.isBurnable ||
-                              kSelectedAddress ==
-                                  widget._token.owner.toString())
+                          if (capabilities.canBurn)
                             _buildTokenOptionIconButton(
                               key: const Key('token_burn_button'),
                               tooltip: context.l10n.burn,

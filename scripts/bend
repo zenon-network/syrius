@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Host launcher only; Bend and its runtime always execute inside Docker.
+set -euo pipefail
+root=$(cd "$(dirname "$0")/.." && pwd)
+
+use_verdict=0
+for arg in "$@"; do
+  if [ "$arg" = "--verdict" ]; then
+    use_verdict=1
+    break
+  fi
+done
+
+if [ "$use_verdict" -eq 1 ]; then
+  image="${BEND_VERDICT_IMAGE:-syrius-bend:2.0.40-verdict}"
+else
+  image="${BEND_IMAGE:-syrius-bend:2.0.40}"
+fi
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "Docker is required to run Bend inside the pinned container." >&2
+  exit 1
+fi
+
+if ! docker image inspect "$image" >/dev/null 2>&1; then
+  if [ "$use_verdict" -eq 1 ]; then
+    echo "Bend verdict image unavailable ($image). Start Docker and build it:" >&2
+    echo "  docker build -t syrius-bend:2.0.40 test/bend && docker build -f test/bend/Dockerfile.verdict -t syrius-bend:2.0.40-verdict test/bend" >&2
+  else
+    echo "Bend image unavailable ($image). Start Docker and build it:" >&2
+    echo "  docker build -t syrius-bend:2.0.40 test/bend" >&2
+  fi
+  exit 1
+fi
+
+exec docker run --rm --network none --read-only --cap-drop ALL \
+  --security-opt no-new-privileges --pids-limit 256 --memory 2g \
+  --tmpfs /tmp:rw,nosuid,size=256m \
+  --mount "type=bind,source=$root,target=/work,readonly" \
+  "$image" "$@"

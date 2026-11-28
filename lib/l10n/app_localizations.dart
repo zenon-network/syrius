@@ -1474,6 +1474,12 @@ abstract class AppLocalizations {
   /// **'Enter the wallet password to dump the mnemonic'**
   String get enterWalletPasswordToDumpMnemonic;
 
+  /// No description provided for @enterWholeNumberAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number amount'**
+  String get enterWholeNumberAmount;
+
   /// No description provided for @eraseAfterFailedPasswordAttempts.
   ///
   /// In en, this message translates to:

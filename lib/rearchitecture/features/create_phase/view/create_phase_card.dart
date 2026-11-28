@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/accelerator_projects/utils/accelerator_lifecycle_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_phase_stepper/create_phase_stepper.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
@@ -100,7 +101,5 @@ class _View extends StatelessWidget {
   }
 
   bool _canCreatePhase() =>
-      _project.status == AcceleratorProjectStatus.active &&
-      (_project.phases.isEmpty ||
-          _project.phases.last.status == AcceleratorProjectStatus.paid);
+      canCreateAcceleratorPhase(_project, kSelectedAddress);
 }

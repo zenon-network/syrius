@@ -73,9 +73,10 @@ class _ViewState extends State<_View> {
               child: ValueListenableBuilder<TextEditingValue>(
                 valueListenable: _searchController,
                 builder: (_, TextEditingValue value, _) {
-                  return value.text.isEmpty
+                  final String trimmedQuery = value.text.trim();
+                  return trimmedQuery.isEmpty
                       ? _buildTokensList()
-                      : _buildSearchToken(searchQuery: value.text);
+                      : _buildSearchToken(searchQuery: trimmedQuery);
                 },
               ),
             ),
@@ -106,7 +107,7 @@ class _ViewState extends State<_View> {
   Widget _buildSearchToken({required String searchQuery}) {
     return BlocBuilder<SearchTokenBloc, SearchTokenState>(
       builder: (BuildContext context, SearchTokenState state) {
-        if (state.query != searchQuery) {
+        if (state.query != searchQuery.trim()) {
           return const SyriusLoadingWidget();
         }
 

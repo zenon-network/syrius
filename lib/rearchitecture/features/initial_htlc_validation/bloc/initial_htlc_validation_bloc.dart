@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/model/block_data.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/initial_htlc_validation/utils/htlc_info_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/initial_htlc_validation/utils/htlc_window_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/data/htlc_swap_repository.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/p2p_swaps/utils/swap_storage_error_sanitizer.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -132,7 +133,7 @@ class InitialHtlcValidationBloc
   }
 
   void _validateMaximumDuration(Duration duration) {
-    if (duration > kMaxAllowedInitialHtlcDuration) {
+    if (exceedsMaxInitialHtlcDuration(duration)) {
       throw LocalizedSyriusException.depositDurationTooLong(
         maxHours: kMaxAllowedInitialHtlcDuration.inHours,
       );

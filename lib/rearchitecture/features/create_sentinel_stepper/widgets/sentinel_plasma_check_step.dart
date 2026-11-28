@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pillars/utils/pillar_rules_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -77,7 +78,11 @@ class _Populated extends StatelessWidget {
         KeyedSubtree(
           key: const Key('sentinel_plasma_next_button'),
           child: OutlinedButton(
-            onPressed: plasmaInfo.currentPlasma >= kSentinelPlasmaAmountNeeded
+            onPressed:
+                hasSufficientSpawnPlasma(
+                  currentPlasma: plasmaInfo.currentPlasma,
+                  requiredPlasma: kSentinelPlasmaAmountNeeded,
+                )
                 ? onNextPressed
                 : null,
             child: Text(context.l10n.next),

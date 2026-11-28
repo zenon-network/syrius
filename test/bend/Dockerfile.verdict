@@ -1,0 +1,28 @@
+ARG BASE=syrius-bend:2.0.40
+FROM ${BASE}
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+ && rm -rf /var/lib/apt/lists/*
+USER bend
+ENV HOME=/home/bend
+ARG ELAN_VERSION=4.4.0
+# Release-asset digests published by leanprover/elan for v4.4.0.
+ARG ELAN_SHA_ARM64=45cde3006f82f98804c94cf2ca4949d117060a5f3cc8afa62f523759947ee21f
+ARG ELAN_SHA_X64=0e8250aa2be86c7af929ade68db617af9edc8b9ccf6eaf5ece228250d0d032e2
+ARG LEAN_TOOLCHAIN=leanprover/lean4:v4.34.0
+RUN set -eu; \
+    case "$(uname -m)" in \
+      aarch64|arm64) arch=aarch64; sum=$ELAN_SHA_ARM64;; \
+      x86_64|amd64) arch=x86_64; sum=$ELAN_SHA_X64;; \
+      *) exit 1;; \
+    esac; \
+    curl --proto '=https' --tlsv1.2 -fsSL \
+      "https://github.com/leanprover/elan/releases/download/v${ELAN_VERSION}/elan-${arch}-unknown-linux-gnu.tar.gz" -o /tmp/elan.tar.gz; \
+    echo "$sum  /tmp/elan.tar.gz" | sha256sum -c -; \
+    mkdir /tmp/elan && tar -xzf /tmp/elan.tar.gz -C /tmp/elan; \
+    /tmp/elan/elan-init -y --no-modify-path --default-toolchain "${LEAN_TOOLCHAIN}"; \
+    rm -rf /tmp/elan /tmp/elan.tar.gz
+ENV PATH=/home/bend/.elan/bin:/opt/bend/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+RUN mkdir -p /tmp/warm && printf 'import Base\nlaw one:\n  {1n == 1n : Nat}\ndef one():\n  {==}\n' > /tmp/warm/w.bend \
+ && cd /tmp/warm && bend w.bend --verdict && rm -rf /tmp/warm
+WORKDIR /work

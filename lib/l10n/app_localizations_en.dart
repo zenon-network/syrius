@@ -847,6 +847,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter the wallet password to dump the mnemonic';
 
   @override
+  String get enterWholeNumberAmount => 'Enter a whole number amount';
+
+  @override
   String eraseAfterFailedPasswordAttempts(int attempts) {
     return 'Erase after $attempts failed password attempts';
   }

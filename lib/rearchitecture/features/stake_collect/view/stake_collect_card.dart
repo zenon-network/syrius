@@ -85,7 +85,7 @@ class _Populated extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (uncollectedReward.qsrAmount == BigInt.zero) {
+    if (!canCollectStakeRewards(uncollectedReward)) {
       return SyriusErrorWidget(context.l10n.noRewardsCollect);
     }
 

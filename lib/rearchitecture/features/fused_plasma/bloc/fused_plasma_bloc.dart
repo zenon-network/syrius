@@ -1,4 +1,5 @@
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fused_plasma/model/fusion_entry_wrapper.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fused_plasma/utils/fusion_expiration_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -38,7 +39,10 @@ class FusedPlasmaBloc extends InfiniteListBloc<FusionEntryWrapper> {
         .map(
           (FusionEntry fusionEntry) => FusionEntryWrapper(
             fusionEntry: fusionEntry,
-            isRevocable: lastMomentum.height > fusionEntry.expirationHeight,
+            isRevocable: isFusionRevocable(
+              lastMomentumHeight: lastMomentum.height,
+              expirationHeight: fusionEntry.expirationHeight,
+            ),
           ),
         )
         .toList();

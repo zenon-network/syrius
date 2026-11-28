@@ -97,10 +97,7 @@ class _PopulatedState extends State<_Populated> {
 
   final GlobalKey<LoadingButtonState> _stakeButtonKey = GlobalKey();
 
-  final List<Duration> _durations = List<Duration>.generate(
-    stakeTimeMaxSec ~/ stakeTimeUnitSec,
-    (int index) => Duration(seconds: (index + 1) * stakeTimeUnitSec),
-  );
+  final List<Duration> _durations = buildValidStakeDurations();
 
   Duration? _selectedStakeDuration;
 
@@ -122,8 +119,11 @@ class _PopulatedState extends State<_Populated> {
 
   bool get _isInputValid =>
       _selectedStakeDuration != null &&
-      _amount.isNotEmpty &&
-      _amountErrorText == null;
+      canCreateStake(
+        amountText: _amount,
+        maxZnnBalance: _maxZnnAmount,
+        months: _selectedStakeDuration!.inSeconds ~/ stakeTimeUnitSec,
+      );
 
   @override
   void dispose() {

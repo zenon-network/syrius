@@ -24,14 +24,19 @@ class PlasmaStatsBloc extends InfiniteListBloc<PlasmaInfoWrapper> {
     required int pageIndex,
     required int pageSize,
   }) {
-    final int start = pageIndex * pageSize;
-    final int end = start + pageSize;
-
     final int length = kDefaultAddressList.length;
+    final int rawStart = pageIndex * pageSize;
+    final int start = rawStart < 0
+        ? 0
+        : (rawStart > length ? length : rawStart);
+    final int rawEnd = start + pageSize;
+    final int end = rawEnd < start
+        ? start
+        : (rawEnd > length ? length : rawEnd);
 
     final List<String?> targetedAddresses = kDefaultAddressList.sublist(
       start,
-      end < length ? end : length,
+      end,
     );
 
     return _getPlasmas(addresses: targetedAddresses);

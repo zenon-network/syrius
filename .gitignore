@@ -135,3 +135,5 @@ app.*.symbols
 /macos/libledger_ffi.dylib
 /macos/libpow_links.dylib
 /scratchpad/
+/.bend-work/
+test/bend/.scratch/

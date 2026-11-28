@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/utils/token_validation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -39,56 +40,43 @@ class TokenDetailsStep extends StatefulWidget {
 }
 
 class _TokenDetailsStepState extends State<TokenDetailsStep> {
-  // Linear-time equivalent of znn_sdk_dart's `tokenNameRegExp`
-  // (`^([a-zA-Z0-9]+[-._]?)*[a-zA-Z0-9]$`) without nested-quantifier
-  // backtracking.
-  static final RegExp _tokenNameRegExp = RegExp(
-    r'^[a-zA-Z0-9]+([-._][a-zA-Z0-9]+)*$',
-  );
-
-  // Matches go-zenon's TokenDomainMaxLength protocol constant.
-  static const int _tokenDomainMaxLength = 128;
-
   String? _validateTokenName(BuildContext context, String value) {
-    if (value.isEmpty) {
-      return context.l10n.tokenNameCannotBeEmpty;
-    }
-    if (value.length > tokenNameMaxLength) {
-      return context.l10n.tokenNameMaxLength(tokenNameMaxLength);
-    }
-    if (!_tokenNameRegExp.hasMatch(value)) {
-      return context.l10n.tokenNameAllowedCharacters;
-    }
-    return null;
+    return switch (validateTokenNameError(value)) {
+      null => null,
+      TokenNameValidationError.empty => context.l10n.tokenNameCannotBeEmpty,
+      TokenNameValidationError.tooLong => context.l10n.tokenNameMaxLength(
+        tokenNameMaxLength,
+      ),
+      TokenNameValidationError.invalidCharacters =>
+        context.l10n.tokenNameAllowedCharacters,
+    };
   }
 
   String? _validateTokenSymbol(BuildContext context, String value) {
-    if (value.isEmpty) {
-      return context.l10n.tokenSymbolCannotBeEmpty;
-    }
-    if (value.length > tokenSymbolMaxLength) {
-      return context.l10n.tokenSymbolMaxLength(tokenSymbolMaxLength);
-    }
-    if (!tokenSymbolRegExp.hasMatch(value)) {
-      return context.l10n.tokenSymbolUppercaseAlphanumericOnly;
-    }
-    if (tokenSymbolExceptions.contains(value)) {
-      return context.l10n.tokenSymbolCannotBe(tokenSymbolExceptions.join(', '));
-    }
-    return null;
+    return switch (validateTokenSymbolError(value)) {
+      null => null,
+      TokenSymbolValidationError.empty => context.l10n.tokenSymbolCannotBeEmpty,
+      TokenSymbolValidationError.tooLong => context.l10n.tokenSymbolMaxLength(
+        tokenSymbolMaxLength,
+      ),
+      TokenSymbolValidationError.invalidCharacters =>
+        context.l10n.tokenSymbolUppercaseAlphanumericOnly,
+      TokenSymbolValidationError.reserved => context.l10n.tokenSymbolCannotBe(
+        tokenSymbolExceptions.join(', '),
+      ),
+    };
   }
 
   String? _validateTokenDomain(BuildContext context, String value) {
-    if (value.isEmpty) {
-      return context.l10n.tokenDomainCannotBeEmpty;
-    }
-    if (value.length > _tokenDomainMaxLength) {
-      return context.l10n.tokenDomainMaxLength(_tokenDomainMaxLength);
-    }
-    if (!tokenDomainRegExp.hasMatch(value)) {
-      return context.l10n.enterValidDomainWithoutProtocol;
-    }
-    return null;
+    return switch (validateTokenDomainError(value)) {
+      null => null,
+      TokenDomainValidationError.empty => context.l10n.tokenDomainCannotBeEmpty,
+      TokenDomainValidationError.tooLong => context.l10n.tokenDomainMaxLength(
+        kTokenDomainMaxLength,
+      ),
+      TokenDomainValidationError.invalidFormat =>
+        context.l10n.enterValidDomainWithoutProtocol,
+    };
   }
 
   @override
