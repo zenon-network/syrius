@@ -596,6 +596,7 @@ def _wallet_lifecycle_cases(depth: int, seed: int) -> list[OracleCase]:
         ("timer_suppressed_by_htlc", False, True, True, 1, "timer_fired", True),
         ("timer_locks_when_idle_swaps", False, True, True, 1, "timer_fired", False),
         ("timer_noop_when_inactive", False, True, False, 1, "timer_fired", False),
+        ("timer_noop_when_locked", True, False, True, 1, "timer_fired", False),
         ("unlocked_sets_handle", True, False, False, 3, "unlocked", False),
     )
     for label, il, hh, ta, sq, inp, htlc in lock_inputs:
@@ -1518,6 +1519,25 @@ def _plasma_staking_cases(depth: int, seed: int) -> list[OracleCase]:
             )
         )
 
+    staking_hist_inputs = (
+        ("empty", []),
+        ("single_zero", [0]),
+        ("all_zero", [0, 0, 0]),
+        ("single_pos", [1]),
+        ("mixed_late_pos", [0, 0, 5]),
+        ("mixed_first_pos", [10, 0, 0]),
+    )
+    for label, entries in staking_hist_inputs:
+        cases.append(
+            OracleCase(
+                id=f"staking_history_{label}",
+                op="has_staking_reward_history",
+                args={"entries": entries},
+                expr=f"M.has_staking_reward_history({_bend_nat_list(entries)})",
+                kind="bool",
+            )
+        )
+
     par_inputs = (
         ("both_valid", 10, 20, True, True, 5, 10, 6),
         ("fuse_zero_bal", 10, 0, True, True, 5, 10, 6),
@@ -1704,6 +1724,31 @@ def _pillars_sentinels_cases(depth: int, seed: int) -> list[OracleCase]:
                     op="can_collect_rewards",
                     args={"role": role, "znn": znn, "qsr": qsr},
                     expr=f"M.can_collect_rewards(M.{ctor}{{}}, {znn}n, {qsr}n)",
+                    kind="bool",
+                )
+            )
+
+    hist_inputs = (
+        ("empty", []),
+        ("all_zero", [{"znn": 0, "qsr": 0}, {"znn": 0, "qsr": 0}]),
+        ("znn_only", [{"znn": 0, "qsr": 0}, {"znn": 5, "qsr": 0}]),
+        ("qsr_only", [{"znn": 0, "qsr": 0}, {"znn": 0, "qsr": 7}]),
+        ("both_pos", [{"znn": 3, "qsr": 4}]),
+        ("mixed_late_pos", [{"znn": 0, "qsr": 0}, {"znn": 0, "qsr": 2}, {"znn": 1, "qsr": 0}]),
+    )
+    for role, ctor in (("pillar", "RolePillar"), ("sentinel", "RoleSentinel")):
+        for label, entries in hist_inputs:
+            bend_entries = "Nil{}"
+            for e in reversed(entries):
+                bend_entries = (
+                    f"(M.RewardEntry{{{e['znn']}n, {e['qsr']}n}} <> {bend_entries})"
+                )
+            cases.append(
+                OracleCase(
+                    id=f"history_{role}_{label}",
+                    op="has_reward_history",
+                    args={"role": role, "entries": entries},
+                    expr=f"M.has_reward_history(M.{ctor}{{}}, {bend_entries})",
                     kind="bool",
                 )
             )
@@ -2020,7 +2065,8 @@ def _fmt_join_win(+exp_m: Nat, +now_m: Nat) -> String:
   sj = _jbool(M.can_safely_join_window(exp_m, now_m))
   rc = _jbool(M.can_reclaim(exp_m, now_m))
   ul = _jbool(M.can_unlock(exp_m, now_m))
-  ("{\\"can_safely_join\\":" ++ sj) ++ ((",\\"can_reclaim\\":" ++ rc) ++ ((",\\"can_unlock\\":" ++ ul) ++ "}"))
+  ex = _jbool(Nat.is_gt(M.remaining_time(exp_m, now_m), M.MAX_INITIAL_HTLC_DURATION()))
+  ("{\\"can_safely_join\\":" ++ sj) ++ ((",\\"can_reclaim\\":" ++ rc) ++ ((",\\"can_unlock\\":" ++ ul) ++ ((",\\"exceeds_max_duration\\":" ++ ex) ++ "}")))
 
 def _fmt_htlc_role(+r: M.HtlcRole) -> String:
   match r:
@@ -2086,6 +2132,8 @@ def _p2p_htlc_cases(depth: int, seed: int) -> list[OracleCase]:
         ("join_below_419m", 429, 10),
         ("join_exact_420m", 430, 10),
         ("join_above_480m", 490, 10),
+        ("max_dur_exact_1440m", 1450, 10),
+        ("max_dur_over_1441m", 1451, 10),
     )
     for label, exp_m, now_m in win_inputs:
         cases.append(
@@ -2527,6 +2575,8 @@ def _accelerator_cases(depth: int, seed: int) -> list[OracleCase]:
         ("zero_fee_invalid", 0, 10, 100, 0, 0, 5, 50),
         ("below_znn_min", 1, 9, 100, 0, 0, 5, 50),
         ("below_qsr_min", 1, 10, 99, 0, 0, 5, 50),
+        ("over_znn_max", 1, 5001, 100, 0, 0, 5, 50),
+        ("over_qsr_max", 1, 10, 50001, 0, 0, 5, 50),
         ("exact_remaining_valid", 1, 100, 500, 40, 200, 60, 300),
         ("phase_znn_over_rem", 1, 100, 500, 40, 200, 61, 300),
         ("phase_qsr_over_rem", 1, 100, 500, 40, 200, 60, 301),
@@ -3901,7 +3951,7 @@ DART_FAULTS: tuple[DartFault, ...] = (
         ),
         test_file="test/bend_conformance/wc_crash_safety_conformance_test.dart",
     ),
-    # plasma_staking (4 real Dart source faults)
+    # plasma_staking (5 real Dart source faults)
     DartFault(
         name="plasma_fuse_min_strict_gt",
         domain="plasma_staking",
@@ -3934,7 +3984,15 @@ DART_FAULTS: tuple[DartFault, ...] = (
         new="    reward.qsrAmount >= BigInt.zero;",
         test_file="test/bend_conformance/plasma_staking_conformance_test.dart",
     ),
-    # pillars_sentinels (4 real Dart source faults)
+    DartFault(
+        name="plasma_staking_history_ge_zero",
+        domain="plasma_staking",
+        source_path="lib/rearchitecture/features/stake_collect/utils/stake_reward_utils.dart",
+        old="    entries.any((RewardHistoryEntry entry) => entry.qsrAmount > BigInt.zero);",
+        new="    entries.any((RewardHistoryEntry entry) => entry.qsrAmount >= BigInt.zero);",
+        test_file="test/bend_conformance/plasma_staking_conformance_test.dart",
+    ),
+    # pillars_sentinels (6 real Dart source faults)
     DartFault(
         name="pillars_max_qsr_deposit_uncapped",
         domain="pillars_sentinels",
@@ -3971,6 +4029,22 @@ DART_FAULTS: tuple[DartFault, ...] = (
             "bool canCollectPillarRewards(UncollectedReward reward) =>\n"
             "    reward.znnAmount >= BigInt.zero;"
         ),
+        test_file="test/bend_conformance/pillars_sentinels_conformance_test.dart",
+    ),
+    DartFault(
+        name="pillars_history_ge_zero",
+        domain="pillars_sentinels",
+        source_path="lib/rearchitecture/features/pillars/utils/pillar_rules_utils.dart",
+        old="    entries.any((RewardHistoryEntry entry) => entry.znnAmount > BigInt.zero);",
+        new="    entries.any((RewardHistoryEntry entry) => entry.znnAmount >= BigInt.zero);",
+        test_file="test/bend_conformance/pillars_sentinels_conformance_test.dart",
+    ),
+    DartFault(
+        name="sentinels_history_drops_qsr",
+        domain="pillars_sentinels",
+        source_path="lib/rearchitecture/features/pillars/utils/pillar_rules_utils.dart",
+        old="      entry.znnAmount > BigInt.zero || entry.qsrAmount > BigInt.zero,",
+        new="      entry.znnAmount > BigInt.zero,",
         test_file="test/bend_conformance/pillars_sentinels_conformance_test.dart",
     ),
     # tokens_zts (3 real Dart source faults)

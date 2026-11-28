@@ -602,6 +602,19 @@ void main() {
                 expSec: expSec,
                 nowSec: nowSec,
               );
+              final bool exceedsMaxDuration = exceedsMaxInitialHtlcDuration(
+                Duration(seconds: (expMin - nowMin) * _kSecondsPerMinute),
+              );
+              if (win.canSafelyJoin) {
+                expect(
+                  win.minutesLeftToJoin,
+                  equals(
+                    expMin -
+                        nowMin -
+                        (kDefaultMinSafeJoinSeconds ~/ _kSecondsPerMinute),
+                  ),
+                );
+              }
 
               expectBendMatch(
                 domain: _kDomain,
@@ -610,6 +623,7 @@ void main() {
                   'can_safely_join': win.canSafelyJoin,
                   'can_reclaim': canReclaim,
                   'can_unlock': canUnlock,
+                  'exceeds_max_duration': exceedsMaxDuration,
                 },
                 expected: expected,
               );
@@ -888,5 +902,28 @@ void main() {
         );
       },
     );
+
+    test('evaluateHtlcJoinWindow rounds partial minutes up (ceil)', () {
+      final HtlcWindowDecision exactCutoff = evaluateHtlcJoinWindow(
+        expirationTime: kDefaultMinSafeJoinSeconds,
+        unixTime: 0,
+      );
+      expect(exactCutoff.canSafelyJoin, isTrue);
+      expect(exactCutoff.minutesLeftToJoin, equals(0));
+
+      final HtlcWindowDecision oneSecAboveZero = evaluateHtlcJoinWindow(
+        expirationTime: kDefaultMinSafeJoinSeconds + 1,
+        unixTime: 0,
+      );
+      expect(oneSecAboveZero.canSafelyJoin, isTrue);
+      expect(oneSecAboveZero.minutesLeftToJoin, equals(1));
+
+      final HtlcWindowDecision oneSecAboveMinute = evaluateHtlcJoinWindow(
+        expirationTime: kDefaultMinSafeJoinSeconds + 61,
+        unixTime: 0,
+      );
+      expect(oneSecAboveMinute.canSafelyJoin, isTrue);
+      expect(oneSecAboveMinute.minutesLeftToJoin, equals(2));
+    });
   });
 }

@@ -63,7 +63,16 @@
     "domain_laws": 381,
     "common_lemmas": 47,
     "all_verified_laws": 445,
-    "maintained_bend_files": 36
+    "maintained_bend_files": 36,
+    "oracle_ops": 107,
+    "oracle_vectors_default": 833,
+    "oracle_exercised_domain_laws": 291,
+    "model_only_domain_laws": 90,
+    "model_only_root_laws": 17,
+    "model_only_laws_total": 107,
+    "normative_target_laws": 8,
+    "model_faults": 22,
+    "dart_faults": 34
   },
   "areas": [
     {
@@ -118,7 +127,27 @@
           "file": "test/bend/test_harness.py",
           "kind": "harness"
         }
-      ]
+      ],
+      "model_only_laws": {
+        "root.locked_wallet_blocks_sensitive_ops": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.hardware_wallet_safety_boundaries": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.active_incoming_htlc_protection": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.active_incoming_htlc_preserves_autoreceive_pool": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.reset_barrier_and_splash_retry_safety": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.chain_id_mismatch_blocks_node_wc_and_htlc": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.wc_revalidation_chain_mismatch_rejects_5003": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.plasma_thresholds_and_tiers_coherence": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.plasma_sufficiency_cross_domain_hierarchy": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.zero_balance_rejects_all_spend_ops": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.stale_revision_fences_ui_across_domains": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.security_defense_in_depth": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.sanitizer_zero_preimage_leakage_and_key_isolation": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.pillar_governance_and_role_coherence": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.token_and_asset_ordering_coherence": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.sync_threshold_and_clock_skew_coherence": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)",
+        "root.root_audit_par_equiv_seq": "cross-domain Bend/Lean composition invariant over already-verified domain models (model-only at root)"
+      },
+      "normative_target_laws": {}
     },
     {
       "area": "amounts",
@@ -219,10 +248,27 @@
           "kind": "unit"
         }
       ],
-      "model_only_or_normative_laws": {
-        "amounts.exchange_rate_zero_guard": "widget-bound ExchangeRate (tested via exchange_rate_widget_test.dart; model-only in Bend conformance)",
-        "amounts.exchange_rate_positive_defined": "widget-bound ExchangeRate (tested via exchange_rate_widget_test.dart; model-only in Bend conformance)"
-      }
+      "oracle_ops": [
+        "asset_cmp",
+        "big_min_max",
+        "correct_value",
+        "extract_decimals",
+        "password_match",
+        "password_strength",
+        "plasma_tier",
+        "resolve_max_amount",
+        "roundtrip_decimals",
+        "validate_address_label",
+        "validate_protocol_args"
+      ],
+      "oracle_op_count": 11,
+      "oracle_vectors_default": 84,
+      "model_only_laws": {
+        "amounts.exchange_rate_zero_guard": "widget-bound ExchangeRate (unit-tested in exchange_rate_widget_test.dart; model-only in Bend conformance)",
+        "amounts.exchange_rate_positive_defined": "widget-bound ExchangeRate (unit-tested in exchange_rate_widget_test.dart; model-only in Bend conformance)",
+        "amounts.batch_par_eq_seq": "Bend parallel-let vs sequential evaluator equivalence proof (model-level fork-join soundness)"
+      },
+      "normative_target_laws": {}
     },
     {
       "area": "wallet_lifecycle",
@@ -328,14 +374,30 @@
           "kind": "unit"
         }
       ],
-      "model_only_or_normative_laws": {
+      "oracle_ops": [
+        "can_backup_wallet",
+        "dispatch_wallet_type",
+        "hide_widget_step",
+        "lock_step",
+        "splash_can_retry",
+        "splash_destination",
+        "unlock_step",
+        "validate_keystore_schema",
+        "wallet_file_lifecycle"
+      ],
+      "oracle_op_count": 9,
+      "oracle_vectors_default": 95,
+      "model_only_laws": {
+        "wallet_lifecycle.wallet_file_closed_permanent_run": "inductive multi-step closure over wallet_file_run (single-step fold exercised via wallet_file_lifecycle op)",
         "wallet_lifecycle.seed_drop_conserves_multiset": "widget-bound NewWalletConfirmSeedScreen drag-drop state (model-only in Bend conformance)",
         "wallet_lifecycle.seed_verify_mismatch_clears_all": "widget-bound NewWalletConfirmSeedScreen drag-drop state (model-only in Bend conformance)",
         "wallet_lifecycle.seed_verify_iff_all_matched": "widget-bound NewWalletConfirmSeedScreen drag-drop state (model-only in Bend conformance)",
         "wallet_lifecycle.window_size_meets_minimums": "main.dart startup windowManager restore (model-only in Bend conformance)",
         "wallet_lifecycle.window_coord_nonneg_fallback": "main.dart startup windowManager restore (model-only in Bend conformance)",
-        "wallet_lifecycle.window_geometry_idempotent": "main.dart startup windowManager restore (model-only in Bend conformance)"
-      }
+        "wallet_lifecycle.window_geometry_idempotent": "main.dart startup windowManager restore (model-only in Bend conformance)",
+        "wallet_lifecycle.lifecycle_par_eq_seq": "Bend parallel-let vs sequential evaluator equivalence proof (model-level fork-join soundness)"
+      },
+      "normative_target_laws": {}
     },
     {
       "area": "tx_pipeline",
@@ -455,7 +517,35 @@
           "file": "test/account_chain_stats/bloc/account_chain_stats_bloc_test.dart",
           "kind": "unit"
         }
-      ]
+      ],
+      "oracle_ops": [
+        "account_chain_stats_page_count",
+        "auto_receive_add_hash",
+        "auto_receive_step",
+        "balance_is_populated",
+        "check_create_preconditions",
+        "hw_review_timing",
+        "infinite_list_page_and_max",
+        "node_is_synced_for_tx",
+        "poll_step",
+        "pow_sequence"
+      ],
+      "oracle_op_count": 10,
+      "oracle_vectors_default": 84,
+      "model_only_laws": {
+        "tx_pipeline.tx_publish_fence_locked_after_lock_aborts": "async publish-fence concurrency model (unit-tested in account_block_utils_test.dart; model-only in Bend conformance)",
+        "tx_pipeline.tx_publish_fence_swapped_after_lock_aborts": "async publish-fence concurrency model (unit-tested in account_block_utils_test.dart; model-only in Bend conformance)",
+        "tx_pipeline.tx_publish_fence_changed_in_access_aborts": "async publish-fence concurrency model (unit-tested in account_block_utils_test.dart; model-only in Bend conformance)",
+        "tx_pipeline.lock_acquire_increments_and_present": "per-address async mutex reference-count model (model-only in Bend conformance)",
+        "tx_pipeline.lock_release_evicts_iff_zero": "per-address async mutex reference-count model (model-only in Bend conformance)",
+        "tx_pipeline.lock_balanced_acquire_release": "per-address async mutex reference-count model (model-only in Bend conformance)",
+        "tx_pipeline.lock_nested_balanced_n": "inductive N-deep mutex acquire/release balance model (model-only in Bend conformance)",
+        "tx_pipeline.auto_receive_single_flight_rejects_reentry": "single-flight re-entrancy model for AutoReceiveTxWorker (model-only in Bend conformance)",
+        "tx_pipeline.fetch_loading_iff_inflight": "FetchBloc in-flight request counter model (model-only in Bend conformance)",
+        "tx_pipeline.timer_step_preserves_valid": "periodic refresh timer invariant model (model-only in Bend conformance)",
+        "tx_pipeline.tx_batch_par_equiv_seq": "Bend parallel-let vs sequential evaluator equivalence proof (model-level fork-join soundness)"
+      },
+      "normative_target_laws": {}
     },
     {
       "area": "node_sync",
@@ -559,7 +649,34 @@
           "file": "test/settings_wallet_options/bloc/settings_wallet_options_bloc_test.dart",
           "kind": "unit"
         }
-      ]
+      ],
+      "oracle_ops": [
+        "about_reduce",
+        "node_mgmt_confirm_flow",
+        "node_mgmt_edit_validation",
+        "notif_bloc_lifecycle",
+        "notif_repo_fifo_load",
+        "sync_cubit_hysteresis",
+        "sync_info_status",
+        "wallet_opt_desktop_notifs"
+      ],
+      "oracle_op_count": 8,
+      "oracle_vectors_default": 63,
+      "model_only_laws": {
+        "node_sync.node_add_rejects_duplicate": "custom-node insertion model (unit-tested in node_management_bloc_test.dart; model-only in Bend conformance)",
+        "node_sync.node_rename_updates_selected": "node rename selection model (unit-tested in node_management_bloc_test.dart; model-only in Bend conformance)",
+        "node_sync.node_rename_preserves_other_selected": "node rename selection model (unit-tested in node_management_bloc_test.dart; model-only in Bend conformance)",
+        "node_sync.node_delete_falls_back_to_confirmed": "node deletion fallback model (unit-tested in node_management_bloc_test.dart; model-only in Bend conformance)",
+        "node_sync.node_delete_preserves_other_selected": "node deletion fallback model (unit-tested in node_management_bloc_test.dart; model-only in Bend conformance)",
+        "node_sync.node_auto_receive_rollback_on_save_fail": "auto-receive toggle save-failure rollback model (model-only in Bend conformance)",
+        "node_sync.clock_skew_silent_when_unsynced": "clock-skew warning threshold model (unit-tested in node_sync_status_cubit_test.dart; model-only in Bend conformance)",
+        "node_sync.clock_skew_symmetric": "clock-skew warning symmetry model (model-only in Bend conformance)",
+        "node_sync.clock_skew_boundary_300_silent": "clock-skew 300s silence boundary model (model-only in Bend conformance)",
+        "node_sync.clock_skew_boundary_301_warns": "clock-skew 301s warning boundary model (model-only in Bend conformance)",
+        "node_sync.notif_lock_screen_hides_see_more": "widget-bound notification banner lock-screen affordance (model-only in Bend conformance)",
+        "node_sync.node_sync_batch_par_equiv_seq": "Bend parallel-let vs sequential evaluator equivalence proof (model-level fork-join soundness)"
+      },
+      "normative_target_laws": {}
     },
     {
       "area": "wallet_connect",
@@ -654,7 +771,29 @@
           "file": "test/wallet_connect_uri/view/wallet_connect_uri_card_test.dart",
           "kind": "unit"
         }
-      ]
+      ],
+      "oracle_ops": [
+        "build_approved_namespaces",
+        "describe_verify_context",
+        "display_value",
+        "encode_signed_message_payload",
+        "extract_wc_uri",
+        "interactive_request_key_eq",
+        "is_verify_scam",
+        "parallel_send_preflight",
+        "resolve_signer_address",
+        "revalidate_interactive_request",
+        "sanitize_http_url",
+        "unsupported_required_namespace_reason",
+        "validate_send_account_block",
+        "wc_error_to_json_rpc_code"
+      ],
+      "oracle_op_count": 14,
+      "oracle_vectors_default": 91,
+      "model_only_laws": {
+        "wallet_connect.uri_card_clears_iff_revision_matches": "widget-bound WalletConnectUriCard stale-revision clear guard (unit-tested in wallet_connect_uri_card_test.dart; model-only in Bend conformance)"
+      },
+      "normative_target_laws": {}
     },
     {
       "area": "wc_crash_safety",
@@ -740,7 +879,34 @@
           "file": "test/services/session_request_handler_dispatch_test.dart",
           "kind": "unit"
         }
-      ]
+      ],
+      "oracle_ops": [
+        "relay_restore_preserved_id",
+        "relay_unsubscribe_fencing",
+        "service_idempotent_request_delivery",
+        "service_reset_admission_and_finalize",
+        "service_reset_marker_durability",
+        "service_topic_epoch_fencing",
+        "store_authoritative_sticky_step",
+        "store_boot_mode",
+        "store_isolation_and_delete_all",
+        "store_migration_commit_order",
+        "store_reconcile_key_view",
+        "store_reconciliation_cleanup_order"
+      ],
+      "oracle_op_count": 12,
+      "oracle_vectors_default": 58,
+      "model_only_laws": {
+        "wc_crash_safety.relay_op_seq_strictly_monotonic": "internal ConfirmingRelayClient operation sequence counter model (model-only in Bend conformance)",
+        "wc_crash_safety.relay_capped_tracking_bounded_by_cap": "bounded topic-tracking set capacity invariant (model-only in Bend conformance)",
+        "wc_crash_safety.topic_unsub_epoch_not_obsolete_when_current_or_newer": "pure epoch comparison helper (service epoch fencing exercised via service_topic_epoch_fencing op)",
+        "wc_crash_safety.provisional_purge_never_deletes_confirmed_pairing": "provisional pairing cleanup predicate (unit-tested in web3wallet_service_test.dart; model-only in Bend conformance)",
+        "wc_crash_safety.orphan_cleanup_protects_live_pairings": "orphan topic cleanup predicate (unit-tested in web3wallet_service_test.dart; model-only in Bend conformance)",
+        "wc_crash_safety.parallel_crash_safety_gate_equiv_sequential": "Bend parallel-let vs sequential crash-safety gate equivalence proof",
+        "wc_crash_safety.parallel_crash_safety_gate_accepts_safe_state": "composite model-level crash-safety gate acceptance invariant",
+        "wc_crash_safety.parallel_crash_safety_gate_blocks_flag_or_reset_or_stale_epoch": "composite model-level crash-safety gate rejection invariant"
+      },
+      "normative_target_laws": {}
     },
     {
       "area": "plasma_staking",
@@ -801,7 +967,8 @@
         "lib/rearchitecture/features/fused_plasma/utils/fusion_expiration_utils.dart",
         "lib/rearchitecture/features/fuse_plasma/utils/fuse_plasma_validation_utils.dart",
         "lib/rearchitecture/features/create_stake/utils/stake_duration_utils.dart",
-        "lib/rearchitecture/features/stake_collect/utils/stake_reward_utils.dart"
+        "lib/rearchitecture/features/stake_collect/utils/stake_reward_utils.dart",
+        "lib/rearchitecture/features/staking_rewards_history/bloc/staking_rewards_history_bloc.dart"
       ],
       "evidence": [
         {
@@ -829,12 +996,42 @@
           "kind": "unit"
         }
       ],
-      "model_only_or_normative_laws": {
-        "plasma_staking.cancel_timer_stopped_idempotent": "normative target for CancelTimer post-zero countdown behavior",
-        "plasma_staking.cancel_timer_terminates_cleanly": "normative target for CancelTimer post-zero countdown behavior",
-        "plasma_staking.cancel_timer_no_storm_after_zero": "normative target for CancelTimer post-zero countdown behavior",
-        "plasma_staking.stake_lock_expired_at_or_past": "normative target for StakesCard exact-zero expiration boundary",
-        "plasma_staking.stake_lock_positive_countdown_before_exp": "normative target for StakesCard exact-zero expiration boundary"
+      "oracle_ops": [
+        "can_collect_stake_rewards",
+        "can_create_stake",
+        "can_fuse_plasma",
+        "fusion_status",
+        "has_staking_reward_history",
+        "op_plasma_u32",
+        "parallel_plasma_staking_check",
+        "plasma_for_qsr_u32",
+        "stake_duration_u32",
+        "valid_stake_months"
+      ],
+      "oracle_op_count": 10,
+      "oracle_vectors_default": 83,
+      "model_only_laws": {
+        "plasma_staking.plasma_for_qsr_zero": "arbitrary-precision Nat inductive sibling of U32-oracle-exercised plasma_for_qsr_u32",
+        "plasma_staking.plasma_for_qsr_additive": "arbitrary-precision Nat inductive sibling of U32-oracle-exercised plasma_for_qsr_u32",
+        "plasma_staking.plasma_for_qsr_monotone": "arbitrary-precision Nat inductive sibling of U32-oracle-exercised plasma_for_qsr_u32",
+        "plasma_staking.op_plasma_strict_order": "kilo-unit Nat ordering sibling of U32-oracle-exercised op_plasma_u32",
+        "plasma_staking.meets_plasma_monotone": "pure monotonicity lemma over threshold predicate (thresholds exercised via op_plasma_u32)",
+        "plasma_staking.cancel_timer_stopped_idempotent": "normative target for CancelTimer post-zero countdown behavior (deferred widget fix)",
+        "plasma_staking.cancel_timer_terminates_cleanly": "normative target for CancelTimer post-zero countdown behavior (deferred widget fix)",
+        "plasma_staking.cancel_timer_no_storm_after_zero": "normative target for CancelTimer post-zero countdown behavior (deferred widget fix)",
+        "plasma_staking.page_slice_start_le_end": "PlasmaStatsBloc page-slice clamping model (fixed in lib/ and unit-tested in plasma_stats_bloc_test.dart; model-only in Bend conformance)",
+        "plasma_staking.page_slice_end_le_len": "PlasmaStatsBloc page-slice clamping model (fixed in lib/ and unit-tested in plasma_stats_bloc_test.dart; model-only in Bend conformance)",
+        "plasma_staking.stake_duration_strictly_monotone": "arbitrary-precision Nat inductive sibling of U32-oracle-exercised stake_duration_u32",
+        "plasma_staking.stake_lock_expired_at_or_past": "normative target for StakesCard exact-zero expiration boundary (widget-bound countdown)",
+        "plasma_staking.stake_lock_positive_countdown_before_exp": "normative target for StakesCard exact-zero expiration boundary (widget-bound countdown)",
+        "plasma_staking.epoch_day_monotone": "reward-history chart x-axis epoch-day monotonicity model (model-only in Bend conformance)"
+      },
+      "normative_target_laws": {
+        "plasma_staking.cancel_timer_stopped_idempotent": "CancelTimer periodic timer does not cancel at 0s (deferred widget fix)",
+        "plasma_staking.cancel_timer_terminates_cleanly": "CancelTimer periodic timer does not cancel at 0s (deferred widget fix)",
+        "plasma_staking.cancel_timer_no_storm_after_zero": "CancelTimer periodic timer does not cancel at 0s (deferred widget fix)",
+        "plasma_staking.stake_lock_expired_at_or_past": "StakesCard uses strict < leaving a 0s gap at nowMs == exp*1000 (widget-bound)",
+        "plasma_staking.stake_lock_positive_countdown_before_exp": "StakesCard exact-zero expiration boundary (widget-bound)"
       }
     },
     {
@@ -931,9 +1128,36 @@
           "kind": "unit"
         }
       ],
-      "model_only_or_normative_laws": {
-        "pillars_sentinels.deposit_confirm_rejects_zero_amount": "normative target for Pillar/SentinelDepositQsrBloc zero-amount defense-in-depth",
-        "pillars_sentinels.deposit_confirm_strictly_increases": "normative target for Pillar/SentinelDepositQsrBloc deposit confirmation"
+      "oracle_ops": [
+        "can_collect_rewards",
+        "can_delegate",
+        "has_reward_history",
+        "parallel_spawn_readiness",
+        "qsr_deposit_summary",
+        "reward_pct",
+        "role_constants",
+        "safe_uptime_pct",
+        "valid_pillar_producer"
+      ],
+      "oracle_op_count": 9,
+      "oracle_vectors_default": 82,
+      "model_only_laws": {
+        "pillars_sentinels.create_step_monotone": "4-step Create Pillar/Sentinel UI stepper state machine (model-only in Bend conformance)",
+        "pillars_sentinels.create_step_plasma_gate": "4-step Create Pillar/Sentinel UI stepper plasma gate (model-only in Bend conformance)",
+        "pillars_sentinels.create_step_qsr_gate": "4-step Create Pillar/Sentinel UI stepper QSR gate (model-only in Bend conformance)",
+        "pillars_sentinels.create_step_znn_gate": "4-step Create Pillar/Sentinel UI stepper ZNN gate (model-only in Bend conformance)",
+        "pillars_sentinels.create_step_deploy_gate_and_done_absorbing": "4-step Create Pillar/Sentinel UI stepper deploy gate & terminal Done state (model-only in Bend conformance)",
+        "pillars_sentinels.deposit_confirm_rejects_zero_amount": "normative target for Pillar/SentinelDepositQsrBloc zero-amount defense-in-depth (enforced at UI validator)",
+        "pillars_sentinels.deposit_confirm_strictly_increases": "normative target for Pillar/SentinelDepositQsrBloc deposit confirmation",
+        "pillars_sentinels.withdraw_confirm_with_snapshot_decreases": "async RPC withdrawal confirmation polling model (unit-tested in bloc tests; model-only in Bend conformance)",
+        "pillars_sentinels.withdraw_confirm_without_snapshot_zero": "async RPC withdrawal confirmation polling model (unit-tested in bloc tests; model-only in Bend conformance)",
+        "pillars_sentinels.deploy_pillar_rejects_wallet_producer": "composite deploy-stepper validation predicate (component rules exercised via valid_pillar_producer and reward_pct ops)",
+        "pillars_sentinels.update_step_navigation": "3-step Update Pillar UI stepper navigation state machine (model-only in Bend conformance)",
+        "pillars_sentinels.sentinel_authorization_matrix": "UI Sentinel spawn/timer/revoke authorization matrix (model-only in Bend conformance)"
+      },
+      "normative_target_laws": {
+        "pillars_sentinels.deposit_confirm_rejects_zero_amount": "Pillar/SentinelDepositQsrBloc does not re-check event.amount > 0 (UI validator enforces)",
+        "pillars_sentinels.deposit_confirm_strictly_increases": "Pillar/SentinelDepositQsrBloc deposit confirmation assumes amount > 0"
       }
     },
     {
@@ -1026,7 +1250,27 @@
           "file": "test/burn_token/token_card_test.dart",
           "kind": "unit"
         }
-      ]
+      ],
+      "oracle_ops": [
+        "can_burn_amount",
+        "can_mint_amount",
+        "fav_transition",
+        "is_trusted_token",
+        "issue_constants",
+        "token_caps",
+        "valid_token_metadata",
+        "valid_token_supply"
+      ],
+      "oracle_op_count": 8,
+      "oracle_vectors_default": 78,
+      "model_only_laws": {
+        "tokens_zts.issue_step_monotone": "Create Token UI stepper monotonicity state machine (model-only in Bend conformance)",
+        "tokens_zts.issue_plasma_gate": "Create Token UI stepper plasma gate (model-only in Bend conformance)",
+        "tokens_zts.issue_prerequisite_gates": "Create Token UI stepper prerequisite gates (model-only in Bend conformance)",
+        "tokens_zts.search_trimmed_settled_not_loading": "TokensCard trimmed-query loading guard (fixed in lib/ and unit-tested; model-only in Bend conformance)",
+        "tokens_zts.search_excludes_native_and_invalidates_cache": "SearchTokenBloc native-exclusion and cache-invalidation model (model-only in Bend conformance)"
+      },
+      "normative_target_laws": {}
     },
     {
       "area": "p2p_htlc",
@@ -1134,8 +1378,33 @@
           "kind": "unit"
         }
       ],
-      "model_only_or_normative_laws": {
-        "p2p_htlc.completed_is_terminal_absorbing": "normative target documenting HtlcSwapSyncService._getReclaimUpdate completed-state guard gap"
+      "oracle_ops": [
+        "auto_unlock_arbiter",
+        "can_delete_swap",
+        "change_password_txn",
+        "funded_htlc_role",
+        "join_window",
+        "parallel_swap_safety_check",
+        "reclaim_evaluate",
+        "sanitize_error",
+        "sqlcipher_key_valid"
+      ],
+      "oracle_op_count": 9,
+      "oracle_vectors_default": 61,
+      "model_only_laws": {
+        "p2p_htlc.start_and_join_initial_states": "HTLC swap lifecycle state-machine initial states (model-only in Bend conformance)",
+        "p2p_htlc.create_flips_pending_to_active": "HTLC swap lifecycle pending-to-active transition (model-only in Bend conformance)",
+        "p2p_htlc.unlock_incoming_completes_and_records_preimage": "HTLC swap lifecycle incoming-unlock transition (model-only in Bend conformance)",
+        "p2p_htlc.unlock_outgoing_active_completes": "HTLC swap lifecycle outgoing-unlock transition (model-only in Bend conformance)",
+        "p2p_htlc.reclaim_non_completed_funded_unsuccessful": "HTLC swap lifecycle reclaim-to-unsuccessful transition (funded_htlc_role exercised separately via funded_htlc_role op)",
+        "p2p_htlc.expire_moves_pending_and_active_only": "HTLC swap lifecycle expiry transition (model-only in Bend conformance)",
+        "p2p_htlc.completed_is_terminal_absorbing": "normative target documenting HtlcSwapSyncService._getReclaimUpdate completed-state guard gap",
+        "p2p_htlc.pruning_never_evicts_unresolved_swaps": "HTLC storage pruning eviction predicate (model-only in Bend conformance)",
+        "p2p_htlc.open_crash_recovery_and_stale_backup_cleanup": "SQLCipher crash-recovery boot state machine (2-phase rekey commit/rollback exercised via change_password_txn op)",
+        "p2p_htlc.legacy_migration_safety": "legacy Hive-to-SQLCipher migration safety model (model-only in Bend conformance)"
+      },
+      "normative_target_laws": {
+        "p2p_htlc.completed_is_terminal_absorbing": "HtlcSwapSyncService._getReclaimUpdate lacks explicit completed-state guard (tracked hardening)"
       }
     },
     {
@@ -1230,7 +1499,27 @@
           "file": "test/accelerator_projects/bloc/vote_project_bloc_test.dart",
           "kind": "unit"
         }
-      ]
+      ],
+      "oracle_ops": [
+        "donation_partial_retry",
+        "donation_valid",
+        "phase_gate",
+        "pillar_resolve",
+        "project_budget_and_phase",
+        "project_list_filter",
+        "vote_summary"
+      ],
+      "oracle_op_count": 7,
+      "oracle_vectors_default": 54,
+      "model_only_laws": {
+        "accelerator.non_pillar_never_votes": "UI vote-button non-pillar guard predicate (model-only in Bend conformance)",
+        "accelerator.can_submit_vote_requires_pillar_and_voting": "UI vote-button pillar+voting guard predicate (model-only in Bend conformance)",
+        "accelerator.clamped_bar_zero_total_safe": "widget-bound AcceleratorVotingProgressBar zero-total guard (model-only in Bend conformance)",
+        "accelerator.clamped_bar_3_conserved": "widget-bound AcceleratorVotingProgressBar 3-segment conservation (model-only in Bend conformance)",
+        "accelerator.quorum_progress_bar_conserved": "widget-bound AcceleratorVotingProgressBar quorum bar conservation (model-only in Bend conformance)",
+        "accelerator.parallel_accelerator_audit_equiv": "Bend parallel-let vs sequential accelerator audit equivalence proof"
+      },
+      "normative_target_laws": {}
     }
   ]
 }

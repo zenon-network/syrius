@@ -64,7 +64,7 @@ jobs:
         run: flutter analyze --no-pub
 
       - name: Run unit and widget tests
-        run: flutter test --no-pub test --exclude-tags chain --exclude-tags bend
+        run: flutter test --no-pub test --exclude-tags chain,bend
 
       - name: Check generated files are up to date
         run: |

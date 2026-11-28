@@ -172,10 +172,147 @@ def discover_maintained_bend_files(root: Path) -> set[str]:
     return bend_files
 
 
+def oracle_ops_by_domain(
+    specs_tuple: tuple[bend_specs.OracleSpec, ...] | None = None,
+    *,
+    depth: int = 1,
+    seed: int = 1,
+) -> dict[str, set[str]]:
+    """Return the exact set of emitted oracle ``op`` names per domain from specs.py."""
+    items = bend_specs.ORACLE_SPECS if specs_tuple is None else specs_tuple
+    return {
+        spec.domain: {case.op for case in spec.cases_fn(depth, seed)}
+        for spec in items
+    }
+
+
+def _extract_law_names(
+    raw: object,
+    *,
+    field: str,
+    area_name: str,
+) -> set[str]:
+    """Extract unique non-empty law names from a list or dict field in coverage.json."""
+    if raw is None:
+        return set()
+    if isinstance(raw, list):
+        if not all(isinstance(item, str) and item.strip() for item in raw):
+            raise ValueError(
+                f"area {area_name!r} has invalid {field} (expected non-empty strings)"
+            )
+        if len(raw) != len(set(raw)):
+            raise ValueError(f"area {area_name!r} has duplicate entries in {field}")
+        return set(raw)
+    if isinstance(raw, dict):
+        if not all(
+            isinstance(k, str)
+            and k.strip()
+            and isinstance(v, str)
+            and v.strip()
+            for k, v in raw.items()
+        ):
+            raise ValueError(
+                f"area {area_name!r} has invalid {field} mapping "
+                "(expected non-empty string keys and rationale values)"
+            )
+        return set(raw.keys())
+    raise ValueError(
+        f"area {area_name!r} has invalid {field} (expected list or object)"
+    )
+
+
+def validate_area_oracle_and_model_only(
+    area: dict[str, object],
+    *,
+    area_laws: set[str],
+    expected_oracle_ops: dict[str, set[str]] | None = None,
+) -> tuple[set[str], set[str], set[str]]:
+    """Validate per-area ``oracle_ops``, ``model_only_laws``, and ``normative_target_laws``."""
+    area_name = str(area.get("area", "<unknown>"))
+    domain = area.get("domain")
+
+    declared_ops: set[str] | None = None
+    if "oracle_ops" in area:
+        raw_ops = area["oracle_ops"]
+        if not isinstance(raw_ops, list) or not all(
+            isinstance(op, str) and op.strip() for op in raw_ops
+        ):
+            raise ValueError(
+                f"area {area_name!r} has invalid oracle_ops "
+                "(expected list of non-empty strings)"
+            )
+        if len(raw_ops) != len(set(raw_ops)):
+            raise ValueError(f"area {area_name!r} has duplicate entries in oracle_ops")
+        declared_ops = set(raw_ops)
+
+    if (
+        isinstance(domain, str)
+        and expected_oracle_ops is not None
+        and domain in expected_oracle_ops
+    ):
+        expected = expected_oracle_ops[domain]
+        if declared_ops is None:
+            raise ValueError(
+                f"area {area_name!r} (domain {domain!r}) missing required oracle_ops"
+            )
+        if declared_ops != expected:
+            missing = sorted(expected - declared_ops)
+            extra = sorted(declared_ops - expected)
+            raise ValueError(
+                f"area {area_name!r} oracle_ops mismatch with specs.py: "
+                f"missing={missing}, extra={extra}"
+            )
+
+    model_only = _extract_law_names(
+        area.get("model_only_laws"),
+        field="model_only_laws",
+        area_name=area_name,
+    )
+    unknown_model_only = sorted(model_only - area_laws)
+    if unknown_model_only:
+        raise ValueError(
+            f"area {area_name!r} model_only_laws references undeclared law(s): "
+            f"{unknown_model_only}"
+        )
+
+    normative = _extract_law_names(
+        area.get("normative_target_laws"),
+        field="normative_target_laws",
+        area_name=area_name,
+    )
+    unknown_normative = sorted(normative - area_laws)
+    if unknown_normative:
+        raise ValueError(
+            f"area {area_name!r} normative_target_laws references undeclared law(s): "
+            f"{unknown_normative}"
+        )
+    not_in_model_only = sorted(normative - model_only)
+    if not_in_model_only:
+        raise ValueError(
+            f"area {area_name!r} normative_target_laws must be a subset of "
+            f"model_only_laws: {not_in_model_only}"
+        )
+
+    legacy_model_only = _extract_law_names(
+        area.get("model_only_or_normative_laws"),
+        field="model_only_or_normative_laws",
+        area_name=area_name,
+    )
+    unknown_legacy = sorted(legacy_model_only - area_laws)
+    if unknown_legacy:
+        raise ValueError(
+            f"area {area_name!r} model_only_or_normative_laws references "
+            f"undeclared law(s): {unknown_legacy}"
+        )
+
+    return declared_ops or set(), model_only, normative
+
+
 def check_inventory(
     root: Path = ROOT,
     *,
     domains: tuple[str, ...] = DOMAINS,
+    expected_oracle_ops: dict[str, set[str]] | None = None,
 ) -> dict[str, object]:
     """Stage 1: Verify coverage manifest, proof import graph, and 1:1 law/proof parity."""
     coverage_path = root / "test/bend/coverage.json"
@@ -248,10 +385,14 @@ def check_inventory(
     if orphaned:
         raise ValueError(f"Bend modules outside the proof graph: {orphaned}")
 
-    # Validate coverage areas, domain coverage, law links, and Dart evidence files.
+    # Validate coverage areas, domain coverage, law links, oracle ops, and Dart evidence files.
     declared_domains: set[str] = set()
+    oracle_checked_domains: set[str] = set()
     linked_laws: set[str] = set()
     conformance_files: list[str] = []
+    oracle_ops_map: dict[str, list[str]] = {}
+    model_only_by_area: dict[str, list[str]] = {}
+    normative_by_area: dict[str, list[str]] = {}
     for area in manifest["areas"]:
         area_name = area.get("area")
         if not area_name or not area.get("contract") or not area.get("laws"):
@@ -267,10 +408,28 @@ def check_inventory(
             declared_domains.add(area["domain"])
         for dom in area.get("domains", []):
             declared_domains.add(dom)
-        for law in area["laws"]:
+        raw_area_laws = area["laws"]
+        if len(raw_area_laws) != len(set(raw_area_laws)):
+            raise ValueError(f"area {area_name!r} has duplicate entries in laws")
+        for law in raw_area_laws:
             if law not in qualified_laws and law not in bare_laws:
                 raise ValueError(f"unknown law {law!r} referenced in area {area_name!r}")
             linked_laws.add(law)
+        area_ops, area_model_only, area_normative = validate_area_oracle_and_model_only(
+            area,
+            area_laws=set(raw_area_laws),
+            expected_oracle_ops=expected_oracle_ops,
+        )
+        if isinstance(area.get("domain"), str):
+            dom_name = area["domain"]
+            if area_ops:
+                oracle_ops_map[dom_name] = sorted(area_ops)
+            if expected_oracle_ops is not None and dom_name in expected_oracle_ops:
+                oracle_checked_domains.add(dom_name)
+        if area_model_only:
+            model_only_by_area[area_name] = sorted(area_model_only)
+        if area_normative:
+            normative_by_area[area_name] = sorted(area_normative)
         for ev in area.get("evidence", []):
             ev_file = ev.get("file")
             if not ev_file or not (root / ev_file).is_file():
@@ -283,6 +442,16 @@ def check_inventory(
     missing_domains = sorted(set(domains) - declared_domains)
     if missing_domains:
         raise ValueError(f"domains missing from coverage.json: {missing_domains}")
+
+    if expected_oracle_ops is not None:
+        missing_oracle_domains = sorted(
+            (set(expected_oracle_ops) & set(domains)) - oracle_checked_domains
+        )
+        if missing_oracle_domains:
+            raise ValueError(
+                "domains with oracle specs missing dedicated domain area in "
+                f"coverage.json: {missing_oracle_domains}"
+            )
 
     # Every law declared across root + domains must be referenced in coverage.json.
     unlinked: list[str] = []
@@ -299,6 +468,9 @@ def check_inventory(
         "domain_law_counts": domain_law_counts,
         "total_laws": sum(domain_law_counts.values()),
         "conformance_files": sorted(set(conformance_files)),
+        "oracle_ops_by_domain": oracle_ops_map,
+        "model_only_laws": model_only_by_area,
+        "normative_target_laws": normative_by_area,
     }
 
 
@@ -1282,7 +1454,7 @@ def main(argv: list[str] | None = None) -> int:
             flush=True,
         )
     else:
-        inv = check_inventory(ROOT)
+        inv = check_inventory(ROOT, expected_oracle_ops=oracle_ops_by_domain())
         print(
             f"PASS Stage 1: {inv['total_laws']} laws across {len(inv['domain_law_counts'])} suites "
             f"({len(inv['bend_files'])} audited .bend files)",

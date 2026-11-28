@@ -48,7 +48,7 @@ class AccountChainStatsBloc extends FetchBloc<AccountChainStats> {
 
     for (int i = 0; i < pageCount; i++) {
       final AccountBlockList response = await zenon.ledger
-          .getAccountBlocksByHeight(address, (_pageSize * i) + 1);
+          .getAccountBlocksByHeight(address, (_pageSize * i) + 1, _pageSize);
       allBlocks.addAll(response.list ?? <AccountBlock>[]);
     }
 

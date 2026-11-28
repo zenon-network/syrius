@@ -634,7 +634,8 @@ Future<int> _runAccountChainStatsPageCount({
 }) async {
   final _MockZenon mockZenon = _MockZenon();
   final _MockLedgerApi mockLedger = _MockLedgerApi();
-  int heightCalls = 0;
+  final List<int> recordedHeights = <int>[];
+  final List<int> recordedCounts = <int>[];
 
   when(() => mockZenon.ledger).thenReturn(mockLedger);
   when(() => mockLedger.getAccountInfoByAddress(any())).thenAnswer(
@@ -646,8 +647,9 @@ Future<int> _runAccountChainStatsPageCount({
   );
   when(
     () => mockLedger.getAccountBlocksByHeight(any(), any(), any()),
-  ).thenAnswer((_) async {
-    heightCalls += 1;
+  ).thenAnswer((Invocation inv) async {
+    recordedHeights.add(inv.positionalArguments[1] as int);
+    recordedCounts.add(inv.positionalArguments[2] as int);
     return AccountBlockList.fromJson(<String, dynamic>{
       'list': const <dynamic>[],
       'count': 0,
@@ -661,8 +663,15 @@ Future<int> _runAccountChainStatsPageCount({
   );
   try {
     await bloc.getData(address: _kAddress0);
-    return heightCalls;
+    final int pageCount = recordedHeights.length;
+    expect(
+      recordedHeights,
+      equals(List<int>.generate(pageCount, (int i) => (pageSize * i) + 1)),
+    );
+    expect(recordedCounts, equals(List<int>.filled(pageCount, pageSize)));
+    return pageCount;
   } on EmptyAccountChainException {
+    expect(recordedHeights, isEmpty);
     return 0;
   } finally {
     await bloc.close();

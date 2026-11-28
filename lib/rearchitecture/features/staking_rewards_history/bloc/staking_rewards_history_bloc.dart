@@ -1,3 +1,4 @@
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/stake_collect/utils/stake_reward_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -20,9 +21,7 @@ class StakingRewardsHistoryBloc extends FetchBloc<RewardHistoryList> {
           pageSize: kStandardChartNumDays.toInt(),
         );
 
-    if (response.list.any(
-      (RewardHistoryEntry element) => element.qsrAmount > BigInt.zero,
-    )) {
+    if (hasStakingRewardHistory(response.list)) {
       return response;
     }
 

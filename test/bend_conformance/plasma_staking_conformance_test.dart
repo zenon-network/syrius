@@ -178,6 +178,22 @@ void main() {
               actual: canCollectStakeRewards(reward),
               expected: expected,
             );
+          case 'has_staking_reward_history':
+            final List<int> qsrAmounts = requireIntList(args, 'entries');
+            final List<RewardHistoryEntry> entries = <RewardHistoryEntry>[
+              for (int i = 0; i < qsrAmounts.length; i += 1)
+                RewardHistoryEntry.fromJson(<String, dynamic>{
+                  'epoch': i,
+                  'znnAmount': '0',
+                  'qsrAmount': BigInt.from(qsrAmounts[i]).toString(),
+                }),
+            ];
+            expectBendMatch(
+              domain: _kDomain,
+              caseId: caseId,
+              actual: hasStakingRewardHistory(entries),
+              expected: expected,
+            );
           case 'parallel_plasma_staking_check':
             final int qsr = requireInt(args, 'qsr');
             final bool isInt = requireBool(args, 'is_int');
@@ -218,6 +234,7 @@ void main() {
           'stake_duration_u32',
           'can_create_stake',
           'can_collect_stake_rewards',
+          'has_staking_reward_history',
           'parallel_plasma_staking_check',
         }),
       );

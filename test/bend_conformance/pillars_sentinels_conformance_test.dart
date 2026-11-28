@@ -174,6 +174,37 @@ void main() {
               actual: actual,
               expected: expected,
             );
+          case 'has_reward_history':
+            final String role = requireString(args, 'role');
+            final Object? rawEntries = args['entries'];
+            if (rawEntries is! List<dynamic>) {
+              fail('Expected List for "entries" in $args');
+            }
+            final List<RewardHistoryEntry> entries = <RewardHistoryEntry>[];
+            for (int i = 0; i < rawEntries.length; i += 1) {
+              final Object? raw = rawEntries[i];
+              if (raw is! Map<String, dynamic>) {
+                fail('Expected Map entry in "entries": $raw');
+              }
+              entries.add(
+                RewardHistoryEntry.fromJson(<String, dynamic>{
+                  'epoch': i,
+                  'znnAmount': BigInt.from(requireInt(raw, 'znn')).toString(),
+                  'qsrAmount': BigInt.from(requireInt(raw, 'qsr')).toString(),
+                }),
+              );
+            }
+            final bool actual = switch (role) {
+              'pillar' => hasPillarRewardHistory(entries),
+              'sentinel' => hasSentinelRewardHistory(entries),
+              _ => fail('Unknown role "$role"'),
+            };
+            expectBendMatch(
+              domain: _kDomain,
+              caseId: caseId,
+              actual: actual,
+              expected: expected,
+            );
           case 'parallel_spawn_readiness':
             final bool actual =
                 hasSufficientSpawnPlasma(
@@ -210,6 +241,7 @@ void main() {
           'reward_pct',
           'can_delegate',
           'can_collect_rewards',
+          'has_reward_history',
           'parallel_spawn_readiness',
         }),
       );

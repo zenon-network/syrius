@@ -154,6 +154,112 @@ class InventoryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing coverage inventory"):
             run.check_inventory(self.root, domains=("dom_a",))
 
+    def test_oracle_ops_and_model_only_validation_passes(self) -> None:
+        self.manifest["areas"][0]["oracle_ops"] = ["op_ok"]
+        self.manifest["areas"][0]["model_only_laws"] = {
+            "dom_a.ok_true": "model-only invariant",
+        }
+        self.manifest["areas"][0]["normative_target_laws"] = {
+            "dom_a.ok_true": "normative target subset",
+        }
+        (self.root / "test/bend/coverage.json").write_text(json.dumps(self.manifest))
+        res = run.check_inventory(
+            self.root,
+            domains=("dom_a",),
+            expected_oracle_ops={"dom_a": {"op_ok"}},
+        )
+        self.assertEqual(res["oracle_ops_by_domain"], {"dom_a": ["op_ok"]})
+        self.assertEqual(res["model_only_laws"], {"dom_a": ["dom_a.ok_true"]})
+        self.assertEqual(res["normative_target_laws"], {"dom_a": ["dom_a.ok_true"]})
+
+        # List form for model_only_laws and normative_target_laws is also accepted.
+        self.manifest["areas"][0]["model_only_laws"] = ["dom_a.ok_true"]
+        self.manifest["areas"][0]["normative_target_laws"] = ["dom_a.ok_true"]
+        (self.root / "test/bend/coverage.json").write_text(json.dumps(self.manifest))
+        res2 = run.check_inventory(
+            self.root,
+            domains=("dom_a",),
+            expected_oracle_ops={"dom_a": {"op_ok"}},
+        )
+        self.assertEqual(res2["normative_target_laws"], {"dom_a": ["dom_a.ok_true"]})
+
+    def test_oracle_ops_mismatch_or_missing_fails(self) -> None:
+        # Missing oracle_ops when specs.py emits ops for this domain.
+        with self.assertRaisesRegex(ValueError, "missing required oracle_ops"):
+            run.check_inventory(
+                self.root,
+                domains=("dom_a",),
+                expected_oracle_ops={"dom_a": {"op_ok"}},
+            )
+
+        # Extra/missing ops relative to specs.py.
+        self.manifest["areas"][0]["oracle_ops"] = ["op_other"]
+        (self.root / "test/bend/coverage.json").write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(ValueError, "oracle_ops mismatch"):
+            run.check_inventory(
+                self.root,
+                domains=("dom_a",),
+                expected_oracle_ops={"dom_a": {"op_ok"}},
+            )
+
+        # Duplicate ops.
+        self.manifest["areas"][0]["oracle_ops"] = ["op_ok", "op_ok"]
+        (self.root / "test/bend/coverage.json").write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(ValueError, "duplicate entries in oracle_ops"):
+            run.check_inventory(
+                self.root,
+                domains=("dom_a",),
+                expected_oracle_ops={"dom_a": {"op_ok"}},
+            )
+
+    def test_model_only_unknown_law_fails(self) -> None:
+        self.manifest["areas"][0]["oracle_ops"] = ["op_ok"]
+        self.manifest["areas"][0]["model_only_laws"] = ["dom_a.does_not_exist"]
+        (self.root / "test/bend/coverage.json").write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(ValueError, "model_only_laws references undeclared"):
+            run.check_inventory(
+                self.root,
+                domains=("dom_a",),
+                expected_oracle_ops={"dom_a": {"op_ok"}},
+            )
+
+    def test_normative_target_must_be_subset_of_model_only(self) -> None:
+        self.manifest["areas"][0]["oracle_ops"] = ["op_ok"]
+        self.manifest["areas"][0]["model_only_laws"] = {}
+        self.manifest["areas"][0]["normative_target_laws"] = {
+            "dom_a.ok_true": "cannot be normative without being model-only",
+        }
+        (self.root / "test/bend/coverage.json").write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(
+            ValueError, "normative_target_laws must be a subset of model_only_laws"
+        ):
+            run.check_inventory(
+                self.root,
+                domains=("dom_a",),
+                expected_oracle_ops={"dom_a": {"op_ok"}},
+            )
+
+        # Unknown law in normative_target_laws also fails.
+        self.manifest["areas"][0]["normative_target_laws"] = ["dom_a.nonexistent"]
+        (self.root / "test/bend/coverage.json").write_text(json.dumps(self.manifest))
+        with self.assertRaisesRegex(
+            ValueError, "normative_target_laws references undeclared"
+        ):
+            run.check_inventory(
+                self.root,
+                domains=("dom_a",),
+                expected_oracle_ops={"dom_a": {"op_ok"}},
+            )
+
+    def test_repo_coverage_inventory_passes_with_live_oracle_ops(self) -> None:
+        res = run.check_inventory(
+            run.ROOT, expected_oracle_ops=run.oracle_ops_by_domain()
+        )
+        self.assertEqual(res["total_laws"], 398)
+        self.assertEqual(
+            sum(len(ops) for ops in res["oracle_ops_by_domain"].values()), 107
+        )
+
 
 class OracleRenderingTests(unittest.TestCase):
     def test_render_oracle_uses_named_parallel_let_and_envelope_fields(self) -> None:
@@ -197,6 +303,14 @@ class OracleRenderingTests(unittest.TestCase):
             s1 = [(c.op, c.args, c.expr) for c in by_domain[dom].cases_fn(2, 1)]
             s2 = [(c.op, c.args, c.expr) for c in by_domain[dom].cases_fn(2, 2)]
             self.assertNotEqual(s1, s2, f"{dom} must vary with seed")
+
+    def test_oracle_ops_by_domain_covers_all_domains_and_is_depth_invariant(self) -> None:
+        d1 = run.oracle_ops_by_domain(depth=1, seed=1)
+        d3 = run.oracle_ops_by_domain(depth=3, seed=1)
+        self.assertEqual(set(d1.keys()), set(run.DOMAINS))
+        self.assertEqual(d1, d3)
+        for dom, ops in d1.items():
+            self.assertTrue(ops, f"{dom} must emit at least one oracle op")
 
 
 class FlutterMachineParserTests(unittest.TestCase):
