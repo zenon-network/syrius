@@ -218,11 +218,7 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
     final FetchState<List<PillarInfo>> ownedState = context
         .watch<PillarsByOwnerBloc>()
         .state;
-    final PillarInfo? ownedPillar =
-        ownedState is FetchPopulated<List<PillarInfo>> &&
-            ownedState.data.isNotEmpty
-        ? ownedState.data.first
-        : null;
+    final PillarInfo? ownedPillar = _selectedOwnedPillar(ownedState);
 
     final FetchState<UncollectedReward> uncollectedState = context
         .watch<UncollectedPillarRewardsBloc>()
@@ -433,6 +429,17 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
     );
   }
 
+  PillarInfo? _selectedOwnedPillar(FetchState<List<PillarInfo>> ownedState) {
+    if (ownedState is! FetchPopulated<List<PillarInfo>> ||
+        ownedState.data.isEmpty) {
+      return null;
+    }
+    return ownedState.data.firstWhere(
+      (PillarInfo item) => item.name == _expandedPillarName,
+      orElse: () => ownedState.data.first,
+    );
+  }
+
   Widget _buildOwnedPillarSection(
     BuildContext context,
     SyriusThemeTokens tokens,
@@ -441,14 +448,10 @@ class _NodesWorkspaceViewState extends State<NodesWorkspaceView> {
     final FetchState<List<PillarInfo>> ownedState = context
         .watch<PillarsByOwnerBloc>()
         .state;
-    if (ownedState is! FetchPopulated<List<PillarInfo>> ||
-        ownedState.data.isEmpty) {
+    final PillarInfo? p = _selectedOwnedPillar(ownedState);
+    if (p == null) {
       return const SizedBox.shrink();
     }
-    final PillarInfo p = ownedState.data.firstWhere(
-      (PillarInfo item) => item.name == _expandedPillarName,
-      orElse: () => ownedState.data.first,
-    );
     final double uptime = p.expectedMomentums > 0
         ? (p.producedMomentums / p.expectedMomentums) * 100
         : 0;

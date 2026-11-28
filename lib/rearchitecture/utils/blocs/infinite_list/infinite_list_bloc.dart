@@ -85,6 +85,7 @@ abstract class InfiniteListBloc<T>
 
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _isLoadingMore = ValueNotifier<bool>(false);
+  int _activeMoreRequests = 0;
   bool _isLoadingDisposed = false;
   int _activeFirstPageRequestId = 0;
   Address? _activeAddress;
@@ -171,8 +172,11 @@ abstract class InfiniteListBloc<T>
     final List<T> currentData = snapshotData ?? <T>[];
     final int previousNumOfItems = currentData.length;
     final int pageIndex = previousNumOfItems ~/ pageSize;
-    if (!isClosed && !_isLoadingMore.value) {
-      _isLoadingMore.value = true;
+    if (!isClosed) {
+      _activeMoreRequests += 1;
+      if (!_isLoadingMore.value) {
+        _isLoadingMore.value = true;
+      }
     }
     try {
       final List<T> data = await paginationFetch(
@@ -209,8 +213,14 @@ abstract class InfiniteListBloc<T>
         ),
       );
     } finally {
-      if (!isClosed && _isLoadingMore.value) {
-        _isLoadingMore.value = false;
+      if (!isClosed) {
+        _activeMoreRequests = _activeMoreRequests > 0
+            ? _activeMoreRequests - 1
+            : 0;
+        final bool stillLoading = _activeMoreRequests > 0;
+        if (_isLoadingMore.value != stillLoading) {
+          _isLoadingMore.value = stillLoading;
+        }
       }
     }
   }

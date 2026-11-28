@@ -36,7 +36,13 @@ class _MockStartP2pSwapBloc
     extends MockBloc<StartP2pSwapEvent, StartP2pSwapState>
     implements StartP2pSwapBloc {}
 
+class _MockDeployPillarBloc
+    extends MockBloc<DeployPillarEvent, DeployPillarState>
+    implements DeployPillarBloc {}
+
 class _FakeAddress extends Fake implements Address {}
+
+class _FakeAccountBlockTemplate extends Fake implements AccountBlockTemplate {}
 
 Widget _wrapThemed(Widget child, {ThemeData? theme}) {
   return MaterialApp(
@@ -423,6 +429,15 @@ void main() {
 
     setUpAll(() {
       registerFallbackValue(_FakeAddress());
+      registerFallbackValue(
+        DeployPillarRequested(
+          pillarName: 'PillarA',
+          rewardAddress: emptyAddress,
+          blockProducingAddress: emptyAddress,
+          giveBlockRewardPercentage: 0,
+          giveDelegateRewardPercentage: 0,
+        ),
+      );
       registerFallbackValue(
         StartP2pSwapRequested(
           selfAddress: emptyAddress,
@@ -890,6 +905,202 @@ void main() {
         expect(find.byType(SyriusVerticalStepRail), findsOneWidget);
         expect(find.text('•••••• ZNN'), findsOneWidget);
         expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'CreateTokenStepperPage steps through all 6 forms at 1280x720 desktop '
+      'viewport without overflow or exception',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1280, 720);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final MultipleBalanceBloc multipleBalanceBloc =
+            await createTestBalanceBloc();
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: BlocProvider<MultipleBalanceBloc>.value(
+                value: multipleBalanceBloc,
+                child: BlocProvider<AllTokensBloc>(
+                  create: (_) => AllTokensBloc(zenon: mockZenon),
+                  child: const CreateTokenStepperPage(),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.byType(SyriusVerticalStepRail), findsOneWidget);
+
+        await tester.tap(find.byKey(const Key('token_plasma_next_button')));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+
+        await tester.tap(find.byKey(const Key('token_znn_next_button')));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+
+        await tester.enterText(
+          find.byKey(const Key('token_name_field')),
+          'newToken',
+        );
+        await tester.enterText(
+          find.byKey(const Key('token_symbol_field')),
+          'TKK',
+        );
+        await tester.enterText(
+          find.byKey(const Key('token_domain_field')),
+          'testing.com',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('token_details_next_button')));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+
+        for (final Key key in const <Key>[
+          Key('token_mintable_checkbox'),
+          Key('token_burnable_checkbox'),
+        ]) {
+          final Finder finder = find.byKey(key);
+          if (tester.widget<Checkbox>(finder).value != true) {
+            await tester.tap(finder);
+            await tester.pumpAndSettle();
+          }
+          expect(tester.widget<Checkbox>(finder).value, isTrue);
+        }
+        await tester.tap(find.byKey(const Key('token_options_next_button')));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+
+        final Slider decimalsSlider = tester.widget<Slider>(
+          find.byKey(const Key('token_decimals_slider')),
+        );
+        decimalsSlider.onChanged!(3);
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('token_max_supply_field')),
+          '100',
+        );
+        await tester.enterText(
+          find.byKey(const Key('token_total_supply_field')),
+          '90',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('token_metrics_next_button')));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+
+        final Finder utilityFinder = find.byKey(
+          const Key('token_utility_checkbox'),
+        );
+        if (tester.widget<Checkbox>(utilityFinder).value != false) {
+          await tester.tap(utilityFinder);
+          await tester.pumpAndSettle();
+        }
+        expect(tester.widget<Checkbox>(utilityFinder).value, isFalse);
+
+        final Finder createButtonContainer = find.byKey(
+          const Key('token_create_button'),
+        );
+        await tester.ensureVisible(createButtonContainer);
+        await tester.pumpAndSettle();
+        final Finder createButton = find.descendant(
+          of: createButtonContainer,
+          matching: find.byType(LoadingButton),
+        );
+        expect(createButton, findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'DeployPillarStep passes the submitted Pillar name on completion even '
+      'if the text field is edited while deployment is in flight',
+      (WidgetTester tester) async {
+        final _MockDeployPillarBloc deployBloc = _MockDeployPillarBloc();
+        final StreamController<DeployPillarState> stateController =
+            StreamController<DeployPillarState>.broadcast();
+        addTearDown(stateController.close);
+
+        when(() => deployBloc.state).thenReturn(const DeployPillarInitial());
+        whenListen<DeployPillarState>(
+          deployBloc,
+          stateController.stream,
+          initialState: const DeployPillarInitial(),
+        );
+
+        String? completedName;
+        bool deployDoneCalled = false;
+
+        await tester.pumpWidget(
+          _wrapThemed(
+            SingleChildScrollView(
+              child: BlocProvider<DeployPillarBloc>.value(
+                value: deployBloc,
+                child: DeployPillarStep(
+                  onDeployDone: () => deployDoneCalled = true,
+                  onDeployDoneWithName: (String name) => completedName = name,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.byKey(const Key('pillar_name_field')),
+          'PillarA',
+        );
+        await tester.enterText(
+          find.byKey(const Key('pillar_reward_address_field')),
+          selfAddress,
+        );
+        await tester.enterText(
+          find.byKey(const Key('pillar_producer_address_field')),
+          counterpartyAddress,
+        );
+        await tester.pumpAndSettle();
+
+        final Finder registerButton = find.byKey(
+          const Key('pillar_register_button'),
+        );
+        await tester.ensureVisible(registerButton);
+        await tester.pumpAndSettle();
+        await tester.tap(registerButton);
+        await tester.pump();
+        verify(
+          () => deployBloc.add(
+            any(
+              that: isA<DeployPillarRequested>().having(
+                (DeployPillarRequested e) => e.pillarName,
+                'pillarName',
+                'PillarA',
+              ),
+            ),
+          ),
+        ).called(1);
+        stateController.add(const DeployPillarLoading());
+        await tester.pump();
+
+        // User edits the name field while deployment is still in flight.
+        await tester.enterText(
+          find.byKey(const Key('pillar_name_field')),
+          'PillarB',
+        );
+        await tester.pump();
+
+        stateController.add(
+          DeployPillarDone(accountBlock: _FakeAccountBlockTemplate()),
+        );
+        await tester.pumpAndSettle();
+
+        expect(deployDoneCalled, isTrue);
+        expect(completedName, 'PillarA');
       },
     );
   });

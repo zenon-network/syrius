@@ -421,7 +421,7 @@ class _TokensWorkspaceViewState extends State<_TokensWorkspaceView> {
             accountInfo,
             uiPrefs,
             _filterTokens(state.data ?? const <Token>[], accountInfo),
-            hasReachedMax: state.hasReachedMax || _filter == _TokenFilter.held,
+            hasReachedMax: state.hasReachedMax,
             dataIdentity: state.data,
           ),
         };

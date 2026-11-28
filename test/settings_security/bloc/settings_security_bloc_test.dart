@@ -423,5 +423,159 @@ void main() {
         expect(errorTitles, <String>['Save failed']);
       },
     );
+
+    test(
+      'rolls back persisted auto-erase threshold when enabled-flag write fails '
+      'so startup restores committed policy',
+      () async {
+        final Map<String, dynamic> stored = <String, dynamic>{
+          kAutoEraseNumAttemptsKey: 3.0,
+          kAutoEraseEnabledKey: true,
+        };
+        kAutoEraseWalletLimit = 3.0;
+        kAutoEraseWalletEnabled = true;
+
+        when(
+          () => prefs.get(
+            any(),
+            defaultValue: any<dynamic>(named: 'defaultValue'),
+          ),
+        ).thenAnswer((Invocation inv) {
+          final String key = inv.positionalArguments.first as String;
+          return stored.containsKey(key)
+              ? stored[key]
+              : inv.namedArguments[#defaultValue];
+        });
+        when(() => prefs.put(kAutoEraseNumAttemptsKey, any<dynamic>()))
+            .thenAnswer((Invocation inv) async {
+              stored[kAutoEraseNumAttemptsKey] = inv.positionalArguments[1];
+            });
+        when(
+          () => prefs.put(kAutoEraseEnabledKey, any<dynamic>()),
+        ).thenThrow(Exception('disk full on enabled flag'));
+
+        final SettingsSecurityBloc bloc = buildBloc();
+        addTearDown(bloc.close);
+
+        bloc
+          ..add(const SettingsSecurityAutoEraseChanged(attempts: 10))
+          ..add(
+            const SettingsSecurityAutoEraseConfirmed(
+              notificationTitle: 'Changed',
+              notificationDetails: 'Now 10',
+              errorTitle: 'Save failed',
+            ),
+          );
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<SettingsSecurityState>()
+                .having(
+                  (SettingsSecurityState s) => s.isConfirmingAutoErase,
+                  'isConfirmingAutoErase',
+                  false,
+                )
+                .having(
+                  (SettingsSecurityState s) => s.autoEraseAttempts,
+                  'autoEraseAttempts',
+                  3.0,
+                ),
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        expect(kAutoEraseWalletLimit, 3.0);
+        expect(kAutoEraseWalletEnabled, isTrue);
+        expect(errorTitles, <String>['Save failed']);
+
+        // Simulate startup policy restoration from persisted preferences.
+        final double restoredLimit =
+            prefs.get(
+                  kAutoEraseNumAttemptsKey,
+                  defaultValue: kAutoEraseNumAttemptsDefault,
+                )
+                as double;
+        final bool restoredEnabled =
+            prefs.get(
+                  kAutoEraseEnabledKey,
+                  defaultValue: restoredLimit > 0,
+                )
+                as bool;
+        expect(restoredLimit, 3.0);
+        expect(restoredEnabled, isTrue);
+      },
+    );
+
+    test(
+      'reflects persisted threshold when rollback write also fails',
+      () async {
+        final Map<String, dynamic> stored = <String, dynamic>{
+          kAutoEraseNumAttemptsKey: 3.0,
+          kAutoEraseEnabledKey: true,
+        };
+        kAutoEraseWalletLimit = 3.0;
+        kAutoEraseWalletEnabled = true;
+        int thresholdWrites = 0;
+
+        when(
+          () => prefs.get(
+            any(),
+            defaultValue: any<dynamic>(named: 'defaultValue'),
+          ),
+        ).thenAnswer((Invocation inv) {
+          final String key = inv.positionalArguments.first as String;
+          return stored.containsKey(key)
+              ? stored[key]
+              : inv.namedArguments[#defaultValue];
+        });
+        when(() => prefs.put(kAutoEraseNumAttemptsKey, any<dynamic>()))
+            .thenAnswer((Invocation inv) async {
+              thresholdWrites += 1;
+              if (thresholdWrites == 1) {
+                stored[kAutoEraseNumAttemptsKey] = inv.positionalArguments[1];
+                return;
+              }
+              throw Exception('rollback failed');
+            });
+        when(
+          () => prefs.put(kAutoEraseEnabledKey, any<dynamic>()),
+        ).thenThrow(Exception('disk full on enabled flag'));
+
+        final SettingsSecurityBloc bloc = buildBloc();
+        addTearDown(bloc.close);
+
+        bloc
+          ..add(const SettingsSecurityAutoEraseChanged(attempts: 10))
+          ..add(
+            const SettingsSecurityAutoEraseConfirmed(
+              notificationTitle: 'Changed',
+              notificationDetails: 'Now 10',
+              errorTitle: 'Save failed',
+            ),
+          );
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<SettingsSecurityState>()
+                .having(
+                  (SettingsSecurityState s) => s.isConfirmingAutoErase,
+                  'isConfirmingAutoErase',
+                  false,
+                )
+                .having(
+                  (SettingsSecurityState s) => s.autoEraseAttempts,
+                  'autoEraseAttempts',
+                  10.0,
+                ),
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        expect(stored[kAutoEraseNumAttemptsKey], 10.0);
+        expect(kAutoEraseWalletLimit, 10.0);
+        expect(kAutoEraseWalletEnabled, isTrue);
+        expect(errorTitles, <String>['Save failed']);
+      },
+    );
   });
 }

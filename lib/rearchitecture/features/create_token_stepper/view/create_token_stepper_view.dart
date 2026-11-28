@@ -173,18 +173,27 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
                                 style: tokens.microLabelStyle(),
                               ),
                             ),
-                            Text(
-                              '1 ${kZnnCoin.symbol} ',
-                              style: tokens.monoStyle(
-                                fontSize: 12.5,
-                                color: tokens.textPrimary,
-                              ),
-                            ),
-                            Text(
-                              context.l10n.burned,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: tokens.textMuted,
+                            Expanded(
+                              child: Text.rich(
+                                TextSpan(
+                                  children: <InlineSpan>[
+                                    TextSpan(
+                                      text: '1 ${kZnnCoin.symbol} ',
+                                      style: tokens.monoStyle(
+                                        fontSize: 12.5,
+                                        color: tokens.textPrimary,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: context.l10n.burned,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: tokens.textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],

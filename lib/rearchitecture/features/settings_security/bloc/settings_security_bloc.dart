@@ -146,22 +146,47 @@ class SettingsSecurityBloc
   ) async {
     final double attemptsToSave = state.autoEraseAttempts;
     final bool enabledToSave = attemptsToSave > 0;
+    dynamic storedThreshold;
+    try {
+      storedThreshold = _prefs.get(kAutoEraseNumAttemptsKey);
+    } on Object catch (_) {}
+    final double previousLegacyThreshold =
+        storedThreshold is num && storedThreshold > 0
+        ? storedThreshold.toDouble()
+        : ((kAutoEraseWalletLimit != null && kAutoEraseWalletLimit! > 0)
+              ? kAutoEraseWalletLimit!
+              : (_committedAutoEraseAttempts > 0
+                    ? _committedAutoEraseAttempts
+                    : kAutoEraseNumAttemptsDefault));
     // Never persist 0 to the legacy numeric threshold key so older releases
     // cannot interpret "Off" as an immediate-erase threshold on downgrade.
     final double legacyThreshold = enabledToSave
         ? attemptsToSave
-        : ((kAutoEraseWalletLimit != null && kAutoEraseWalletLimit! > 0)
-              ? kAutoEraseWalletLimit!
-              : kAutoEraseNumAttemptsDefault);
+        : previousLegacyThreshold;
     emit(state.copyWith(isConfirmingAutoErase: true));
+    bool thresholdWritten = false;
     try {
       await _prefs.put(kAutoEraseNumAttemptsKey, legacyThreshold);
+      thresholdWritten = true;
       await _prefs.put(kAutoEraseEnabledKey, enabledToSave);
       kAutoEraseWalletLimit = legacyThreshold;
       kAutoEraseWalletEnabled = enabledToSave;
       _committedAutoEraseAttempts = enabledToSave ? attemptsToSave : 0.0;
     } on Object catch (error, stackTrace) {
       addError(error, stackTrace);
+      if (thresholdWritten && legacyThreshold != previousLegacyThreshold) {
+        try {
+          await _prefs.put(kAutoEraseNumAttemptsKey, previousLegacyThreshold);
+        } on Object catch (rollbackError, rollbackStackTrace) {
+          addError(rollbackError, rollbackStackTrace);
+          kAutoEraseWalletLimit = legacyThreshold;
+          final bool persistedEnabled =
+              kAutoEraseWalletEnabled ?? (legacyThreshold > 0);
+          _committedAutoEraseAttempts = persistedEnabled
+              ? legacyThreshold
+              : 0.0;
+        }
+      }
       emit(
         state.copyWith(
           autoEraseAttempts: _committedAutoEraseAttempts,

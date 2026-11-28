@@ -53,6 +53,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
 
   final ValueNotifier<double> _momentumRewardPercentage = .new(0);
   final ValueNotifier<double> _delegateRewardPercentage = .new(0);
+  String? _submittedPillarName;
 
   @override
   void initState() {
@@ -181,7 +182,9 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
 
   void _onDeployStateChanged(DeployPillarState state) {
     if (state is DeployPillarDone) {
-      final String registeredName = _pillarNameController.text;
+      final String registeredName =
+          _submittedPillarName ?? _pillarNameController.text;
+      _submittedPillarName = null;
       _registerButtonKey.currentState?.animateReverse();
       _pillarNameController.clear();
       _pillarRewardAddressController.clear();
@@ -189,6 +192,7 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
       widget.onDeployDoneWithName?.call(registeredName);
       widget.onDeployDone();
     } else if (state is DeployPillarFailure) {
+      _submittedPillarName = null;
       _registerButtonKey.currentState?.animateReverse();
       unawaited(
         NotificationUtils.sendNotificationError(
@@ -207,9 +211,11 @@ class _DeployPillarStepState extends State<DeployPillarStep> {
       _pillarMomentumError == null;
 
   void _onDeployPressed() {
+    final String pillarName = _pillarNameController.text;
+    _submittedPillarName = pillarName;
     context.read<DeployPillarBloc>().add(
       DeployPillarRequested(
-        pillarName: _pillarNameController.text,
+        pillarName: pillarName,
         rewardAddress: Address.parse(_pillarRewardAddressController.text),
         blockProducingAddress: Address.parse(_pillarMomentumController.text),
         giveBlockRewardPercentage: _momentumRewardPercentage.value.toInt(),

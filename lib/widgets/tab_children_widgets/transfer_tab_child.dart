@@ -141,8 +141,11 @@ class _TransferTabChildState extends State<TransferTabChild> {
     );
   }
 
-  int _nodeBlocksBehind(BuildContext context) {
-    final NodeSyncStatusCubit? syncCubit = _tryReadSyncCubit(context);
+  int _nodeBlocksBehind(BuildContext context, {bool listen = true}) {
+    final NodeSyncStatusCubit? syncCubit = _tryReadSyncCubit(
+      context,
+      listen: listen,
+    );
     final SyncInfo? syncInfo = syncCubit?.state.data?.second;
     if (syncInfo == null || syncInfo.state != SyncState.syncing) {
       return 0;
@@ -152,7 +155,8 @@ class _TransferTabChildState extends State<TransferTabChild> {
         : 0;
   }
 
-  bool _isNodeBehind(BuildContext context) => _nodeBlocksBehind(context) > 2;
+  bool _isNodeBehind(BuildContext context, {bool listen = false}) =>
+      _nodeBlocksBehind(context, listen: listen) > 2;
 
   Widget _buildMainCard(
     BuildContext context,
@@ -1761,9 +1765,14 @@ class _TransferTabChildState extends State<TransferTabChild> {
     }
   }
 
-  NodeSyncStatusCubit? _tryReadSyncCubit(BuildContext context) {
+  NodeSyncStatusCubit? _tryReadSyncCubit(
+    BuildContext context, {
+    bool listen = true,
+  }) {
     try {
-      return context.watch<NodeSyncStatusCubit>();
+      return listen
+          ? context.watch<NodeSyncStatusCubit>()
+          : context.read<NodeSyncStatusCubit>();
     } on Object catch (_) {
       return null;
     }

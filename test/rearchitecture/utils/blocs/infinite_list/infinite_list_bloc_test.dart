@@ -514,5 +514,65 @@ void main() {
         expect(bloc.state.data, equals(<int>[10, 20]));
       },
     );
+
+    test(
+      'keeps isLoadingMoreListenable true across overlapping load-more '
+      'requests until all in-flight fetches finish',
+      () async {
+        final Completer<List<int>> more1 = Completer<List<int>>();
+        final Completer<void> more1Started = Completer<void>();
+        final Completer<List<int>> more2 = Completer<List<int>>();
+        final Completer<void> more2Started = Completer<void>();
+        int moreCalls = 0;
+
+        final TestInfiniteListBloc bloc = TestInfiniteListBloc(
+          zenon: mockZenon,
+          paginationFetchCallback: (_, int pageIndex, _) {
+            if (pageIndex == 0) {
+              return Future<List<int>>.value(<int>[1, 2]);
+            }
+            moreCalls += 1;
+            if (moreCalls == 1) {
+              if (!more1Started.isCompleted) {
+                more1Started.complete();
+              }
+              return more1.future;
+            }
+            if (!more2Started.isCompleted) {
+              more2Started.complete();
+            }
+            return more2.future;
+          },
+        );
+        addTearDown(bloc.close);
+
+        final Future<InfiniteListState<int>> page0Loaded = bloc.stream
+            .firstWhere(
+              (InfiniteListState<int> s) =>
+                  s.status == InfiniteListStatus.success,
+            )
+            .timeout(const Duration(seconds: 5));
+        bloc.add(InfiniteListRequested(address: emptyAddress));
+        await page0Loaded;
+        expect(bloc.isLoadingMoreListenable.value, isFalse);
+
+        bloc
+          ..add(InfiniteListMoreRequested(address: emptyAddress))
+          ..add(InfiniteListMoreRequested(address: emptyAddress));
+        await more1Started.future.timeout(const Duration(seconds: 5));
+        await more2Started.future.timeout(const Duration(seconds: 5));
+        expect(bloc.isLoadingMoreListenable.value, isTrue);
+
+        // First load-more finishes while the second is still pending.
+        more1.complete(<int>[3, 4]);
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.isLoadingMoreListenable.value, isTrue);
+
+        // Once the second finishes too, isLoadingMoreListenable clears.
+        more2.complete(<int>[5, 6]);
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.isLoadingMoreListenable.value, isFalse);
+      },
+    );
   });
 }
