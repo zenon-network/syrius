@@ -37,9 +37,15 @@ abstract class FetchBloc<T extends Object>
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
   bool _isLoadingDisposed = false;
   int _inFlightRequests = 0;
+  int _latestRequestId = 0;
+  Address? _loadedAddress;
 
   /// Notifies listeners while a [FetchRequestData] request is in flight.
   ValueListenable<bool> get isLoadingListenable => _isLoading;
+
+  /// The [Address] that produced the most recent [FetchPopulated] state, or
+  /// `null` if the state is hydrated/unfetched or failed.
+  Address? get loadedAddress => _loadedAddress;
 
   /// Retrieves the data for [address].
   Future<T> getData({required Address address});
@@ -48,22 +54,26 @@ abstract class FetchBloc<T extends Object>
     FetchRequestData event,
     Emitter<FetchState<Object>> emit,
   ) async {
+    final int requestId = ++_latestRequestId;
     _inFlightRequests++;
     if (!isClosed && !_isLoading.value) {
       _isLoading.value = true;
     }
     try {
       final T data = await getData(address: event.address);
-      if (!emit.isDone) {
+      if (!emit.isDone && requestId == _latestRequestId) {
+        _loadedAddress = event.address;
         emit(FetchPopulated<T>(data: data));
       }
     } on SyriusException catch (e, stackTrace) {
-      if (!emit.isDone) {
+      if (!emit.isDone && requestId == _latestRequestId) {
+        _loadedAddress = null;
         emit(FetchFailure<T>(exception: e));
       }
       addError(e, stackTrace);
     } on Exception catch (e, stackTrace) {
-      if (!emit.isDone) {
+      if (!emit.isDone && requestId == _latestRequestId) {
+        _loadedAddress = null;
         emit(FetchFailure<T>(exception: FailureException()));
       }
       addError(e, stackTrace);

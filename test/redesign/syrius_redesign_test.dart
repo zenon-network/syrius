@@ -178,7 +178,46 @@ void main() {
         notifier.contactLabelFor('z1qr4pm3x9ue2a6kz0t2g8s3x5c7q1wl4r9d2a'),
         'Alice',
       );
-      notifier.removeContact('z1qr4pm3x9ue2a6kz0t2g8s3x5c7q1wl4r9d2a');
+      notifier.saveContact('z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7', 'Bob');
+      // Replacing into an existing different contact address must fail cleanly.
+      expect(
+        notifier.replaceContact(
+          originalAddress: 'z1qr4pm3x9ue2a6kz0t2g8s3x5c7q1wl4r9d2a',
+          newAddress: 'z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7',
+          name: 'Alice Updated',
+        ),
+        isFalse,
+      );
+      expect(
+        notifier.contactLabelFor('z1qr4pm3x9ue2a6kz0t2g8s3x5c7q1wl4r9d2a'),
+        'Alice',
+      );
+      expect(
+        notifier.contactLabelFor('z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7'),
+        'Bob',
+      );
+      // Replacing into a fresh address removes the old key in a single update.
+      final int beforeReplace = notifications;
+      expect(
+        notifier.replaceContact(
+          originalAddress: 'z1qr4pm3x9ue2a6kz0t2g8s3x5c7q1wl4r9d2a',
+          newAddress: 'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d',
+          name: 'Alice New',
+        ),
+        isTrue,
+      );
+      expect(notifications, beforeReplace + 1);
+      expect(
+        notifier.contactLabelFor('z1qr4pm3x9ue2a6kz0t2g8s3x5c7q1wl4r9d2a'),
+        isNull,
+      );
+      expect(
+        notifier.contactLabelFor('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d'),
+        'Alice New',
+      );
+      notifier
+        ..removeContact('z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d')
+        ..removeContact('z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7');
       expect(notifier.contacts, isEmpty);
       expect(notifications, greaterThanOrEqualTo(10));
     });
@@ -201,8 +240,9 @@ void main() {
       );
       expect(controller.transferRequest.value.nonce, 1);
 
-      controller.requestTransfer(mode: TransferMode.zap);
+      controller.requestTransfer(mode: TransferMode.zap, token: kQsrCoin);
       expect(controller.transferRequest.value.nonce, 2);
+      expect(controller.transferRequest.value.token, kQsrCoin);
 
       int sectionChanges = 0;
       controller.settingsSection.addListener(() => sectionChanges += 1);
@@ -1702,6 +1742,279 @@ void main() {
         verify(
           () => mockNotificationsBloc.addErrorNotification(any(), any()),
         ).called(1);
+      },
+    );
+
+    testWidgets(
+      'TransferTabChild honors token transfer requests, exposes unheld '
+      'network tokens in Receive, and validates Zap amounts in base units',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1280, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final Token unheldNetworkToken = _buildTestToken(
+          name: 'Orbital',
+          symbol: 'ORB',
+          owner: counterpartyAddress,
+          seedByte: 42,
+        );
+
+        when(
+          () => mockTokenApi.getAll(
+            pageIndex: any(named: 'pageIndex'),
+            pageSize: any(named: 'pageSize'),
+          ),
+        ).thenAnswer(
+          (_) async => TokenList(
+            count: 3,
+            list: <Token>[kZnnCoin, kQsrCoin, unheldNetworkToken],
+          ),
+        );
+
+        final MultipleBalanceBloc multipleBalanceBloc =
+            await createTestBalanceBloc();
+        multipleBalanceBloc.add(
+          const MultipleBalanceFetch(addresses: <String>[selfAddress]),
+        );
+
+        final AllTokensBloc allTokensBloc = AllTokensBloc(zenon: mockZenon)
+          ..add(const AllTokensRequested());
+        addTearDown(allTokensBloc.close);
+
+        final _MockSendTransactionBloc sendBloc = _MockSendTransactionBloc();
+        when(() => sendBloc.state).thenReturn(const SendTransactionState());
+        whenListen<SendTransactionState>(
+          sendBloc,
+          const Stream<SendTransactionState>.empty(),
+          initialState: const SendTransactionState(),
+        );
+
+        final _MockPendingTransactionsBloc pendingBloc =
+            _MockPendingTransactionsBloc();
+        const InfiniteListState<AccountBlock> emptyPendingState =
+            InfiniteListState<AccountBlock>(
+              status: InfiniteListStatus.success,
+              data: <AccountBlock>[],
+              hasReachedMax: true,
+            );
+        when(() => pendingBloc.state).thenReturn(emptyPendingState);
+        whenListen<InfiniteListState<AccountBlock>>(
+          pendingBloc,
+          const Stream<InfiniteListState<AccountBlock>>.empty(),
+          initialState: emptyPendingState,
+        );
+
+        final ShellNavigationController nav = ShellNavigationController();
+        final AppUiPreferencesNotifier uiPrefs = AppUiPreferencesNotifier();
+        addTearDown(nav.dispose);
+        addTearDown(uiPrefs.dispose);
+
+        await tester.pumpWidget(
+          MultiProvider(
+            providers: <SingleChildWidget>[
+              ChangeNotifierProvider<AppUiPreferencesNotifier>.value(
+                value: uiPrefs,
+              ),
+              Provider<ShellNavigationController>.value(value: nav),
+              BlocProvider<MultipleBalanceBloc>.value(
+                value: multipleBalanceBloc,
+              ),
+              BlocProvider<AllTokensBloc>.value(value: allTokensBloc),
+              BlocProvider<SendTransactionBloc>.value(value: sendBloc),
+              BlocProvider<PendingTransactionsBloc>.value(value: pendingBloc),
+            ],
+            child: _wrapThemed(const TransferTabChild()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Requesting Send with a specific token selects it in the Send form.
+        nav.requestTransfer(
+          mode: TransferMode.send,
+          token: unheldNetworkToken,
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('ORB'), findsOneWidget);
+
+        // Switching to Receive -> QR -> Request specific amount exposes the
+        // unheld network token ORB in the token picker.
+        await tester.tap(find.text('Receive'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Request a specific amount'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('ZNN').last);
+        await tester.pumpAndSettle();
+        expect(find.text('ORB'), findsOneWidget);
+        await tester.tap(find.text('ORB'));
+        await tester.pumpAndSettle();
+
+        // Switching to Zap validates base-unit balance and rejects amounts
+        // above available balance.
+        await tester.tap(find.text('Zap'));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byType(TextField).first,
+          counterpartyAddress,
+        );
+        await tester.enterText(
+          find.byKey(const Key('zap_znn_field')),
+          '999999',
+        );
+        await tester.pumpAndSettle();
+        final SyriusGradientButton zapBtn = tester.widget<SyriusGradientButton>(
+          find.byKey(const Key('zap_submit_button')),
+        );
+        expect(zapBtn.onPressed, isNull);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    test(
+      'LatestTransactionsBloc merges and sorts across all wallet addresses '
+      'when address is null, and FetchBloc ignores superseded requests',
+      () async {
+        const String secondAddress = counterpartyAddress;
+        kDefaultAddressList = <String?>[selfAddress, secondAddress];
+
+        final AccountBlock olderBlock = AccountBlock.fromJson(<String, dynamic>{
+          'version': 1,
+          'chainIdentifier': 1,
+          'blockType': 2,
+          'hash': Hash.digest(List<int>.filled(32, 1)).toString(),
+          'previousHash': emptyHash.toString(),
+          'height': 1,
+          'momentumAcknowledged': <String, dynamic>{
+            'hash': emptyHash.toString(),
+            'height': 1,
+          },
+          'address': selfAddress,
+          'toAddress': secondAddress,
+          'amount': '100',
+          'tokenStandard': kZnnCoin.tokenStandard.toString(),
+          'fromBlockHash': emptyHash.toString(),
+          'descendantBlocks': const <dynamic>[],
+          'data': '',
+          'fusedPlasma': 0,
+          'difficulty': 0,
+          'nonce': '0000000000000000',
+          'basePlasma': 0,
+          'usedPlasma': 0,
+          'changesHash': emptyHash.toString(),
+          'publicKey': '',
+          'signature': '',
+          'confirmationDetail': <String, dynamic>{
+            'numConfirmations': 1,
+            'momentumHeight': 10,
+            'momentumHash': emptyHash.toString(),
+            'momentumTimestamp': 1000,
+          },
+        });
+        final AccountBlock newerBlock = AccountBlock.fromJson(<String, dynamic>{
+          'version': 1,
+          'chainIdentifier': 1,
+          'blockType': 2,
+          'hash': Hash.digest(List<int>.filled(32, 2)).toString(),
+          'previousHash': emptyHash.toString(),
+          'height': 2,
+          'momentumAcknowledged': <String, dynamic>{
+            'hash': emptyHash.toString(),
+            'height': 2,
+          },
+          'address': secondAddress,
+          'toAddress': selfAddress,
+          'amount': '200',
+          'tokenStandard': kZnnCoin.tokenStandard.toString(),
+          'fromBlockHash': emptyHash.toString(),
+          'descendantBlocks': const <dynamic>[],
+          'data': '',
+          'fusedPlasma': 0,
+          'difficulty': 0,
+          'nonce': '0000000000000000',
+          'basePlasma': 0,
+          'usedPlasma': 0,
+          'changesHash': emptyHash.toString(),
+          'publicKey': '',
+          'signature': '',
+          'confirmationDetail': <String, dynamic>{
+            'numConfirmations': 1,
+            'momentumHeight': 20,
+            'momentumHash': emptyHash.toString(),
+            'momentumTimestamp': 2000,
+          },
+        });
+
+        when(
+          () => mockLedgerApi.getAccountBlocksByPage(
+            any(),
+            pageIndex: any(named: 'pageIndex'),
+            pageSize: any(named: 'pageSize'),
+          ),
+        ).thenAnswer((Invocation inv) async {
+          final Address addr = inv.positionalArguments.first as Address;
+          final int pageIndex = inv.namedArguments[#pageIndex]! as int;
+          if (pageIndex > 0) {
+            return AccountBlockList(list: <AccountBlock>[], count: 0);
+          }
+          if (addr.toString() == selfAddress) {
+            return AccountBlockList(list: <AccountBlock>[olderBlock], count: 1);
+          }
+          return AccountBlockList(list: <AccountBlock>[newerBlock], count: 1);
+        });
+
+        final LatestTransactionsBloc txBloc = LatestTransactionsBloc(
+          zenon: mockZenon,
+        );
+        addTearDown(txBloc.close);
+
+        txBloc.add(const InfiniteListRequested());
+        await txBloc.stream.firstWhere(
+          (InfiniteListState<AccountBlock> s) =>
+              s.status == InfiniteListStatus.success,
+        );
+        expect(txBloc.state.data, hasLength(2));
+        expect(txBloc.state.data!.first.hash, newerBlock.hash);
+        expect(txBloc.state.data!.last.hash, olderBlock.hash);
+
+        // FetchBloc discards a slow superseded response for address A after
+        // address B completes.
+        final Completer<List<PillarInfo>> slowAddressA =
+            Completer<List<PillarInfo>>();
+        final Address addrA = Address.parse(selfAddress);
+        final Address addrB = Address.parse(secondAddress);
+        when(() => mockPillarApi.getByOwner(addrA)).thenAnswer(
+          (_) => slowAddressA.future,
+        );
+        when(() => mockPillarApi.getByOwner(addrB)).thenAnswer(
+          (_) async => <PillarInfo>[],
+        );
+
+        final PillarsByOwnerBloc ownerBloc = PillarsByOwnerBloc(
+          zenon: mockZenon,
+        );
+        addTearDown(ownerBloc.close);
+
+        ownerBloc
+          ..add(FetchRequestData(address: addrA))
+          ..add(FetchRequestData(address: addrB));
+        await ownerBloc.stream.firstWhere(
+          (FetchState<List<PillarInfo>> s) => s is FetchPopulated,
+        );
+        expect(ownerBloc.loadedAddress, addrB);
+
+        slowAddressA.complete(<PillarInfo>[
+          _buildTestPillar(
+            name: 'StalePillar',
+            owner: selfAddress,
+            producer: secondAddress,
+          ),
+        ]);
+        await Future<void>.delayed(Duration.zero);
+        expect(ownerBloc.loadedAddress, addrB);
+        expect(
+          (ownerBloc.state as FetchPopulated<List<PillarInfo>>).data,
+          isEmpty,
+        );
       },
     );
   });

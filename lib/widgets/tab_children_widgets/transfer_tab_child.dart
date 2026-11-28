@@ -59,6 +59,8 @@ class _TransferTabChildState extends State<TransferTabChild> {
   );
   final TextEditingController _zapMessageController = TextEditingController();
   bool _isZapping = false;
+  bool _zapZnnCompleted = false;
+  bool _zapQsrCompleted = false;
 
   @override
   void didChangeDependencies() {
@@ -88,9 +90,14 @@ class _TransferTabChildState extends State<TransferTabChild> {
     }
     setState(() {
       _mode = req.mode;
+      if (req.token != null) {
+        _selectedToken = req.token!;
+      }
       if (req.recipientAddress != null && req.recipientAddress!.isNotEmpty) {
         if (req.mode == TransferMode.zap) {
           _zapAddressController.text = req.recipientAddress!;
+          _zapZnnCompleted = false;
+          _zapQsrCompleted = false;
         } else {
           _recipientController.text = req.recipientAddress!;
           _lookalikeDismissed = false;
@@ -167,10 +174,13 @@ class _TransferTabChildState extends State<TransferTabChild> {
       builder: (BuildContext context, MultipleBalanceState balState) {
         final Map<String, AccountInfo> balances =
             balState.data ?? const <String, AccountInfo>{};
-        final String effectiveSender = balances.containsKey(_senderAddress)
+        final List<String> walletAddresses = kDefaultAddressList
+            .whereType<String>()
+            .toList();
+        final String effectiveSender = walletAddresses.contains(_senderAddress)
             ? _senderAddress
             : (kSelectedAddress ??
-                  (balances.keys.isNotEmpty ? balances.keys.first : ''));
+                  (walletAddresses.isNotEmpty ? walletAddresses.first : ''));
         final AccountInfo? accountInfo = balances[effectiveSender];
         final List<Token> availableTokens = <Token>[...kDualCoin];
         if (accountInfo != null) {
@@ -180,6 +190,15 @@ class _TransferTabChildState extends State<TransferTabChild> {
             tokensWithBalance: getTokensWithBalance(accountInfo: accountInfo),
           );
         }
+        if (!availableTokens.any(
+          (Token t) => t.tokenStandard == _selectedToken.tokenStandard,
+        )) {
+          availableTokens.add(_selectedToken);
+        }
+        final List<Token> receiveTokens = _readReceiveTokens(
+          context,
+          fallback: availableTokens,
+        );
 
         final int behind = _nodeBlocksBehind(context);
         final bool isBehind = behind > 2;
@@ -246,7 +265,7 @@ class _TransferTabChildState extends State<TransferTabChild> {
                     context,
                     tokens,
                     effectiveSender: effectiveSender,
-                    availableTokens: availableTokens,
+                    availableTokens: receiveTokens,
                   ),
                   TransferMode.zap => _buildZapBody(
                     context,
@@ -322,6 +341,8 @@ class _TransferTabChildState extends State<TransferTabChild> {
         setState(() {
           _senderAddress = value;
           _selectedToken = kZnnCoin;
+          _zapZnnCompleted = false;
+          _zapQsrCompleted = false;
         });
       },
       itemBuilder: (_) => addresses.map((String addr) {
@@ -410,6 +431,7 @@ class _TransferTabChildState extends State<TransferTabChild> {
         : _detectLookalikeAddress(recipient, uiPrefs);
 
     final bool valid =
+        accountInfo != null &&
         recipient.isNotEmpty &&
         amountText.isNotEmpty &&
         recipientError == null &&
@@ -1013,18 +1035,15 @@ class _TransferTabChildState extends State<TransferTabChild> {
                 ),
               ),
               const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  SyriusGhostButton(
-                    label: context.l10n.copyPaymentRequest,
-                    icon: Icons.copy_rounded,
-                    fontSize: 11.5,
-                    onPressed: () => unawaited(
-                      Clipboard.setData(ClipboardData(text: qrPayload)),
-                    ),
+              Center(
+                child: SyriusGhostButton(
+                  label: context.l10n.copyPaymentRequest,
+                  icon: Icons.copy_rounded,
+                  fontSize: 11.5,
+                  onPressed: () => unawaited(
+                    Clipboard.setData(ClipboardData(text: qrPayload)),
                   ),
-                ],
+                ),
               ),
             ],
           ),
@@ -1154,16 +1173,53 @@ class _TransferTabChildState extends State<TransferTabChild> {
     final String znnTxt = _zapZnnController.text.trim();
     final String qsrTxt = _zapQsrController.text.trim();
     final String msg = _zapMessageController.text;
-    final double znnVal = double.tryParse(znnTxt) ?? 0;
-    final double qsrVal = double.tryParse(qsrTxt) ?? 0;
+    final BigInt availableZnn =
+        accountInfo?.getBalance(kZnnCoin.tokenStandard) ?? BigInt.zero;
+    final BigInt availableQsr =
+        accountInfo?.getBalance(kQsrCoin.tokenStandard) ?? BigInt.zero;
+
+    final String? znnError = znnTxt.isNotEmpty && !_zapZnnCompleted
+        ? InputValidators.correctValue(
+            znnTxt,
+            availableZnn,
+            kZnnCoin.decimals,
+            BigInt.zero,
+            l10n: context.l10n,
+          )
+        : null;
+    final String? qsrError = qsrTxt.isNotEmpty && !_zapQsrCompleted
+        ? InputValidators.correctValue(
+            qsrTxt,
+            availableQsr,
+            kQsrCoin.decimals,
+            BigInt.zero,
+            l10n: context.l10n,
+          )
+        : null;
+
+    final BigInt znnAmount = znnTxt.isNotEmpty && znnError == null
+        ? _tryExtractDecimals(znnTxt, kZnnCoin.decimals)
+        : BigInt.zero;
+    final BigInt qsrAmount = qsrTxt.isNotEmpty && qsrError == null
+        ? _tryExtractDecimals(qsrTxt, kQsrCoin.decimals)
+        : BigInt.zero;
+
+    final bool pendingZnn = znnAmount > BigInt.zero && !_zapZnnCompleted;
+    final bool pendingQsr = qsrAmount > BigInt.zero && !_zapQsrCompleted;
     final bool validTarget =
         target.isNotEmpty && InputValidators.checkAddress(target) == null;
     final bool canZap =
-        validTarget && (znnVal > 0 || qsrVal > 0) && !_isZapping;
+        accountInfo != null &&
+        validTarget &&
+        znnError == null &&
+        qsrError == null &&
+        (pendingZnn || pendingQsr) &&
+        !_isZapping &&
+        !_isSending;
 
     final List<String> parts = <String>[
-      if (znnVal > 0) '$znnTxt ZNN',
-      if (qsrVal > 0) '$qsrTxt QSR',
+      if (pendingZnn) '$znnTxt ZNN',
+      if (pendingQsr) '$qsrTxt QSR',
     ];
     final String ctaLabel = parts.isEmpty
         ? context.l10n.zap
@@ -1191,7 +1247,10 @@ class _TransferTabChildState extends State<TransferTabChild> {
             Expanded(
               child: TextField(
                 controller: _zapAddressController,
-                onChanged: (_) => setState(() {}),
+                onChanged: (_) => setState(() {
+                  _zapZnnCompleted = false;
+                  _zapQsrCompleted = false;
+                }),
                 style: tokens.monoStyle(
                   color: tokens.textPrimary,
                 ),
@@ -1223,11 +1282,16 @@ class _TransferTabChildState extends State<TransferTabChild> {
         ),
         const SizedBox(height: 12),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Expanded(
               child: TextField(
+                key: const Key('zap_znn_field'),
                 controller: _zapZnnController,
-                onChanged: (_) => setState(() {}),
+                onChanged: (_) => setState(() {
+                  _zapZnnCompleted = false;
+                  _zapQsrCompleted = false;
+                }),
                 inputFormatters: FormatUtils.getAmountTextInputFormatters(
                   _zapZnnController.text,
                 ),
@@ -1238,6 +1302,7 @@ class _TransferTabChildState extends State<TransferTabChild> {
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: tokens.surfaceSubtle,
+                  errorText: znnError,
                   prefixIcon: const Padding(
                     padding: EdgeInsets.all(10),
                     child: SyriusTokenAvatar(symbol: 'ZNN', size: 22),
@@ -1249,8 +1314,12 @@ class _TransferTabChildState extends State<TransferTabChild> {
             const SizedBox(width: 10),
             Expanded(
               child: TextField(
+                key: const Key('zap_qsr_field'),
                 controller: _zapQsrController,
-                onChanged: (_) => setState(() {}),
+                onChanged: (_) => setState(() {
+                  _zapZnnCompleted = false;
+                  _zapQsrCompleted = false;
+                }),
                 inputFormatters: FormatUtils.getAmountTextInputFormatters(
                   _zapQsrController.text,
                 ),
@@ -1261,6 +1330,7 @@ class _TransferTabChildState extends State<TransferTabChild> {
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: tokens.surfaceSubtle,
+                  errorText: qsrError,
                   prefixIcon: const Padding(
                     padding: EdgeInsets.all(10),
                     child: SyriusTokenAvatar(symbol: 'QSR', size: 22),
@@ -1299,13 +1369,14 @@ class _TransferTabChildState extends State<TransferTabChild> {
         ),
         const SizedBox(height: 10),
         Text(
-          znnVal > 0 && qsrVal > 0
+          pendingZnn && pendingQsr
               ? 'Two blocks, one per coin'
               : 'One account block with optional UTF-8 message',
           style: TextStyle(fontSize: 12, color: tokens.textSecondary),
         ),
         const SizedBox(height: 16),
         SyriusGradientButton(
+          key: const Key('zap_submit_button'),
           expanded: true,
           height: 44,
           icon: Icons.bolt_rounded,
@@ -1316,8 +1387,8 @@ class _TransferTabChildState extends State<TransferTabChild> {
                   context,
                   fromAddress: effectiveSender,
                   toAddress: target,
-                  znnText: znnTxt,
-                  qsrText: qsrTxt,
+                  znnAmount: znnAmount,
+                  qsrAmount: qsrAmount,
                   message: msg.trim(),
                 )
               : null,
@@ -1354,7 +1425,11 @@ class _TransferTabChildState extends State<TransferTabChild> {
     if (candidates.isNotEmpty) {
       final List<String> list = candidates.toList();
       final String chosen = list[Random().nextInt(list.length)];
-      setState(() => _zapAddressController.text = chosen);
+      setState(() {
+        _zapAddressController.text = chosen;
+        _zapZnnCompleted = false;
+        _zapQsrCompleted = false;
+      });
     }
   }
 
@@ -1362,8 +1437,8 @@ class _TransferTabChildState extends State<TransferTabChild> {
     BuildContext context, {
     required String fromAddress,
     required String toAddress,
-    required String znnText,
-    required String qsrText,
+    required BigInt znnAmount,
+    required BigInt qsrAmount,
     required String message,
   }) async {
     if (_isZapping || _isSending) {
@@ -1376,8 +1451,6 @@ class _TransferTabChildState extends State<TransferTabChild> {
       final List<int> dataBytes = message.isNotEmpty
           ? utf8.encode(message)
           : const <int>[];
-      final double znnVal = double.tryParse(znnText) ?? 0;
-      final double qsrVal = double.tryParse(qsrText) ?? 0;
 
       Future<bool> submitBlock(AccountBlockTemplate block) async {
         final Future<SendTransactionState> resultFuture = zapBloc.stream
@@ -1407,26 +1480,36 @@ class _TransferTabChildState extends State<TransferTabChild> {
       }
 
       bool allSucceeded = true;
-      if (znnVal > 0) {
+      if (znnAmount > BigInt.zero && !_zapZnnCompleted) {
         final AccountBlockTemplate znnBlock = AccountBlockTemplate.send(
           Address.parse(toAddress),
           kZnnCoin.tokenStandard,
-          znnText.extractDecimals(kZnnCoin.decimals),
+          znnAmount,
           dataBytes,
         );
         allSucceeded = await submitBlock(znnBlock);
+        if (allSucceeded && mounted) {
+          setState(() => _zapZnnCompleted = true);
+        }
       }
-      if (allSucceeded && qsrVal > 0) {
+      if (allSucceeded && qsrAmount > BigInt.zero && !_zapQsrCompleted) {
         final AccountBlockTemplate qsrBlock = AccountBlockTemplate.send(
           Address.parse(toAddress),
           kQsrCoin.tokenStandard,
-          qsrText.extractDecimals(kQsrCoin.decimals),
-          znnVal > 0 ? const <int>[] : dataBytes,
+          qsrAmount,
+          znnAmount > BigInt.zero ? const <int>[] : dataBytes,
         );
         allSucceeded = await submitBlock(qsrBlock);
+        if (allSucceeded && mounted) {
+          setState(() => _zapQsrCompleted = true);
+        }
       }
       if (allSucceeded && mounted) {
-        _zapMessageController.clear();
+        setState(() {
+          _zapMessageController.clear();
+          _zapZnnCompleted = false;
+          _zapQsrCompleted = false;
+        });
       }
     } finally {
       await zapBloc.close();
@@ -1685,9 +1768,12 @@ class _TransferTabChildState extends State<TransferTabChild> {
       }
       setState(() {
         _isSending = false;
-        _amountController.clear();
-        _recipientController.clear();
-        _lookalikeDismissed = false;
+        if (_amountController.text.trim() == summary.amount &&
+            _recipientController.text.trim() == summary.recipient) {
+          _amountController.clear();
+          _recipientController.clear();
+          _lookalikeDismissed = false;
+        }
       });
     } else if (state.status == SendTransactionStatus.failure) {
       _pendingSendSummary = null;
@@ -1770,6 +1856,37 @@ class _TransferTabChildState extends State<TransferTabChild> {
           kAutoReceiveDefaultValue;
     } on Object catch (_) {
       return kAutoReceiveDefaultValue;
+    }
+  }
+
+  List<Token> _readReceiveTokens(
+    BuildContext context, {
+    required List<Token> fallback,
+  }) {
+    try {
+      final AllTokensState allTokensState = context
+          .watch<AllTokensBloc>()
+          .state;
+      if (allTokensState is AllTokensPopulated &&
+          allTokensState.data.isNotEmpty) {
+        final Map<String, Token> merged = <String, Token>{
+          for (final Token t in kDualCoin) t.tokenStandard.toString(): t,
+          for (final Token t in allTokensState.data)
+            t.tokenStandard.toString(): t,
+        };
+        return sortAssets(merged.values.toList());
+      }
+    } on Object catch (_) {
+      // Fallback when AllTokensBloc is not provided in isolated widget tests.
+    }
+    return fallback;
+  }
+
+  static BigInt _tryExtractDecimals(String text, int decimals) {
+    try {
+      return text.extractDecimals(decimals);
+    } on Object catch (_) {
+      return BigInt.zero;
     }
   }
 

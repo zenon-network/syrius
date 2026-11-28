@@ -571,7 +571,9 @@ class _SwapExpandableRow extends StatelessWidget {
     final int nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     if (s.state == P2pSwapState.active || s.state == P2pSwapState.pending) {
       final HtlcSwap htlc = s as HtlcSwap;
-      final int remaining = htlc.initialHtlcExpirationTime - nowSec;
+      final int expirationTime =
+          htlc.counterHtlcExpirationTime ?? htlc.initialHtlcExpirationTime;
+      final int remaining = expirationTime - nowSec;
       if (remaining <= 0) {
         return '0 m';
       }
@@ -721,8 +723,11 @@ class _SwapExpandableRow extends StatelessWidget {
         : '${elapsed ~/ 86400} d ago';
     final bool isWaiting =
         swap.state == P2pSwapState.active || swap.state == P2pSwapState.pending;
+    final String yourDepositId = htlc.direction == P2pSwapDirection.outgoing
+        ? htlc.initialHtlcId
+        : (htlc.counterHtlcId ?? htlc.initialHtlcId);
     final String explorerUrl =
-        '${uiPrefs.selectedExplorer}transaction/${htlc.initialHtlcId}';
+        '${uiPrefs.selectedExplorer}transaction/$yourDepositId';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 2, 18, 18),
@@ -778,7 +783,7 @@ class _SwapExpandableRow extends StatelessWidget {
                       value: Row(
                         children: <Widget>[
                           Text(
-                            _shortHash(htlc.initialHtlcId),
+                            _shortHash(yourDepositId),
                             style: tokens.monoStyle(
                               fontSize: 12.5,
                               color: tokens.textPrimary,
@@ -787,7 +792,7 @@ class _SwapExpandableRow extends StatelessWidget {
                           const SizedBox(width: 6),
                           InkWell(
                             onTap: () => ClipboardUtils.copyToClipboard(
-                              htlc.initialHtlcId,
+                              yourDepositId,
                               context,
                             ),
                             child: Icon(
@@ -802,7 +807,7 @@ class _SwapExpandableRow extends StatelessWidget {
                             compact: true,
                             height: 26,
                             onPressed: () => ClipboardUtils.copyToClipboard(
-                              htlc.initialHtlcId,
+                              yourDepositId,
                               context,
                             ),
                           ),

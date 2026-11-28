@@ -30,10 +30,22 @@ class DashboardTabChild extends StatefulWidget {
 class _DashboardTabChildState extends State<DashboardTabChild> {
   static final NumberFormat _amountFormat = NumberFormat('#,##0.####');
 
-  bool _allAddressesFilter = true;
+  bool _allAddressesFilter = false;
   bool _tokensExpanded = false;
   bool _pendingExpanded = true;
   bool _collectingAll = false;
+  String? _lastRewardsAddress;
+
+  Address? _activityQueryAddress() {
+    if (_allAddressesFilter) {
+      return null;
+    }
+    final String? addr = kSelectedAddress;
+    if (addr == null || addr.isEmpty) {
+      return null;
+    }
+    return Address.parse(addr);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +96,30 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
     final AppUiPreferencesNotifier uiPrefs = context
         .watch<AppUiPreferencesNotifier>();
     context.watch<SelectedAddressNotifier>();
+    final String? selectedAddress = kSelectedAddress;
+    if (selectedAddress != null &&
+        selectedAddress.isNotEmpty &&
+        selectedAddress != _lastRewardsAddress) {
+      final bool shouldRefresh = _lastRewardsAddress != null;
+      _lastRewardsAddress = selectedAddress;
+      if (shouldRefresh) {
+        final Address parsed = Address.parse(selectedAddress);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+          context.read<UncollectedPillarRewardsBloc>().add(
+            FetchRequestData(address: parsed),
+          );
+          context.read<UncollectedSentinelRewardsBloc>().add(
+            FetchRequestData(address: parsed),
+          );
+          context.read<UncollectedStakingRewardsBloc>().add(
+            FetchRequestData(address: parsed),
+          );
+        });
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -429,6 +465,7 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
                 ),
                 const Spacer(),
                 SyriusPillButton(
+                  key: const Key('dashboard_activity_filter_button'),
                   label: _allAddressesFilter
                       ? context.l10n.allAddresses
                       : ZenonAddressUtils.getLabel(kSelectedAddress ?? ''),
@@ -438,6 +475,11 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
                     setState(() {
                       _allAddressesFilter = !_allAddressesFilter;
                     });
+                    context.read<LatestTransactionsBloc>().add(
+                      InfiniteListRefreshRequested(
+                        address: _activityQueryAddress(),
+                      ),
+                    );
                   },
                 ),
                 const SizedBox(width: 6),
@@ -447,13 +489,11 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
                   color: tokens.textMuted,
                   tooltip: context.l10n.refresh,
                   onPressed: () {
-                    if (kSelectedAddress != null) {
-                      context.read<LatestTransactionsBloc>().add(
-                        InfiniteListRefreshRequested(
-                          address: Address.parse(kSelectedAddress!),
-                        ),
-                      );
-                    }
+                    context.read<LatestTransactionsBloc>().add(
+                      InfiniteListRefreshRequested(
+                        address: _activityQueryAddress(),
+                      ),
+                    );
                   },
                   icon: const Icon(Icons.refresh_rounded),
                 ),
@@ -520,10 +560,9 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
       dataIdentity: blocks,
       separatorBuilder: (_, _) => const SyriusDivider(),
       onLoadMore: () {
-        final String? addr = kSelectedAddress;
-        if (addr != null) {
+        if (_allAddressesFilter || kSelectedAddress != null) {
           context.read<LatestTransactionsBloc>().add(
-            InfiniteListMoreRequested(address: Address.parse(addr)),
+            InfiniteListMoreRequested(address: _activityQueryAddress()),
           );
         }
       },
@@ -699,15 +738,16 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
     AppUiPreferencesNotifier uiPrefs,
   ) {
     final SyriusThemeTokens tokens = context.syriusTheme;
-    final FetchState<UncollectedReward> pillarState = context
-        .watch<UncollectedPillarRewardsBloc>()
-        .state;
-    final FetchState<UncollectedReward> sentinelState = context
-        .watch<UncollectedSentinelRewardsBloc>()
-        .state;
-    final FetchState<UncollectedReward> stakeState = context
-        .watch<UncollectedStakingRewardsBloc>()
-        .state;
+    final String? activeAddress = kSelectedAddress;
+    final UncollectedPillarRewardsBloc pillarBloc = context
+        .watch<UncollectedPillarRewardsBloc>();
+    final UncollectedSentinelRewardsBloc sentinelBloc = context
+        .watch<UncollectedSentinelRewardsBloc>();
+    final UncollectedStakingRewardsBloc stakeBloc = context
+        .watch<UncollectedStakingRewardsBloc>();
+    final FetchState<UncollectedReward> pillarState = pillarBloc.state;
+    final FetchState<UncollectedReward> sentinelState = sentinelBloc.state;
+    final FetchState<UncollectedReward> stakeState = stakeBloc.state;
 
     BigInt totalZnn = BigInt.zero;
     BigInt totalQsr = BigInt.zero;
@@ -715,21 +755,27 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
     bool hasSentinel = false;
     bool hasStaking = false;
 
-    if (pillarState is FetchPopulated<UncollectedReward>) {
+    if (activeAddress != null &&
+        pillarState is FetchPopulated<UncollectedReward> &&
+        pillarBloc.loadedAddress?.toString() == activeAddress) {
       totalZnn += pillarState.data.znnAmount;
       totalQsr += pillarState.data.qsrAmount;
       hasPillar =
           pillarState.data.znnAmount > BigInt.zero ||
           pillarState.data.qsrAmount > BigInt.zero;
     }
-    if (sentinelState is FetchPopulated<UncollectedReward>) {
+    if (activeAddress != null &&
+        sentinelState is FetchPopulated<UncollectedReward> &&
+        sentinelBloc.loadedAddress?.toString() == activeAddress) {
       totalZnn += sentinelState.data.znnAmount;
       totalQsr += sentinelState.data.qsrAmount;
       hasSentinel =
           sentinelState.data.znnAmount > BigInt.zero ||
           sentinelState.data.qsrAmount > BigInt.zero;
     }
-    if (stakeState is FetchPopulated<UncollectedReward>) {
+    if (activeAddress != null &&
+        stakeState is FetchPopulated<UncollectedReward> &&
+        stakeBloc.loadedAddress?.toString() == activeAddress) {
       totalZnn += stakeState.data.znnAmount;
       totalQsr += stakeState.data.qsrAmount;
       hasStaking =
@@ -774,9 +820,10 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
             label: context.l10n.collectAll,
             compact: true,
             isLoading: _collectingAll,
-            onPressed: hasAny
+            onPressed: hasAny && activeAddress != null
                 ? () => _collectAllRewards(
                     context,
+                    address: activeAddress,
                     hasPillar: hasPillar,
                     hasSentinel: hasSentinel,
                     hasStaking: hasStaking,
@@ -790,12 +837,12 @@ class _DashboardTabChildState extends State<DashboardTabChild> {
 
   Future<void> _collectAllRewards(
     BuildContext context, {
+    required String address,
     required bool hasPillar,
     required bool hasSentinel,
     required bool hasStaking,
   }) async {
-    final String? address = kSelectedAddress;
-    if (_collectingAll || address == null) {
+    if (_collectingAll) {
       return;
     }
     setState(() => _collectingAll = true);

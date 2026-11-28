@@ -206,7 +206,8 @@ class _ViewState extends State<_View> {
 
     final AcceleratorProject voteTarget =
         (activePhase != null &&
-            activePhase.status == AcceleratorProjectStatus.voting)
+            (activePhase.status == AcceleratorProjectStatus.voting ||
+                activePhase.status == AcceleratorProjectStatus.active))
         ? activePhase
         : project;
 
@@ -531,12 +532,22 @@ class _ViewState extends State<_View> {
                               ),
                               if (phase.url.isNotEmpty) ...<Widget>[
                                 const SizedBox(height: 2),
-                                Text(
-                                  phase.url,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: tokens.monoStyle(
-                                    fontSize: 11.5,
-                                    color: tokens.textMuted,
+                                InkWell(
+                                  onTap: () => unawaited(
+                                    NavigationUtils.openUrl(phase.url),
+                                  ),
+                                  child: Text(
+                                    phase.url,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: tokens
+                                        .monoStyle(
+                                          fontSize: 11.5,
+                                          color: tokens.znnGreen,
+                                        )
+                                        .copyWith(
+                                          decoration: TextDecoration.underline,
+                                          decorationColor: tokens.znnGreen,
+                                        ),
                                   ),
                                 ),
                               ],
@@ -841,8 +852,12 @@ class _ProjectVotingSidebarView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final SyriusThemeTokens tokens = context.syriusTheme;
+    final bool isPhaseTarget = target is Phase;
     final bool canVote =
-        pillarInfo != null && target.status == AcceleratorProjectStatus.voting;
+        pillarInfo != null &&
+        (target.status == AcceleratorProjectStatus.voting ||
+            (isPhaseTarget &&
+                target.status == AcceleratorProjectStatus.active));
 
     return BlocBuilder<VoteProjectBloc, VoteProjectState>(
       builder: (BuildContext context, VoteProjectState voteState) {
@@ -867,6 +882,83 @@ class _ProjectVotingSidebarView extends StatelessWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
+                if (isPhaseTarget &&
+                    (target.description.isNotEmpty ||
+                        target.url.isNotEmpty)) ...<Widget>[
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: tokens.surfaceSubtle,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: tokens.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          context.l10n.phaseDetails.toUpperCase(),
+                          style: tokens.microLabelStyle(),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          target.name,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: tokens.textPrimary,
+                          ),
+                        ),
+                        if (target.description.isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 6),
+                          Text(
+                            target.description,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              height: 1.45,
+                              color: tokens.textSecondary,
+                            ),
+                          ),
+                        ],
+                        if (target.url.isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 8),
+                          InkWell(
+                            key: const Key('selected_phase_url_link'),
+                            onTap: () => unawaited(
+                              NavigationUtils.openUrl(target.url),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Icon(
+                                  Icons.open_in_new_rounded,
+                                  size: 13,
+                                  color: tokens.znnGreen,
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    target.url,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: tokens
+                                        .monoStyle(
+                                          fontSize: 11.5,
+                                          color: tokens.znnGreen,
+                                        )
+                                        .copyWith(
+                                          decoration: TextDecoration.underline,
+                                          decorationColor: tokens.znnGreen,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 if (canVote) ...<Widget>[
                   Text(
                     phaseNumber != null && target is Phase

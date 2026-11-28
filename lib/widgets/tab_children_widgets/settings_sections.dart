@@ -249,9 +249,16 @@ class _AddressesSettingsPane extends StatelessWidget {
           builder: (BuildContext ctx, StateSetter setModalState) {
             final String addr = addrCtrl.text.trim();
             final String name = nameCtrl.text.trim();
-            final String? addrError = addr.isEmpty
+            final String? formatError = addr.isEmpty
                 ? null
                 : InputValidators.checkAddress(addr, l10n: context.l10n);
+            final bool isDuplicate =
+                addr.isNotEmpty &&
+                addr != initialAddress &&
+                prefs.contacts.containsKey(addr);
+            final String? addrError =
+                formatError ??
+                (isDuplicate ? context.l10n.addressAlreadyInContacts : null);
             final bool canSave =
                 addr.isNotEmpty && name.isNotEmpty && addrError == null;
 
@@ -267,12 +274,14 @@ class _AddressesSettingsPane extends StatelessWidget {
                   height: 36,
                   onPressed: canSave
                       ? () {
-                          if (initialAddress != null &&
-                              initialAddress != addr) {
-                            prefs.removeContact(initialAddress);
+                          final bool saved = prefs.replaceContact(
+                            originalAddress: initialAddress ?? '',
+                            newAddress: addr,
+                            name: name,
+                          );
+                          if (saved) {
+                            Navigator.of(dialogContext).pop();
                           }
-                          prefs.saveContact(addr, name);
-                          Navigator.of(dialogContext).pop();
                         }
                       : null,
                 ),
@@ -874,6 +883,23 @@ class _NodeSettingsPaneState extends State<_NodeSettingsPane> {
     );
   }
 
+  void _resolveMismatch(
+    BuildContext context,
+    NodeManagementBloc bloc,
+    NodeChainIdMismatchPrompt mismatch, {
+    required bool proceed,
+  }) {
+    final String targetNode = proceed ? mismatch.node : mismatch.previousNode;
+    bloc.add(
+      NodeManagementChainIdMismatchResolved(
+        proceed: proceed,
+        connectionFailedTitle: context.l10n.connectionFailed,
+        connectionUnavailableMessage: context.l10n
+            .connectionCouldNotBeEstablished(targetNode),
+      ),
+    );
+  }
+
   void _connectNode(
     BuildContext context,
     NodeManagementBloc bloc,
@@ -923,6 +949,11 @@ class _NodeSettingsPaneState extends State<_NodeSettingsPane> {
       child: BlocBuilder<NodeManagementBloc, NodeManagementState>(
         builder: (BuildContext context, NodeManagementState nodeState) {
           final NodeManagementBloc bloc = context.read<NodeManagementBloc>();
+          final NodeChainIdMismatchPrompt? mismatch =
+              nodeState.pendingChainIdMismatch;
+          final bool reconnectFailed = mismatch?.reconnectFailed ?? false;
+          final bool isNodeDisconnected =
+              nodeState.isDisconnected || reconnectFailed;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
@@ -994,6 +1025,104 @@ class _NodeSettingsPaneState extends State<_NodeSettingsPane> {
                       ),
                     ),
                     Divider(height: 1, color: tokens.border),
+                    if (reconnectFailed && mismatch != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: tokens.errorSurface,
+                          border: Border(
+                            bottom: BorderSide(color: tokens.border),
+                          ),
+                        ),
+                        child: Row(
+                          children: <Widget>[
+                            Icon(
+                              Icons.error_outline_rounded,
+                              size: 16,
+                              color: tokens.error,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                context.l10n.couldNotReconnectToNode(
+                                  mismatch.previousNode,
+                                ),
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: tokens.textPrimary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            SyriusPillButton(
+                              label: context.l10n.reconnect,
+                              compact: true,
+                              height: 28,
+                              onPressed:
+                                  nodeState.isConfirmingNode ||
+                                      nodeState.isConfirmingChainId
+                                  ? null
+                                  : () => _resolveMismatch(
+                                      context,
+                                      bloc,
+                                      mismatch,
+                                      proceed: false,
+                                    ),
+                            ),
+                            const SizedBox(width: 8),
+                            SyriusPillButton(
+                              label: context.l10n.proceedAnyway,
+                              compact: true,
+                              height: 28,
+                              onPressed:
+                                  nodeState.isConfirmingNode ||
+                                      nodeState.isConfirmingChainId
+                                  ? null
+                                  : () => _resolveMismatch(
+                                      context,
+                                      bloc,
+                                      mismatch,
+                                      proceed: true,
+                                    ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (nodeState.isDisconnected)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: tokens.errorSurface,
+                          border: Border(
+                            bottom: BorderSide(color: tokens.border),
+                          ),
+                        ),
+                        child: Row(
+                          children: <Widget>[
+                            Icon(
+                              Icons.cloud_off_rounded,
+                              size: 16,
+                              color: tokens.error,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                context.l10n.disconnectedFromNode,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: tokens.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -1004,6 +1133,8 @@ class _NodeSettingsPaneState extends State<_NodeSettingsPane> {
                         final String node = nodeState.nodes[index];
                         final bool isConfirmed =
                             node == nodeState.confirmedNode;
+                        final bool isConnected =
+                            isConfirmed && !isNodeDisconnected;
                         final bool isCustom =
                             !bloc.isDefaultNode(node) &&
                             !bloc.isCommunityNode(node);
@@ -1025,8 +1156,10 @@ class _NodeSettingsPaneState extends State<_NodeSettingsPane> {
                                 width: 3,
                                 height: 26,
                                 decoration: BoxDecoration(
-                                  color: isConfirmed
+                                  color: isConnected
                                       ? tokens.znnGreen
+                                      : isConfirmed
+                                      ? tokens.error
                                       : tokens.borderStrong,
                                   borderRadius: BorderRadius.circular(999),
                                 ),
@@ -1066,7 +1199,7 @@ class _NodeSettingsPaneState extends State<_NodeSettingsPane> {
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              if (isConfirmed)
+                              if (isConnected)
                                 SyriusStatusBadge(
                                   label: context.l10n.connected,
                                   tone: SyriusBadgeTone.success,
@@ -1074,7 +1207,9 @@ class _NodeSettingsPaneState extends State<_NodeSettingsPane> {
                                 )
                               else
                                 SyriusPillButton(
-                                  label: context.l10n.connect,
+                                  label: isConfirmed
+                                      ? context.l10n.reconnect
+                                      : context.l10n.connect,
                                   compact: true,
                                   height: 28,
                                   isLoading:
@@ -2548,24 +2683,10 @@ class _AppsSettingsPane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final SyriusThemeTokens tokens = context.syriusTheme;
-    final AppUiPreferencesNotifier uiPrefs = context
-        .watch<AppUiPreferencesNotifier>();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        SyriusCard(
-          padding: EdgeInsets.zero,
-          child: _SettingsRow(
-            title: context.l10n.webApps,
-            subtitle: '127.0.0.1:35996',
-            trailing: Switch(
-              value: uiPrefs.webAppsEnabled,
-              onChanged: (bool v) => uiPrefs.webAppsEnabled = v,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
         if (!hasWeb3)
           SyriusCard(child: SyriusEmptyState(message: context.l10n.noneYet))
         else ...<Widget>[

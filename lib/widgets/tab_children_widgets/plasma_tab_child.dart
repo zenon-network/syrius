@@ -35,6 +35,8 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
   final Set<Hash> _selectedFusionIds = <Hash>{};
   bool _fusing = false;
   bool _batchCancelling = false;
+  Timer? _unlockRefreshTimer;
+  int? _scheduledUnlockHeight;
 
   @override
   void initState() {
@@ -44,9 +46,56 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
 
   @override
   void dispose() {
+    _unlockRefreshTimer?.cancel();
     _amountController.dispose();
     _beneficiaryController.dispose();
     super.dispose();
+  }
+
+  void _scheduleNextUnlockRefresh(
+    BuildContext context,
+    List<FusionEntryWrapper> entries,
+    int lastHeight,
+  ) {
+    int? earliestExpiration;
+    for (final FusionEntryWrapper wrapper in entries) {
+      if (!wrapper.isRevocable) {
+        final int exp = wrapper.fusionEntry.expirationHeight;
+        if (earliestExpiration == null || exp < earliestExpiration) {
+          earliestExpiration = exp;
+        }
+      }
+    }
+    if (earliestExpiration == null) {
+      _unlockRefreshTimer?.cancel();
+      _unlockRefreshTimer = null;
+      _scheduledUnlockHeight = null;
+      return;
+    }
+    if (_scheduledUnlockHeight == earliestExpiration &&
+        (_unlockRefreshTimer?.isActive ?? false)) {
+      return;
+    }
+    _unlockRefreshTimer?.cancel();
+    _scheduledUnlockHeight = earliestExpiration;
+    final int blocksUntilRevocable = math.max(
+      earliestExpiration - lastHeight + 1,
+      1,
+    );
+    final Duration delay = kIntervalBetweenMomentums * blocksUntilRevocable;
+    final FusedPlasmaBloc fusedBloc = context.read<FusedPlasmaBloc>();
+    _unlockRefreshTimer = Timer(delay, () {
+      _scheduledUnlockHeight = null;
+      if (!mounted) {
+        return;
+      }
+      final String? addr = kSelectedAddress;
+      if (addr != null) {
+        fusedBloc.add(
+          InfiniteListRefreshRequested(address: Address.parse(addr)),
+        );
+      }
+    });
   }
 
   @override
@@ -406,10 +455,12 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
         .state;
     final List<FusionEntryWrapper> entries =
         fusedState.data ?? const <FusionEntryWrapper>[];
-    BigInt totalFused = BigInt.zero;
+    BigInt loadedFused = BigInt.zero;
     for (final FusionEntryWrapper e in entries) {
-      totalFused += e.fusionEntry.qsrAmount;
+      loadedFused += e.fusionEntry.qsrAmount;
     }
+    final BigInt totalFused =
+        context.read<FusedPlasmaBloc>().totalFusedQsr ?? loadedFused;
 
     return SyriusCard(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -756,6 +807,7 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
   }) {
     final int lastHeight =
         context.read<FusedPlasmaBloc>().lastMomentumHeight ?? 0;
+    _scheduleNextUnlockRefresh(context, entries, lastHeight);
 
     return Column(
       children: <Widget>[
@@ -949,7 +1001,6 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
             result.exception,
             errorTitle,
           );
-          break;
         }
       }
       if (mounted && context.mounted) {

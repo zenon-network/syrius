@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Active sub-mode inside the redesigned Transfer screen (Screens 07–11).
 enum TransferMode {
@@ -44,6 +45,7 @@ class TransferNavigationRequest {
   const TransferNavigationRequest({
     required this.mode,
     this.recipientAddress,
+    this.token,
     this.nonce = 0,
   });
 
@@ -52,6 +54,9 @@ class TransferNavigationRequest {
 
   /// Optional address to pre-fill in the recipient field.
   final String? recipientAddress;
+
+  /// Optional token to pre-select in the Send form.
+  final Token? token;
 
   /// Monotonic counter so repeated requests with identical fields still fire.
   final int nonce;
@@ -73,12 +78,17 @@ class ShellNavigationController {
   int _nonce = 0;
 
   /// Requests switching the Transfer tab to [mode] with an optional
-  /// [recipientAddress].
-  void requestTransfer({required TransferMode mode, String? recipientAddress}) {
+  /// [recipientAddress] and [token].
+  void requestTransfer({
+    required TransferMode mode,
+    String? recipientAddress,
+    Token? token,
+  }) {
     _nonce += 1;
     transferRequest.value = TransferNavigationRequest(
       mode: mode,
       recipientAddress: recipientAddress,
+      token: token,
       nonce: _nonce,
     );
   }

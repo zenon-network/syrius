@@ -244,6 +244,35 @@ class AppUiPreferencesNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Atomically replaces [originalAddress] with [newAddress] and [name].
+  ///
+  /// Returns `false` without mutating contacts if [newAddress] is invalid or
+  /// already belongs to a different saved contact.
+  bool replaceContact({
+    required String originalAddress,
+    required String newAddress,
+    required String name,
+  }) {
+    final String trimmedOriginal = originalAddress.trim();
+    final String trimmedNew = newAddress.trim();
+    final String trimmedName = name.trim();
+    if (trimmedNew.isEmpty || trimmedName.isEmpty) {
+      return false;
+    }
+    if (trimmedNew != trimmedOriginal && _contacts.containsKey(trimmedNew)) {
+      return false;
+    }
+    final Map<String, String> updated = Map<String, String>.from(_contacts);
+    if (trimmedOriginal.isNotEmpty && trimmedOriginal != trimmedNew) {
+      updated.remove(trimmedOriginal);
+    }
+    updated[trimmedNew] = trimmedName;
+    _contacts = updated;
+    _persist(kContactsMapKey, _contacts);
+    notifyListeners();
+    return true;
+  }
+
   /// Removes a saved contact address.
   void removeContact(String address) {
     if (!_contacts.containsKey(address)) {

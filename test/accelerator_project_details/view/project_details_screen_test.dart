@@ -332,5 +332,136 @@ void main() {
         verify(() => mockAccelerator.getVoteBreakdown(phaseId)).called(1);
       },
     );
+
+    testWidgets(
+      'selects an active phase as vote target and displays its description '
+      'and clickable URL for Pillars',
+      (WidgetTester tester) async {
+        final Hash phaseId = _hash(12);
+        final Phase activePhase = Phase(
+          id: phaseId,
+          projectId: projectId,
+          name: 'Milestone Alpha',
+          description: 'Deliver updated wallet desktop workflows.',
+          url: 'https://zenon.network/milestone-alpha',
+          znnFundsNeeded: BigInt.from(25 * oneZnn),
+          qsrFundsNeeded: BigInt.from(250 * oneQsr),
+          creationTimestamp: 1700000100,
+          acceptedTimestamp: 1700000200,
+          status: AcceleratorProjectStatus.active.index,
+          voteBreakdown: VoteBreakdown.fromJson(<String, dynamic>{
+            'id': phaseId.toString(),
+            'yes': 5,
+            'no': 1,
+            'total': 6,
+          }),
+        );
+        final Project projectWithActivePhase = Project(
+          id: projectId,
+          name: 'Hyperion',
+          owner: owner,
+          description: 'Next-gen wallet upgrades',
+          url: 'https://zenon.network',
+          znnFundsNeeded: BigInt.from(100 * oneZnn),
+          qsrFundsNeeded: BigInt.from(1000 * oneQsr),
+          creationTimestamp: 1700000000,
+          lastUpdateTimestamp: 1700000000,
+          status: AcceleratorProjectStatus.active.index,
+          phaseIds: <Hash>[phaseId],
+          voteBreakdown: VoteBreakdown.fromJson(<String, dynamic>{
+            'id': projectId.toString(),
+            'yes': 10,
+            'no': 0,
+            'total': 10,
+          }),
+          phases: <Phase>[activePhase],
+        );
+        final PillarInfo pillar = PillarInfo.fromJson(<String, dynamic>{
+          'name': 'AtlasPillar',
+          'rank': 1,
+          'type': PillarInfo.regularPillarType,
+          'ownerAddress': visitor.toString(),
+          'producerAddress': owner.toString(),
+          'withdrawAddress': visitor.toString(),
+          'giveMomentumRewardPercentage': 0,
+          'giveDelegateRewardPercentage': 50,
+          'isRevocable': false,
+          'revokeCooldown': 0,
+          'revokeTimestamp': 0,
+          'currentStats': const <String, dynamic>{
+            'producedMomentums': 10,
+            'expectedMomentums': 10,
+          },
+          'weight': '1500000000000',
+        });
+
+        final _MockZenon mockZenon = _MockZenon();
+        final _MockEmbeddedApi mockEmbedded = _MockEmbeddedApi();
+        final _MockAcceleratorApi mockAccelerator = _MockAcceleratorApi();
+        when(() => mockZenon.embedded).thenReturn(mockEmbedded);
+        when(() => mockEmbedded.accelerator).thenReturn(mockAccelerator);
+        when(() => mockAccelerator.getVoteBreakdown(phaseId)).thenAnswer(
+          (_) async => VoteBreakdown.fromJson(<String, dynamic>{
+            'id': phaseId.toString(),
+            'yes': 5,
+            'no': 1,
+            'total': 6,
+          }),
+        );
+
+        final Zenon? previousZenon = zenon;
+        zenon = mockZenon;
+        addTearDown(() {
+          zenon = previousZenon;
+        });
+
+        kSelectedAddress = visitor.toString();
+        when(() => refreshProjectBloc.state).thenReturn(
+          RefreshProjectPopulated(project: projectWithActivePhase),
+        );
+        whenListen<RefreshProjectState>(
+          refreshProjectBloc,
+          const Stream<RefreshProjectState>.empty(),
+          initialState: RefreshProjectPopulated(
+            project: projectWithActivePhase,
+          ),
+        );
+
+        tester.view.physicalSize = const Size(1400, 1000);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        await tester.pumpWidget(
+          Layout(
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: ProjectDetailsScreen(
+                project: projectWithActivePhase,
+                pillarInfo: pillar,
+                activePillarCount: 30,
+                onStepperNotificationSeeMorePressed: () {},
+                refreshProjectBloc: refreshProjectBloc,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Deliver updated wallet desktop workflows.'),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const Key('selected_phase_url_link')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const Key('accelerator_vote_yes_button')),
+          findsOneWidget,
+        );
+        verify(() => mockAccelerator.getVoteBreakdown(phaseId)).called(1);
+      },
+    );
   });
 }

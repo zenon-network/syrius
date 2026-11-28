@@ -70,16 +70,12 @@ class _StakingTabChildState extends State<StakingTabChild> {
         if (state.status == SendTransactionStatus.success) {
           setState(() {
             _submittingStake = false;
-            _collecting = false;
             _amountController.clear();
             _showCreateDrawer = false;
           });
           final Address addr = Address.parse(kSelectedAddress!);
           context.read<StakesBloc>().add(
             InfiniteListRefreshRequested(address: addr),
-          );
-          context.read<UncollectedStakingRewardsBloc>().add(
-            FetchRequestData(address: addr),
           );
           sl<MultipleBalanceBloc>().add(
             MultipleBalanceFetch(
@@ -89,7 +85,6 @@ class _StakingTabChildState extends State<StakingTabChild> {
         } else if (state.status == SendTransactionStatus.failure) {
           setState(() {
             _submittingStake = false;
-            _collecting = false;
           });
           if (state.error != null) {
             unawaited(
@@ -126,10 +121,12 @@ class _StakingTabChildState extends State<StakingTabChild> {
           (BuildContext context, InfiniteListState<StakeEntry> stakesState) {
             final List<StakeEntry> stakes =
                 stakesState.data ?? const <StakeEntry>[];
-            BigInt totalStaked = BigInt.zero;
+            BigInt loadedStaked = BigInt.zero;
             for (final StakeEntry entry in stakes) {
-              totalStaked += entry.amount;
+              loadedStaked += entry.amount;
             }
+            final BigInt totalStaked =
+                context.read<StakesBloc>().totalStakedAmount ?? loadedStaked;
 
             final FetchState<UncollectedReward> uncollectedState = context
                 .watch<UncollectedStakingRewardsBloc>()
@@ -192,17 +189,9 @@ class _StakingTabChildState extends State<StakingTabChild> {
                     SyriusPillButton(
                       label: context.l10n.collect,
                       isLoading: _collecting,
-                      onPressed: () {
-                        setState(() => _collecting = true);
-                        context.read<SendTransactionBloc>().add(
-                          SendTransactionInitiateFromBlock(
-                            block: zenon!.embedded.stake.collectReward(),
-                            fromAddress: kSelectedAddress!,
-                            reasonForGeneratingPlasma:
-                                context.l10n.collectStakingRewards,
-                          ),
-                        );
-                      },
+                      onPressed: _collecting
+                          ? null
+                          : () => unawaited(_collectStakingRewards(context)),
                     ),
                   ],
                   const Spacer(),
@@ -651,6 +640,55 @@ class _StakingTabChildState extends State<StakingTabChild> {
         ),
       ],
     );
+  }
+
+  Future<void> _collectStakingRewards(BuildContext context) async {
+    final String? address = kSelectedAddress;
+    if (_collecting || address == null) {
+      return;
+    }
+    setState(() => _collecting = true);
+    final SendTransactionBloc collectBloc = SendTransactionBloc();
+    final String reason = context.l10n.collectStakingRewards;
+    try {
+      final Future<SendTransactionState> resultFuture = collectBloc.stream
+          .firstWhere(
+            (SendTransactionState s) =>
+                s.status == SendTransactionStatus.success ||
+                s.status == SendTransactionStatus.failure,
+          );
+      collectBloc.add(
+        SendTransactionInitiateFromBlock(
+          block: zenon!.embedded.stake.collectReward(),
+          fromAddress: address,
+          reasonForGeneratingPlasma: reason,
+        ),
+      );
+      final SendTransactionState result = await resultFuture;
+      if (result.status == SendTransactionStatus.failure) {
+        if (result.error != null) {
+          await NotificationUtils.sendNotificationError(result.error!, reason);
+        }
+      } else if (mounted && context.mounted) {
+        final Address addr = Address.parse(address);
+        context.read<UncollectedStakingRewardsBloc>().add(
+          FetchRequestData(address: addr),
+        );
+        context.read<StakingRewardsHistoryBloc>().add(
+          FetchRequestData(address: addr),
+        );
+        sl<MultipleBalanceBloc>().add(
+          MultipleBalanceFetch(
+            addresses: kDefaultAddressList.whereType<String>().toList(),
+          ),
+        );
+      }
+    } finally {
+      await collectBloc.close();
+      if (mounted) {
+        setState(() => _collecting = false);
+      }
+    }
   }
 
   Future<void> _showRewardsHistoryModal(BuildContext context) async {

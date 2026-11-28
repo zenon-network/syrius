@@ -191,6 +191,9 @@ class _MainAppContainerState extends State<MainAppContainer>
     ClipboardUtils.toggleClipboardWatcherStatus();
 
     _initTabController();
+    _shellNavigation.transferRequest.addListener(
+      _onTransferNavigationRequested,
+    );
     kCurrentPage = kWalletInitCompleted ? Tabs.dashboard : Tabs.lock;
     if (kWalletInitCompleted) {
       requestInitialTransactionsForAddress(kSelectedAddress);
@@ -552,6 +555,9 @@ class _MainAppContainerState extends State<MainAppContainer>
   @override
   void dispose() {
     windowManager.removeListener(this);
+    _shellNavigation.transferRequest.removeListener(
+      _onTransferNavigationRequested,
+    );
     unawaited(_nodeSyncStatusCubit.close());
     _shellNavigation.dispose();
     _navigateToLockTimer?.cancel();
@@ -586,6 +592,15 @@ class _MainAppContainerState extends State<MainAppContainer>
     } else {
       _lockBloc.add(const LockNavigateToDashboardRequested());
     }
+  }
+
+  void _onTransferNavigationRequested() {
+    if (_shellNavigation.transferRequest.value.nonce <= 0 ||
+        !mounted ||
+        _isWalletLocked()) {
+      return;
+    }
+    _navigateTo(Tabs.transfer);
   }
 
   int _getTabChildIndex(Tabs page) => kTabs.indexOf(page);

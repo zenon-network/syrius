@@ -34,6 +34,7 @@
   "addNode": "Add node",
   "addWallet": "Add a wallet",
   "address": "Address",
+  "addressAlreadyInContacts": "Address is already saved in contacts",
   "addressLabel": "Address label",
   "addressNotInWalletList": "Address {address} is not present in the wallet address list.",
   "@addressNotInWalletList": {

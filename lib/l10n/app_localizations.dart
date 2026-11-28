@@ -244,6 +244,12 @@ abstract class AppLocalizations {
   /// **'Address'**
   String get address;
 
+  /// No description provided for @addressAlreadyInContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Address is already saved in contacts'**
+  String get addressAlreadyInContacts;
+
   /// No description provided for @addressLabel.
   ///
   /// In en, this message translates to:

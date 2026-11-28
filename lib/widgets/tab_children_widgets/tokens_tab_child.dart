@@ -64,6 +64,9 @@ class _TokensWorkspaceView extends StatefulWidget {
 
 class _TokensWorkspaceViewState extends State<_TokensWorkspaceView> {
   final TextEditingController _searchController = TextEditingController();
+  final Map<String, BurnTokenBloc> _burnBlocs = <String, BurnTokenBloc>{};
+  final Map<String, StreamSubscription<BurnTokenState>> _burnSubscriptions =
+      <String, StreamSubscription<BurnTokenState>>{};
   _TokenFilter _filter = _TokenFilter.held;
   String? _expandedZts;
 
@@ -81,8 +84,47 @@ class _TokensWorkspaceViewState extends State<_TokensWorkspaceView> {
 
   @override
   void dispose() {
+    for (final StreamSubscription<BurnTokenState> sub
+        in _burnSubscriptions.values) {
+      unawaited(sub.cancel());
+    }
+    _burnSubscriptions.clear();
+    for (final BurnTokenBloc bloc in _burnBlocs.values) {
+      unawaited(bloc.close());
+    }
+    _burnBlocs.clear();
     _searchController.dispose();
     super.dispose();
+  }
+
+  BurnTokenBloc _burnBlocFor(String zts) {
+    final BurnTokenBloc? existing = _burnBlocs[zts];
+    if (existing != null) {
+      return existing;
+    }
+    final BurnTokenBloc bloc = BurnTokenBloc(
+      accountBlockUtils: AccountBlockUtils(),
+      zenon: zenon!,
+      zenonAddressUtils: ZenonAddressUtils(),
+    );
+    _burnBlocs[zts] = bloc;
+    _burnSubscriptions[zts] = bloc.stream.listen((BurnTokenState state) {
+      if (!mounted) {
+        return;
+      }
+      if (state is BurnTokenDone) {
+        _refreshTokens();
+      } else if (state is BurnTokenFailure) {
+        unawaited(
+          NotificationUtils.sendNotificationError(
+            state.exception,
+            context.l10n.errorBurningZts,
+          ),
+        );
+      }
+      setState(() {});
+    });
+    return bloc;
   }
 
   Set<String> _favoriteStandards() {
@@ -514,6 +556,7 @@ class _TokensWorkspaceViewState extends State<_TokensWorkspaceView> {
           hideBalances: uiPrefs.hideBalances,
           explorerBaseUrl: uiPrefs.selectedExplorer,
           expanded: expanded,
+          burnBloc: _burnBlocFor(zts),
           onToggleExpand: () {
             setState(() {
               _expandedZts = expanded ? null : zts;
@@ -534,6 +577,7 @@ class _TokenExpandableRow extends StatefulWidget {
     required this.hideBalances,
     required this.explorerBaseUrl,
     required this.expanded,
+    required this.burnBloc,
     required this.onToggleExpand,
     required this.onFavoriteChanged,
     required this.onMutationSuccess,
@@ -545,6 +589,7 @@ class _TokenExpandableRow extends StatefulWidget {
   final bool hideBalances;
   final String explorerBaseUrl;
   final bool expanded;
+  final BurnTokenBloc burnBloc;
   final VoidCallback onToggleExpand;
   final VoidCallback onFavoriteChanged;
   final VoidCallback onMutationSuccess;
@@ -726,6 +771,15 @@ class _TokenExpandableRowState extends State<_TokenExpandableRow> {
                         if (_isOwnedByWallet) ...<Widget>[
                           const SizedBox(width: 8),
                           SyriusStatusBadge(label: context.l10n.you),
+                        ],
+                        if (widget.burnBloc.state
+                            is BurnTokenLoading) ...<Widget>[
+                          const SizedBox(width: 8),
+                          SyriusStatusBadge(
+                            label: context.l10n.burn,
+                            tone: SyriusBadgeTone.warning,
+                            leadingDot: true,
+                          ),
                         ],
                       ],
                     ),
@@ -911,7 +965,10 @@ class _TokenExpandableRowState extends State<_TokenExpandableRow> {
                               context,
                               listen: false,
                             );
-                        nav?.requestTransfer(mode: TransferMode.send);
+                        nav?.requestTransfer(
+                          mode: TransferMode.send,
+                          token: widget.token,
+                        );
                       },
                     ),
                     const SizedBox(width: 10),
@@ -928,12 +985,14 @@ class _TokenExpandableRowState extends State<_TokenExpandableRow> {
           if (_isOwnerOnSelectedAddress) ...<Widget>[
             const SizedBox(height: 14),
             _buildOwnerActionPanel(context, tokens),
-          ] else if (_showHolderBurn && widget.accountInfo != null) ...<Widget>[
+          ] else if ((_showHolderBurn ||
+                  widget.burnBloc.state is BurnTokenLoading) &&
+              widget.accountInfo != null) ...<Widget>[
             const SizedBox(height: 14),
             _InlineBurnForm(
               token: widget.token,
               accountInfo: widget.accountInfo!,
-              onSuccess: widget.onMutationSuccess,
+              burnBloc: widget.burnBloc,
             ),
           ],
         ],
@@ -971,7 +1030,7 @@ class _TokenExpandableRowState extends State<_TokenExpandableRow> {
             : _InlineBurnForm(
                 token: widget.token,
                 accountInfo: widget.accountInfo!,
-                onSuccess: widget.onMutationSuccess,
+                burnBloc: widget.burnBloc,
               ),
       _OwnerActionTab.transfer => _InlineTransferForm(
         token: widget.token,
@@ -1222,12 +1281,12 @@ class _InlineBurnForm extends StatefulWidget {
   const _InlineBurnForm({
     required this.token,
     required this.accountInfo,
-    required this.onSuccess,
+    required this.burnBloc,
   });
 
   final Token token;
   final AccountInfo accountInfo;
-  final VoidCallback onSuccess;
+  final BurnTokenBloc burnBloc;
 
   @override
   State<_InlineBurnForm> createState() => _InlineBurnFormState();
@@ -1249,24 +1308,12 @@ class _InlineBurnFormState extends State<_InlineBurnForm> {
       widget.token.tokenStandard,
     );
 
-    return BlocProvider<BurnTokenBloc>(
-      create: (_) => BurnTokenBloc(
-        accountBlockUtils: AccountBlockUtils(),
-        zenon: zenon!,
-        zenonAddressUtils: ZenonAddressUtils(),
-      ),
+    return BlocProvider<BurnTokenBloc>.value(
+      value: widget.burnBloc,
       child: BlocConsumer<BurnTokenBloc, BurnTokenState>(
         listener: (BuildContext context, BurnTokenState state) {
           if (state is BurnTokenDone) {
             _amountController.clear();
-            widget.onSuccess();
-          } else if (state is BurnTokenFailure) {
-            unawaited(
-              NotificationUtils.sendNotificationError(
-                state.exception,
-                context.l10n.errorBurningZts,
-              ),
-            );
           }
         },
         builder: (BuildContext context, BurnTokenState state) {
@@ -1277,8 +1324,9 @@ class _InlineBurnFormState extends State<_InlineBurnForm> {
             BigInt.zero,
             l10n: context.l10n,
           );
+          final bool isBurning = state is BurnTokenLoading;
           final bool canSubmit =
-              _amountController.text.isNotEmpty && err == null;
+              !isBurning && _amountController.text.isNotEmpty && err == null;
 
           return Container(
             padding: const EdgeInsets.all(10),
@@ -1293,6 +1341,7 @@ class _InlineBurnFormState extends State<_InlineBurnForm> {
                   width: 240,
                   child: TextField(
                     controller: _amountController,
+                    enabled: !isBurning,
                     onChanged: (_) => setState(() {}),
                     inputFormatters: FormatUtils.getAmountTextInputFormatters(
                       _amountController.text,
@@ -1307,13 +1356,15 @@ class _InlineBurnFormState extends State<_InlineBurnForm> {
                         vertical: 10,
                       ),
                       suffixIcon: TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _amountController.text = maxBurn.addDecimals(
-                              widget.token.decimals,
-                            );
-                          });
-                        },
+                        onPressed: isBurning
+                            ? null
+                            : () {
+                                setState(() {
+                                  _amountController.text = maxBurn.addDecimals(
+                                    widget.token.decimals,
+                                  );
+                                });
+                              },
                         child: Text(
                           context.l10n.max.toUpperCase(),
                           style: TextStyle(
@@ -1329,10 +1380,10 @@ class _InlineBurnFormState extends State<_InlineBurnForm> {
                 SyriusPillButton(
                   label: context.l10n.burn,
                   destructive: true,
-                  isLoading: state is BurnTokenLoading,
+                  isLoading: isBurning,
                   onPressed: canSubmit
                       ? () {
-                          context.read<BurnTokenBloc>().add(
+                          widget.burnBloc.add(
                             BurnTokenRequested(
                               amount: _amountController.text.extractDecimals(
                                 widget.token.decimals,

@@ -232,23 +232,24 @@ class _SettingsWorkspaceViewState extends State<_SettingsWorkspaceView> {
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.only(bottom: 16),
-            child: switch (_section) {
-              SettingsSection.addresses => const _AddressesSettingsPane(),
-              SettingsSection.node => _NodeSettingsPane(
-                onNodeChangedCallback: widget.onNodeChangedCallback,
-              ),
-              SettingsSection.security => _SecuritySettingsPane(
-                onChangeAutoLockTime: widget.onChangeAutoLockTime,
-                onStepperNotificationSeeMorePressed:
-                    widget.onStepperNotificationSeeMorePressed,
-              ),
-              SettingsSection.display => const _DisplaySettingsPane(),
-              SettingsSection.wallet => const _WalletSettingsPane(),
-              SettingsSection.apps => _AppsSettingsPane(
-                hasWeb3: widget.hasWeb3,
-              ),
-              SettingsSection.about => const _AboutSettingsPane(),
-            },
+            child: IndexedStack(
+              index: _section.index,
+              children: <Widget>[
+                const _AddressesSettingsPane(),
+                _NodeSettingsPane(
+                  onNodeChangedCallback: widget.onNodeChangedCallback,
+                ),
+                _SecuritySettingsPane(
+                  onChangeAutoLockTime: widget.onChangeAutoLockTime,
+                  onStepperNotificationSeeMorePressed:
+                      widget.onStepperNotificationSeeMorePressed,
+                ),
+                const _DisplaySettingsPane(),
+                const _WalletSettingsPane(),
+                _AppsSettingsPane(hasWeb3: widget.hasWeb3),
+                const _AboutSettingsPane(),
+              ],
+            ),
           ),
         ),
       ],

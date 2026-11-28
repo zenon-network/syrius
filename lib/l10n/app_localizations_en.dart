@@ -92,6 +92,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get address => 'Address';
 
   @override
+  String get addressAlreadyInContacts => 'Address is already saved in contacts';
+
+  @override
   String get addressLabel => 'Address label';
 
   @override
