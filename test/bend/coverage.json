@@ -1,0 +1,1201 @@
+{
+  "schema": 1,
+  "bend_version": "2.0.40",
+  "root_laws": "LAWS.bend",
+  "root_proof": "PROOF.bend",
+  "conformance_helper": "test/bend_conformance/bend_conformance_helper.dart",
+  "common_library": {
+    "file": "test/bend/common/nat.bend",
+    "lemma_count": 47,
+    "lemmas": [
+      "not_not",
+      "and_true_right",
+      "and_false_right",
+      "or_false_right",
+      "or_true_right",
+      "and_comm",
+      "or_comm",
+      "and_true_left",
+      "and_true_right_elim",
+      "or_false_left",
+      "or_false_right_elim",
+      "bool_eq_refl",
+      "bool_eq_sound",
+      "add_zero",
+      "add_succ",
+      "add_assoc",
+      "add_comm",
+      "add_swap",
+      "sub_zero",
+      "sub_self",
+      "sub_add",
+      "sub_cancel_add_left",
+      "sub_cancel_add_right",
+      "mul_zero_right",
+      "is_eq_same",
+      "is_eq_sym",
+      "is_eq_sound",
+      "is_le_refl",
+      "is_le_zero",
+      "is_le_zero_eq",
+      "is_le_add_right",
+      "is_le_add_left",
+      "is_lt_irrefl",
+      "lt_ge_disjoint",
+      "le_gt_disjoint",
+      "is_ge_as_le",
+      "is_gt_as_lt",
+      "not_lt_is_ge",
+      "not_le_is_gt",
+      "lt_implies_le",
+      "le_trans",
+      "lt_trans",
+      "le_antisym",
+      "add_monotone_le",
+      "min_le_left",
+      "min_le_right",
+      "min_self"
+    ]
+  },
+  "totals": {
+    "domains": 11,
+    "root_laws": 17,
+    "domain_laws": 381,
+    "common_lemmas": 47,
+    "all_verified_laws": 445,
+    "maintained_bend_files": 36
+  },
+  "areas": [
+    {
+      "area": "root_cross_cutting",
+      "domains": [
+        "amounts",
+        "wallet_lifecycle",
+        "tx_pipeline",
+        "node_sync",
+        "wallet_connect",
+        "wc_crash_safety",
+        "plasma_staking",
+        "pillars_sentinels",
+        "tokens_zts",
+        "p2p_htlc",
+        "accelerator"
+      ],
+      "contract": "System-wide cross-cutting safety invariants spanning all 11 Syrius domains: locked-wallet blocking across sensitive ops, hardware wallet boundaries, active incoming HTLC protection of auto-lock and auto-receive, reset-barrier and splash retry coherence, chain-ID mismatch blocking across node/WC/HTLC, cross-domain plasma threshold/tier coherence, zero-balance spend rejection, stale revision UI fencing, security defense-in-depth and zero-preimage-leakage, Pillar governance coherence, token/asset ordering coherence, sync/clock-skew coherence, and balanced 2-level parallel-let audit equivalence.",
+      "bend_files": [
+        "LAWS.bend",
+        "PROOF.bend",
+        "test/bend/common/nat.bend"
+      ],
+      "laws": [
+        "root.locked_wallet_blocks_sensitive_ops",
+        "root.hardware_wallet_safety_boundaries",
+        "root.active_incoming_htlc_protection",
+        "root.active_incoming_htlc_preserves_autoreceive_pool",
+        "root.reset_barrier_and_splash_retry_safety",
+        "root.chain_id_mismatch_blocks_node_wc_and_htlc",
+        "root.wc_revalidation_chain_mismatch_rejects_5003",
+        "root.plasma_thresholds_and_tiers_coherence",
+        "root.plasma_sufficiency_cross_domain_hierarchy",
+        "root.zero_balance_rejects_all_spend_ops",
+        "root.stale_revision_fences_ui_across_domains",
+        "root.security_defense_in_depth",
+        "root.sanitizer_zero_preimage_leakage_and_key_isolation",
+        "root.pillar_governance_and_role_coherence",
+        "root.token_and_asset_ordering_coherence",
+        "root.sync_threshold_and_clock_skew_coherence",
+        "root.root_audit_par_equiv_seq"
+      ],
+      "law_count": 17,
+      "checks": [
+        "inventory",
+        "proof",
+        "verdict",
+        "harness-tests"
+      ],
+      "evidence": [
+        {
+          "file": "test/bend/test_harness.py",
+          "kind": "harness"
+        }
+      ]
+    },
+    {
+      "area": "amounts",
+      "domain": "amounts",
+      "contract": "BigInt min/max total-order lattice, decimal scaling and canonical addDecimals/extractDecimals roundtrip, InputValidators.correctValue (with zero-max bypass guard), compareAssets/sortAssets strict weak ordering, exact 32-bit U32 plasma 4-tier classification and color/tooltip bijection, 4-tier password strength and equality matching, ExchangeRate zero guard, resolveMaxAmountText no-op/clamping, address label length/uniqueness validation, ProtocolHandler URL argument guard, and parallel-let batch equivalence.",
+      "bend_files": [
+        "test/bend/amounts/model.bend",
+        "test/bend/amounts/LAWS.bend",
+        "test/bend/amounts/PROOF.bend"
+      ],
+      "laws": [
+        "amounts.big_min_comm",
+        "amounts.big_max_comm",
+        "amounts.big_min_idem",
+        "amounts.big_max_idem",
+        "amounts.big_min_le_bounds",
+        "amounts.big_max_ge_bounds",
+        "amounts.big_min_max_conservation",
+        "amounts.pow10_positive",
+        "amounts.extract_decimals_zero",
+        "amounts.decimals_canonical_roundtrip",
+        "amounts.scale_frac_truncation_exact",
+        "amounts.correct_value_empty_balance_rejected",
+        "amounts.correct_value_blank_iff",
+        "amounts.correct_value_parse_error_rejected",
+        "amounts.correct_value_too_many_decimals_rejected",
+        "amounts.correct_value_max_below_min_rejected",
+        "amounts.correct_value_gt_max_rejected",
+        "amounts.correct_value_lt_min_rejected",
+        "amounts.correct_value_at_min_iff",
+        "amounts.correct_value_at_max_iff",
+        "amounts.asset_cmp_irrefl",
+        "amounts.asset_cmp_antisym",
+        "amounts.asset_cmp_trans",
+        "amounts.asset_order_hierarchy",
+        "amounts.plasma_tier_monotone",
+        "amounts.plasma_tier_exact_boundaries",
+        "amounts.plasma_color_tooltip_agreement",
+        "amounts.password_invalid_never_medium_or_strong",
+        "amounts.password_strength_monotone_valid",
+        "amounts.password_match_refl",
+        "amounts.password_match_sound",
+        "amounts.exchange_rate_zero_guard",
+        "amounts.exchange_rate_positive_defined",
+        "amounts.resolve_max_always_clamps",
+        "amounts.resolve_max_update_noop_iff_equal",
+        "amounts.address_label_validation_iff",
+        "amounts.protocol_args_rejects_empty_or_missing_placeholder",
+        "amounts.protocol_args_accepts_nonempty_with_placeholder",
+        "amounts.batch_par_eq_seq"
+      ],
+      "law_count": 39,
+      "checks": [
+        "inventory",
+        "proof",
+        "verdict",
+        "oracle",
+        "conformance",
+        "model-mutations",
+        "dart-mutations",
+        "harness-tests"
+      ],
+      "source_files": [
+        "lib/utils/math_utils.dart",
+        "lib/utils/extensions.dart",
+        "lib/utils/input_validators.dart",
+        "lib/rearchitecture/utils/functions/tokens.dart",
+        "lib/utils/plasma_tier_utils.dart",
+        "lib/utils/color_utils.dart",
+        "lib/utils/widget_utils.dart",
+        "lib/utils/password_strength_utils.dart",
+        "lib/widgets/reusable_widgets/progress_bars.dart",
+        "lib/rearchitecture/utils/widgets/exchange_rate.dart",
+        "lib/rearchitecture/utils/functions/amount_max_utils.dart",
+        "lib/rearchitecture/utils/widgets/amount_text_field.dart",
+        "lib/rearchitecture/features/settings_addresses/bloc/settings_addresses_bloc.dart",
+        "lib/rearchitecture/utils/url_protocol/protocol.dart"
+      ],
+      "evidence": [
+        {
+          "file": "test/bend_conformance/amounts_conformance_test.dart",
+          "kind": "conformance"
+        },
+        {
+          "file": "test/utils/input_validators_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/utils/edge_helpers_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/settings_addresses/bloc/settings_addresses_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/exchange_rate_widget_test.dart",
+          "kind": "unit"
+        }
+      ]
+    },
+    {
+      "area": "wallet_lifecycle",
+      "domain": "wallet_lifecycle",
+      "contract": "WalletFile lifecycle mutual exclusion and permanent closure, keystore JSON schema minimum byte lengths and metadata validation, WalletFile.decrypt type dispatch (KeyStore/Ledger/unsupported), SettingsBackupCubit software-only unlocked backup gating, WalletUnlockBloc failed-attempt counting, remaining conservation, auto-erase threshold, and Ledger/IO error preservation, LockBloc monotonic sequence and HTLC-protected auto-lock, SplashBloc routing (including deleteCache exit) and destructive clearing retry eligibility, HideWidgetCubit password-gated unhiding, seed confirmation multiset conservation, window geometry clamping and idempotence, and parallel-let lifecycle evaluator equivalence.",
+      "bend_files": [
+        "test/bend/wallet_lifecycle/model.bend",
+        "test/bend/wallet_lifecycle/LAWS.bend",
+        "test/bend/wallet_lifecycle/PROOF.bend"
+      ],
+      "laws": [
+        "wallet_lifecycle.wallet_file_mutual_exclusion",
+        "wallet_lifecycle.wallet_file_idle_grants_access",
+        "wallet_lifecycle.wallet_file_closed_permanent_step",
+        "wallet_lifecycle.wallet_file_closed_permanent_run",
+        "wallet_lifecycle.wallet_file_close_idempotent",
+        "wallet_lifecycle.wallet_file_closing_completes_on_end_access",
+        "wallet_lifecycle.keystore_schema_requires_min_lengths",
+        "wallet_lifecycle.keystore_schema_rejects_short_salt",
+        "wallet_lifecycle.wallet_type_dispatch_sound",
+        "wallet_lifecycle.backup_blocked_when_locked_or_hardware",
+        "wallet_lifecycle.backup_allowed_for_unlocked_software",
+        "wallet_lifecycle.unlock_empty_password_noop",
+        "wallet_lifecycle.unlock_incorrect_increments_failed",
+        "wallet_lifecycle.unlock_auto_erase_at_limit",
+        "wallet_lifecycle.unlock_below_limit_stays_failure",
+        "wallet_lifecycle.unlock_ledger_error_preserves_failed",
+        "wallet_lifecycle.unlock_io_error_preserves_failed",
+        "wallet_lifecycle.unlock_success_resets_and_marks_init",
+        "wallet_lifecycle.unlock_first_vs_subsequent_init",
+        "wallet_lifecycle.unlock_remaining_conservation",
+        "wallet_lifecycle.lock_sequence_monotone",
+        "wallet_lifecycle.lock_activity_suppressed_when_locked",
+        "wallet_lifecycle.lock_autolock_suppressed_by_htlc",
+        "wallet_lifecycle.lock_manual_clears_handle_and_locks",
+        "wallet_lifecycle.splash_delete_cache_exits_app",
+        "wallet_lifecycle.splash_no_wallet_routes_access",
+        "wallet_lifecycle.splash_with_node_or_dev_routes_home",
+        "wallet_lifecycle.splash_normal_without_node_routes_node_mgmt",
+        "wallet_lifecycle.splash_retry_blocks_non_destructive_and_non_clearing",
+        "wallet_lifecycle.splash_retry_allows_destructive_clearing_failure",
+        "wallet_lifecycle.hide_widget_hide_never_needs_password",
+        "wallet_lifecycle.hide_widget_unhide_requires_password",
+        "wallet_lifecycle.seed_drop_conserves_multiset",
+        "wallet_lifecycle.seed_verify_mismatch_clears_all",
+        "wallet_lifecycle.seed_verify_iff_all_matched",
+        "wallet_lifecycle.window_size_meets_minimums",
+        "wallet_lifecycle.window_coord_nonneg_fallback",
+        "wallet_lifecycle.window_geometry_idempotent",
+        "wallet_lifecycle.lifecycle_par_eq_seq"
+      ],
+      "law_count": 39,
+      "checks": [
+        "inventory",
+        "proof",
+        "verdict",
+        "oracle",
+        "conformance",
+        "model-mutations",
+        "dart-mutations",
+        "harness-tests"
+      ],
+      "source_files": [
+        "lib/utils/wallet_file.dart",
+        "lib/rearchitecture/features/settings_backup/cubit/settings_backup_cubit.dart",
+        "lib/rearchitecture/features/lock/bloc/wallet_unlock_bloc.dart",
+        "lib/rearchitecture/features/lock/bloc/lock_bloc.dart",
+        "lib/widgets/main_app_container.dart",
+        "lib/rearchitecture/features/splash/bloc/splash_bloc.dart",
+        "lib/rearchitecture/features/splash/view/splash_screen.dart",
+        "lib/rearchitecture/utils/cubits/hide_widget/hide_widget_cubit.dart",
+        "lib/rearchitecture/features/onboarding/view/new_wallet/new_wallet_confirm_seed_screen.dart",
+        "lib/main.dart"
+      ],
+      "evidence": [
+        {
+          "file": "test/bend_conformance/wallet_lifecycle_conformance_test.dart",
+          "kind": "conformance"
+        },
+        {
+          "file": "test/utils/wallet_file_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/settings_backup/cubit/settings_backup_cubit_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/lock/bloc/wallet_unlock_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/lock/bloc/lock_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/splash/bloc/splash_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/hide_widget/hide_widget_cubit_test.dart",
+          "kind": "unit"
+        }
+      ]
+    },
+    {
+      "area": "tx_pipeline",
+      "domain": "tx_pipeline",
+      "contract": "AccountBlockUtils sync/address/wallet preconditions, per-address mutex serialization, hardware review timing and mid-flight wallet-swap fencing, PowGeneratingStatusBloc ref-counted generation with zero-clamping, AutoReceiveTxWorker pool deduplication, HTLC pause and already-received eviction, pollUntilConfirmed deadline and cancellation bounds, InfiniteListBloc page math and stale first-page discard, FetchBloc ref-counted loading, TimerCubit non-flickering refresh, BalanceCubit population predicate, AccountChainStatsBloc exact ceil-div pagination, and parallel-let pipeline equivalence.",
+      "bend_files": [
+        "test/bend/tx_pipeline/model.bend",
+        "test/bend/tx_pipeline/LAWS.bend",
+        "test/bend/tx_pipeline/PROOF.bend"
+      ],
+      "laws": [
+        "tx_pipeline.tx_sync_done_always_synced",
+        "tx_pipeline.tx_sync_zero_target_not_synced",
+        "tx_pipeline.tx_sync_boundary_19_synced",
+        "tx_pipeline.tx_sync_boundary_20_unsynced",
+        "tx_pipeline.tx_precond_unsynced_rejected",
+        "tx_pipeline.tx_precond_addr_not_in_wallet_rejected",
+        "tx_pipeline.tx_precond_wallet_locked_rejected",
+        "tx_pipeline.tx_publish_fence_locked_after_lock_aborts",
+        "tx_pipeline.tx_publish_fence_swapped_after_lock_aborts",
+        "tx_pipeline.tx_publish_fence_changed_in_access_aborts",
+        "tx_pipeline.lock_acquire_increments_and_present",
+        "tx_pipeline.lock_release_evicts_iff_zero",
+        "tx_pipeline.lock_balanced_acquire_release",
+        "tx_pipeline.lock_nested_balanced_n",
+        "tx_pipeline.pow_status_matches_count",
+        "tx_pipeline.pow_done_at_zero_clamps",
+        "tx_pipeline.pow_balanced_nesting_returns_idle",
+        "tx_pipeline.pow_edge_only_emission",
+        "tx_pipeline.hw_review_deferred_iff_plasma",
+        "tx_pipeline.auto_receive_add_hash_requires_sync",
+        "tx_pipeline.auto_receive_add_hash_dedup",
+        "tx_pipeline.auto_receive_add_hash_enqueues",
+        "tx_pipeline.auto_receive_disabled_clears_pool",
+        "tx_pipeline.auto_receive_htlc_preempts_preserving_pool",
+        "tx_pipeline.auto_receive_single_flight_rejects_reentry",
+        "tx_pipeline.auto_receive_ok_and_already_received_pop_head",
+        "tx_pipeline.auto_receive_other_error_preserves_head",
+        "tx_pipeline.auto_receive_seq_monotonic",
+        "tx_pipeline.poll_never_sleeps_past_deadline",
+        "tx_pipeline.poll_confirmed_returns_true",
+        "tx_pipeline.poll_cancelled_returns_false",
+        "tx_pipeline.poll_transient_error_continues",
+        "tx_pipeline.il_stale_first_page_discarded",
+        "tx_pipeline.il_stale_more_page_discarded",
+        "tx_pipeline.il_more_noop_when_max",
+        "tx_pipeline.il_more_noop_on_addr_mismatch",
+        "tx_pipeline.il_has_reached_max_iff_short",
+        "tx_pipeline.fetch_loading_iff_inflight",
+        "tx_pipeline.timer_step_preserves_valid",
+        "tx_pipeline.balance_non_empty_partition",
+        "tx_pipeline.account_chain_stats_ceil_div_covers",
+        "tx_pipeline.account_chain_stats_ceil_div_minimal",
+        "tx_pipeline.tx_batch_par_equiv_seq"
+      ],
+      "law_count": 43,
+      "checks": [
+        "inventory",
+        "proof",
+        "verdict",
+        "oracle",
+        "conformance",
+        "model-mutations",
+        "dart-mutations",
+        "harness-tests"
+      ],
+      "source_files": [
+        "lib/utils/account_block_utils.dart",
+        "lib/rearchitecture/features/pow_generating_status/bloc/pow_generating_status_bloc.dart",
+        "lib/rearchitecture/features/auto_receive_tx/cubit/auto_receive_tx_worker.dart",
+        "lib/rearchitecture/utils/functions/poll_until_confirmed.dart",
+        "lib/rearchitecture/utils/blocs/infinite_list/infinite_list_bloc.dart",
+        "lib/rearchitecture/utils/blocs/fetch_bloc/fetch_bloc.dart",
+        "lib/rearchitecture/utils/cubits/timer_cubit.dart",
+        "lib/rearchitecture/utils/cubits/timer_state.dart",
+        "lib/rearchitecture/features/balance/cubit/balance_cubit.dart",
+        "lib/rearchitecture/features/account_chain_stats/bloc/account_chain_stats_bloc.dart"
+      ],
+      "evidence": [
+        {
+          "file": "test/bend_conformance/tx_pipeline_conformance_test.dart",
+          "kind": "conformance"
+        },
+        {
+          "file": "test/utils/account_block_utils_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/pow_generating_status/bloc/pow_generating_status_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/auto_receive_tx/cubit/auto_receive_tx_worker_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/rearchitecture/utils/functions/poll_until_confirmed_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/rearchitecture/utils/blocs/infinite_list/infinite_list_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/rearchitecture/utils/blocs/fetch_bloc/fetch_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/rearchitecture/utils/cubits/timer_cubit_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/balance/cubit/balance_cubit_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/account_chain_stats/bloc/account_chain_stats_bloc_test.dart",
+          "kind": "unit"
+        }
+      ]
+    },
+    {
+      "area": "node_sync",
+      "domain": "node_sync",
+      "contract": "NodeManagementBloc busy mutex, chain-ID mismatch rollback and TOCTOU confirmation re-verification, custom-node edit/rename/delete selection invariants, SyncInfoExtension sync/behind predicates and NodeSyncStatusCubit hysteresis, NodeUtils clock skew warning bounds, AboutBloc 3-RPC partial degradation lattice, HiveNotificationsRepository bounded FIFO capacity and descending timestamp ordering, NotificationsBloc revision fencing, SettingsWalletOptionsBloc platform permission gating, and parallel-let node-sync equivalence.",
+      "bend_files": [
+        "test/bend/node_sync/model.bend",
+        "test/bend/node_sync/LAWS.bend",
+        "test/bend/node_sync/PROOF.bend"
+      ],
+      "laws": [
+        "node_sync.node_busy_drops_confirm",
+        "node_sync.node_mismatch_pauses_without_saving",
+        "node_sync.node_proceed_toctou_drift_reprompts",
+        "node_sync.node_cancel_reconnect_ok_restores_prev",
+        "node_sync.node_cancel_reconnect_fail_marks_disconnected_retry",
+        "node_sync.node_precommit_error_rolls_back",
+        "node_sync.node_postcommit_notify_error_never_rolls_back",
+        "node_sync.node_custom_protects_default_and_community",
+        "node_sync.node_add_rejects_duplicate",
+        "node_sync.node_edit_rejects_empty",
+        "node_sync.node_edit_rejects_over_80",
+        "node_sync.node_edit_rejects_default",
+        "node_sync.node_edit_rejects_community",
+        "node_sync.node_edit_rejects_duplicate",
+        "node_sync.node_rename_updates_selected",
+        "node_sync.node_rename_preserves_other_selected",
+        "node_sync.node_delete_falls_back_to_confirmed",
+        "node_sync.node_delete_preserves_other_selected",
+        "node_sync.node_auto_receive_rollback_on_save_fail",
+        "node_sync.sync_hysteresis_retains_on_jitter",
+        "node_sync.sync_hysteresis_transitions_on_sync_done",
+        "node_sync.sync_hysteresis_transitions_on_clearly_behind",
+        "node_sync.sync_non_done_synced_and_behind_disjoint",
+        "node_sync.clock_skew_silent_when_unsynced",
+        "node_sync.clock_skew_symmetric",
+        "node_sync.clock_skew_boundary_300_silent",
+        "node_sync.clock_skew_boundary_301_warns",
+        "node_sync.about_failure_iff_all_three_fail",
+        "node_sync.about_populated_carries_first_error",
+        "node_sync.notif_repo_zero_cap_clears",
+        "node_sync.notif_repo_add_preserves_cap",
+        "node_sync.notif_repo_load_len_exact_min",
+        "node_sync.notif_repo_load_sorted_desc",
+        "node_sync.notif_bloc_repo_fail_leaves_banner_unchanged",
+        "node_sync.notif_bloc_add_strictly_bumps_revision",
+        "node_sync.notif_bloc_dismiss_matching_clears",
+        "node_sync.notif_bloc_dismiss_stale_noop",
+        "node_sync.notif_bloc_dismiss_none_always_clears",
+        "node_sync.notif_lock_screen_hides_see_more",
+        "node_sync.wallet_opt_persist_fail_rolls_back",
+        "node_sync.wallet_opt_macos_requires_permission",
+        "node_sync.node_sync_batch_par_equiv_seq"
+      ],
+      "law_count": 42,
+      "checks": [
+        "inventory",
+        "proof",
+        "verdict",
+        "oracle",
+        "conformance",
+        "model-mutations",
+        "dart-mutations",
+        "harness-tests"
+      ],
+      "source_files": [
+        "lib/rearchitecture/features/node_management/bloc/node_management_bloc.dart",
+        "lib/rearchitecture/features/node_management/widgets/settings_node_tile.dart",
+        "lib/rearchitecture/features/node_sync_status/cubit/node_sync_status_cubit.dart",
+        "lib/rearchitecture/utils/extensions/sync_info_extension.dart",
+        "lib/utils/node_utils.dart",
+        "lib/rearchitecture/features/about/bloc/about_bloc.dart",
+        "lib/rearchitecture/features/about/model/about_node_info.dart",
+        "lib/rearchitecture/features/notifications/data/notifications_repository.dart",
+        "lib/rearchitecture/features/notifications/bloc/notifications_bloc.dart",
+        "lib/rearchitecture/features/notifications/view/notification_widget.dart",
+        "lib/rearchitecture/features/settings_wallet_options/bloc/settings_wallet_options_bloc.dart"
+      ],
+      "evidence": [
+        {
+          "file": "test/bend_conformance/node_sync_conformance_test.dart",
+          "kind": "conformance"
+        },
+        {
+          "file": "test/node_management/bloc/node_management_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/rearchitecture/utils/extensions/sync_info_extension_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/about/bloc/about_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/notifications/bloc/notifications_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/settings_wallet_options/bloc/settings_wallet_options_bloc_test.dart",
+          "kind": "unit"
+        }
+      ]
+    },
+    {
+      "area": "wallet_connect",
+      "domain": "wallet_connect",
+      "contract": "WalletConnect v2 URI extraction, percent-decoding, and validation, interactive request key canonicalization and error-to-JSON-RPC mapping, verify-context scam detection and strict severity precedence (Scam > Invalid > Unverified == null > Verified), HTTP/HTTPS URL sanitization and display-value fallback, required namespace negotiation and approval, NoM signed-message domain separation, AccountBlock send validation, signer authorization and post-confirmation TOCTOU revalidation (chain/session/address), UI revision fencing, and 3-way parallel-let preflight equivalence.",
+      "bend_files": [
+        "test/bend/wallet_connect/model.bend",
+        "test/bend/wallet_connect/LAWS.bend",
+        "test/bend/wallet_connect/PROOF.bend"
+      ],
+      "laws": [
+        "wallet_connect.wc_uri_extracted_requires_valid_v2_fields",
+        "wallet_connect.wc_uri_rejects_non_v2",
+        "wallet_connect.wc_uri_rejects_missing_required_fields",
+        "wallet_connect.wc_uri_extract_idempotent",
+        "wallet_connect.request_key_distinct_ids_never_collide",
+        "wallet_connect.request_key_with_id_ignores_params",
+        "wallet_connect.wc_error_preserves_known_codes",
+        "wallet_connect.wc_error_unknown_maps_to_5000",
+        "wallet_connect.verify_scam_cases_complete",
+        "wallet_connect.verify_scam_dominates_all_validations",
+        "wallet_connect.verify_severity_strict_precedence",
+        "wallet_connect.verify_verified_requires_non_scam_valid",
+        "wallet_connect.sanitize_http_url_allows_only_http_https_with_host",
+        "wallet_connect.sanitize_http_url_blocks_dangerous_schemes_and_empty_host",
+        "wallet_connect.display_value_fallback_on_empty_or_null",
+        "wallet_connect.namespace_rejects_unsupported_active_chain",
+        "wallet_connect.namespace_rejects_non_zenon_required",
+        "wallet_connect.namespace_accepted_implies_all_requirements_supported",
+        "wallet_connect.approved_namespaces_only_active_chain_and_supported",
+        "wallet_connect.approved_namespaces_chains_is_singleton_active",
+        "wallet_connect.approved_namespaces_empty_grants_all_supported",
+        "wallet_connect.signed_message_payload_injective",
+        "wallet_connect.signed_message_payload_has_domain_prefix",
+        "wallet_connect.signed_message_payload_length_lower_bound",
+        "wallet_connect.signed_message_payload_disjoint_from_unprefixed_hash",
+        "wallet_connect.send_block_valid_implies_all_invariants",
+        "wallet_connect.send_block_any_violation_rejected_5003",
+        "wallet_connect.signer_null_or_empty_defaults_to_active",
+        "wallet_connect.signer_owned_address_allowed",
+        "wallet_connect.signer_foreign_address_rejected",
+        "wallet_connect.revalidate_rejects_locked_wallet",
+        "wallet_connect.revalidate_rejects_inactive_session",
+        "wallet_connect.revalidate_rejects_non_pending_5005",
+        "wallet_connect.revalidate_rejects_chain_drift_5003",
+        "wallet_connect.uri_card_clears_iff_revision_matches",
+        "wallet_connect.parallel_send_preflight_equiv_sequential",
+        "wallet_connect.parallel_preflight_accepts_valid_send",
+        "wallet_connect.parallel_preflight_blocks_scam_or_locked"
+      ],
+      "law_count": 38,
+      "checks": [
+        "inventory",
+        "proof",
+        "verdict",
+        "oracle",
+        "conformance",
+        "model-mutations",
+        "dart-mutations",
+        "harness-tests"
+      ],
+      "source_files": [
+        "lib/utils/wallet_connect_uri_utils.dart",
+        "lib/utils/wallet_connect_request_utils.dart",
+        "lib/rearchitecture/utils/wallet_connect_metadata_utils.dart",
+        "lib/services/web3wallet_service.dart",
+        "lib/services/nom_service.dart",
+        "lib/rearchitecture/features/wallet_connect_uri/view/wallet_connect_uri_card.dart"
+      ],
+      "evidence": [
+        {
+          "file": "test/bend_conformance/wallet_connect_conformance_test.dart",
+          "kind": "conformance"
+        },
+        {
+          "file": "test/utils/wallet_connect_uri_utils_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/utils/wallet_connect_request_utils_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/services/nom_service_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/services/web3wallet_service_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/wallet_connect_uri/view/wallet_connect_uri_card_test.dart",
+          "kind": "unit"
+        }
+      ]
+    },
+    {
+      "area": "wc_crash_safety",
+      "domain": "wc_crash_safety",
+      "contract": "StickyFallbackSecureStore tri-state crash-safe boot, sticky fallback transitions, foreign-key and internal-flag isolation, reconciliation precedence (clearedAll > deletedKeys > replacedKeys > merge-missing), atomic migration write-order and rollback, ConfirmingRelayClient monotonic op_seq, failed unsubscribe ID preservation, stale/concurrent unsubscribe fencing, cold-restart restore non-overwrite, and capped topic tracking, Web3WalletService reset durability marker, admission barrier, approval generation fencing, topic unsubscribe epoch fencing, provisional/orphan pairing cleanup, idempotent request delivery, and 3-way parallel-let crash-safety gate equivalence.",
+      "bend_files": [
+        "test/bend/wc_crash_safety/model.bend",
+        "test/bend/wc_crash_safety/LAWS.bend",
+        "test/bend/wc_crash_safety/PROOF.bend"
+      ],
+      "laws": [
+        "wc_crash_safety.authoritative_fallback_is_sticky_forever",
+        "wc_crash_safety.authoritative_and_legacy_markers_boot_authoritative",
+        "wc_crash_safety.transient_restart_empty_keychain_preserves_transient_keys",
+        "wc_crash_safety.fallback_flag_never_deleted_or_lazy_read",
+        "wc_crash_safety.foreign_keys_isolated_from_delete_and_manifest_read",
+        "wc_crash_safety.delete_all_preserves_flag_and_foreign_entries",
+        "wc_crash_safety.reconcile_cleared_all_wipes_os",
+        "wc_crash_safety.reconcile_deleted_tombstone_deletes_os",
+        "wc_crash_safety.reconcile_replaced_key_transient_wins",
+        "wc_crash_safety.reconcile_absent_os_transient_wins",
+        "wc_crash_safety.reconcile_existing_os_merges_only_missing_subkeys",
+        "wc_crash_safety.migration_writes_entries_before_authoritative_marker",
+        "wc_crash_safety.migration_marker_failure_preserves_secure_mode",
+        "wc_crash_safety.reconciliation_deletes_marker_before_transient_copies",
+        "wc_crash_safety.relay_op_seq_strictly_monotonic",
+        "wc_crash_safety.relay_failed_unsub_preserves_id_and_marks_unconfirmed",
+        "wc_crash_safety.relay_stale_unsub_fence_preserves_topic_map_and_status",
+        "wc_crash_safety.relay_concurrent_unsub_fence_blocks_remarking",
+        "wc_crash_safety.relay_restore_never_overwrites_active_or_fresher",
+        "wc_crash_safety.relay_capped_tracking_bounded_by_cap",
+        "wc_crash_safety.reset_aborts_before_deletes_if_marker_fails",
+        "wc_crash_safety.reset_marker_clears_when_empty_and_same_epoch",
+        "wc_crash_safety.reset_marker_retained_when_unfinished_or_epoch_advanced",
+        "wc_crash_safety.reset_admission_barrier_blocks_pair_and_approve",
+        "wc_crash_safety.finalize_approved_session_rejects_advanced_generation",
+        "wc_crash_safety.topic_unsub_epoch_not_obsolete_when_current_or_newer",
+        "wc_crash_safety.topic_unsub_epoch_strictly_older_always_obsolete",
+        "wc_crash_safety.active_subscription_fences_prior_deferred_unsub",
+        "wc_crash_safety.provisional_purge_never_deletes_confirmed_pairing",
+        "wc_crash_safety.orphan_cleanup_protects_live_pairings",
+        "wc_crash_safety.idempotent_delivery_never_reexecutes_completed_or_cached",
+        "wc_crash_safety.idempotent_delivery_cached_retries_only_delivery",
+        "wc_crash_safety.idempotent_delivery_post_handler_never_reverts_to_fresh",
+        "wc_crash_safety.parallel_crash_safety_gate_equiv_sequential",
+        "wc_crash_safety.parallel_crash_safety_gate_accepts_safe_state",
+        "wc_crash_safety.parallel_crash_safety_gate_blocks_flag_or_reset_or_stale_epoch"
+      ],
+      "law_count": 36,
+      "checks": [
+        "inventory",
+        "proof",
+        "verdict",
+        "oracle",
+        "conformance",
+        "model-mutations",
+        "dart-mutations",
+        "harness-tests"
+      ],
+      "source_files": [
+        "lib/services/sticky_fallback_secure_store.dart",
+        "lib/services/web3wallet_service.dart",
+        "lib/services/desktop_signing_wallet_kit.dart"
+      ],
+      "evidence": [
+        {
+          "file": "test/bend_conformance/wc_crash_safety_conformance_test.dart",
+          "kind": "conformance"
+        },
+        {
+          "file": "test/store/secure_store_fallback_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/services/web3wallet_service_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/services/desktop_signing_wallet_kit_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/services/session_request_handler_dispatch_test.dart",
+          "kind": "unit"
+        }
+      ]
+    },
+    {
+      "area": "plasma_staking",
+      "domain": "plasma_staking",
+      "contract": "QSR-to-plasma conversion formula and per-operation plasma threshold hierarchy (minPlasma < delegate/stake < issueToken < pillar/sentinel), plasma fusion minimum/integer/balance/address guards, stake creation minimum/duration [1..12] months/balance guards, stake lock expiration and cancellation bounds, CancelTimer countdown bounds, PlasmaStatsBloc pagination clamping, PoW generation status invariants, and parallel-let plasma/staking evaluator equivalence.",
+      "bend_files": [
+        "test/bend/plasma_staking/model.bend",
+        "test/bend/plasma_staking/LAWS.bend",
+        "test/bend/plasma_staking/PROOF.bend"
+      ],
+      "laws": [
+        "plasma_staking.plasma_for_qsr_zero",
+        "plasma_staking.plasma_for_qsr_additive",
+        "plasma_staking.plasma_for_qsr_monotone",
+        "plasma_staking.op_plasma_u32_exact",
+        "plasma_staking.op_plasma_strict_order",
+        "plasma_staking.meets_plasma_monotone",
+        "plasma_staking.fuse_rejects_zero_balance",
+        "plasma_staking.fuse_rejects_below_min",
+        "plasma_staking.fuse_rejects_above_balance",
+        "plasma_staking.fuse_requires_integer_and_beneficiary",
+        "plasma_staking.fusion_status_exact_partition",
+        "plasma_staking.fusion_eq_boundary_locked_zero",
+        "plasma_staking.fusion_above_exp_revocable",
+        "plasma_staking.cancel_timer_stopped_idempotent",
+        "plasma_staking.cancel_timer_terminates_cleanly",
+        "plasma_staking.cancel_timer_no_storm_after_zero",
+        "plasma_staking.page_slice_start_le_end",
+        "plasma_staking.page_slice_end_le_len",
+        "plasma_staking.stake_months_bounds",
+        "plasma_staking.stake_duration_strictly_monotone",
+        "plasma_staking.stake_duration_u32_exact",
+        "plasma_staking.create_stake_guards",
+        "plasma_staking.stake_lock_expired_at_or_past",
+        "plasma_staking.stake_lock_positive_countdown_before_exp",
+        "plasma_staking.stake_collect_qsr_only_and_history_gate",
+        "plasma_staking.epoch_day_monotone",
+        "plasma_staking.parallel_plasma_staking_equiv"
+      ],
+      "law_count": 27,
+      "checks": [
+        "inventory",
+        "proof",
+        "verdict",
+        "oracle",
+        "conformance",
+        "model-mutations",
+        "dart-mutations",
+        "harness-tests"
+      ],
+      "source_files": [
+        "lib/rearchitecture/features/fuse_plasma/bloc/fuse_plasma_bloc.dart",
+        "lib/rearchitecture/features/plasma_stats/bloc/plasma_stats_bloc.dart",
+        "lib/rearchitecture/features/staking/cubit/staking_cubit.dart",
+        "lib/rearchitecture/features/stakes/view/stakes_card.dart",
+        "lib/widgets/reusable_widgets/cancel_timer.dart",
+        "lib/utils/constants.dart"
+      ],
+      "evidence": [
+        {
+          "file": "test/bend_conformance/plasma_staking_conformance_test.dart",
+          "kind": "conformance"
+        },
+        {
+          "file": "test/fuse_plasma/bloc/fuse_plasma_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/cancel_plasma/bloc/cancel_plasma_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/staking/cubit/staking_cubit_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/stakes/bloc/stakes_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/cancel_stake/bloc/cancel_stake_bloc_test.dart",
+          "kind": "unit"
+        }
+      ]
+    },
+    {
+      "area": "pillars_sentinels",
+      "domain": "pillars_sentinels",
+      "contract": "Pillar registration cost (15,000 ZNN + 150,000 QSR + 10k incremental QSR) and Sentinel registration cost (5,000 ZNN + 50,000 QSR), PillarQsrDepositSummary remaining/maxDeposit/covered/withdraw/fraction conservation, QSR deposit/withdraw guards, Pillar producer address different-seed safety, Pillar name length and regex bounds, Pillar update stepper navigation monotonicity and gating, exact half-away-from-zero momentum uptime percentage calculation (with zero-expected safety and <=100% bound when produced <= expected), delegation eligibility/active rules, and parallel-let evaluator equivalence.",
+      "bend_files": [
+        "test/bend/pillars_sentinels/model.bend",
+        "test/bend/pillars_sentinels/LAWS.bend",
+        "test/bend/pillars_sentinels/PROOF.bend"
+      ],
+      "laws": [
+        "pillars_sentinels.role_protocol_constants",
+        "pillars_sentinels.create_step_monotone",
+        "pillars_sentinels.create_step_plasma_gate",
+        "pillars_sentinels.create_step_qsr_gate",
+        "pillars_sentinels.create_step_znn_gate",
+        "pillars_sentinels.create_step_deploy_gate_and_done_absorbing",
+        "pillars_sentinels.max_qsr_deposit_le_balance",
+        "pillars_sentinels.max_qsr_deposit_never_overdeposits",
+        "pillars_sentinels.qsr_covered_implies_zero_remaining",
+        "pillars_sentinels.qsr_pie_conservation",
+        "pillars_sentinels.can_withdraw_iff_positive",
+        "pillars_sentinels.deposit_confirm_rejects_zero_amount",
+        "pillars_sentinels.deposit_confirm_strictly_increases",
+        "pillars_sentinels.withdraw_confirm_with_snapshot_decreases",
+        "pillars_sentinels.withdraw_confirm_without_snapshot_zero",
+        "pillars_sentinels.producer_rejects_wallet_address",
+        "pillars_sentinels.deploy_pillar_rejects_wallet_producer",
+        "pillars_sentinels.reward_pct_conservation",
+        "pillars_sentinels.reward_pct_rejects_over_100",
+        "pillars_sentinels.update_step_navigation",
+        "pillars_sentinels.safe_uptime_zero_expected",
+        "pillars_sentinels.safe_uptime_bounded_100",
+        "pillars_sentinels.delegation_rules",
+        "pillars_sentinels.sentinel_authorization_matrix",
+        "pillars_sentinels.reward_collect_pillar_vs_sentinel",
+        "pillars_sentinels.parallel_spawn_readiness_equiv"
+      ],
+      "law_count": 26,
+      "checks": [
+        "inventory",
+        "proof",
+        "verdict",
+        "oracle",
+        "conformance",
+        "model-mutations",
+        "dart-mutations",
+        "harness-tests"
+      ],
+      "source_files": [
+        "lib/rearchitecture/utils/functions/pillar_qsr_deposit_utils.dart",
+        "lib/rearchitecture/features/pillars/utils/pillar_momentum_utils.dart",
+        "lib/rearchitecture/features/pillars/view/pillars_card.dart",
+        "lib/rearchitecture/features/create_pillar_stepper/widgets/pillar_qsr_management_step.dart",
+        "lib/rearchitecture/features/create_sentinel_stepper/widgets/sentinel_qsr_management_step.dart",
+        "lib/rearchitecture/features/pillar_deposit_qsr/bloc/pillar_deposit_qsr_bloc.dart",
+        "lib/rearchitecture/features/sentinel_deposit_qsr/bloc/sentinel_deposit_qsr_bloc.dart",
+        "lib/rearchitecture/features/delegation/bloc/delegation_bloc.dart",
+        "lib/rearchitecture/features/update_pillar/bloc/update_pillar_bloc.dart"
+      ],
+      "evidence": [
+        {
+          "file": "test/bend_conformance/pillars_sentinels_conformance_test.dart",
+          "kind": "conformance"
+        },
+        {
+          "file": "test/utils/edge_helpers_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/pillar_deposit_qsr/bloc/pillar_deposit_qsr_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/sentinel_deposit_qsr/bloc/sentinel_deposit_qsr_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/delegation/bloc/delegation_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/update_pillar/bloc/update_pillar_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/deploy_pillar/bloc/deploy_pillar_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/deploy_sentinel/bloc/deploy_sentinel_bloc_test.dart",
+          "kind": "unit"
+        }
+      ]
+    },
+    {
+      "area": "tokens_zts",
+      "domain": "tokens_zts",
+      "contract": "ZTS token issuance fee (1 ZNN) and plasma threshold, mintable vs non-mintable supply invariants (1 <= max <= cap, total <= max, effective_max == total when non-mintable), TokenCapabilities authorization matrix (owner transfer, mint visibility/capacity, Zenon burn-if-burnable-or-owner rule, own badge), mint/burn amount bounds, token metadata name/symbol/domain/decimals rules and reserved ZNN/QSR rejection, trusted token classification, TokenFavoriteBloc loading-guard/action-disjointness/recovery state machine, search loading guard, and parallel-let evaluator equivalence.",
+      "bend_files": [
+        "test/bend/tokens_zts/model.bend",
+        "test/bend/tokens_zts/LAWS.bend",
+        "test/bend/tokens_zts/PROOF.bend"
+      ],
+      "laws": [
+        "tokens_zts.issue_constants_exact",
+        "tokens_zts.issue_step_monotone",
+        "tokens_zts.issue_plasma_gate",
+        "tokens_zts.issue_prerequisite_gates",
+        "tokens_zts.token_name_bounds",
+        "tokens_zts.token_symbol_rejects_reserved",
+        "tokens_zts.token_symbol_domain_decimals_bounds",
+        "tokens_zts.supply_mintable_rejects_zero_max",
+        "tokens_zts.supply_non_mintable_effective_max_eq_total",
+        "tokens_zts.supply_valid_total_le_eff_max",
+        "tokens_zts.supply_valid_eff_max_positive",
+        "tokens_zts.caps_transfer_iff_owner",
+        "tokens_zts.caps_non_mintable_never_mints",
+        "tokens_zts.caps_full_supply_never_mints",
+        "tokens_zts.caps_mint_requires_owner",
+        "tokens_zts.caps_burn_protocol_rule",
+        "tokens_zts.mint_conserves_max_supply",
+        "tokens_zts.mint_strictly_increases_supply",
+        "tokens_zts.burn_conserves_balance",
+        "tokens_zts.burn_reduces_total_supply",
+        "tokens_zts.trusted_token_iff_native_or_fav",
+        "tokens_zts.fav_actions_disjoint",
+        "tokens_zts.fav_loading_drops_concurrent",
+        "tokens_zts.fav_non_loading_ignores_completions",
+        "tokens_zts.fav_idempotency_and_recovery",
+        "tokens_zts.search_trimmed_settled_not_loading",
+        "tokens_zts.search_excludes_native_and_invalidates_cache",
+        "tokens_zts.parallel_token_metadata_equiv"
+      ],
+      "law_count": 28,
+      "checks": [
+        "inventory",
+        "proof",
+        "verdict",
+        "oracle",
+        "conformance",
+        "model-mutations",
+        "dart-mutations",
+        "harness-tests"
+      ],
+      "source_files": [
+        "lib/rearchitecture/features/tokens/utils/token_capabilities.dart",
+        "lib/rearchitecture/features/tokens/widgets/token_card.dart",
+        "lib/rearchitecture/features/tokens/view/tokens_card.dart",
+        "lib/rearchitecture/features/token_favorite/bloc/token_favorite_bloc.dart",
+        "lib/rearchitecture/features/create_token_stepper/bloc/issue_token_bloc.dart",
+        "lib/rearchitecture/features/mint_token/bloc/mint_token_bloc.dart",
+        "lib/rearchitecture/features/burn_token/bloc/burn_token_bloc.dart",
+        "lib/utils/zts_utils.dart"
+      ],
+      "evidence": [
+        {
+          "file": "test/bend_conformance/tokens_zts_conformance_test.dart",
+          "kind": "conformance"
+        },
+        {
+          "file": "test/utils/edge_helpers_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/token_favorite/bloc/token_favorite_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/create_token_stepper/bloc/issue_token_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/mint_token/bloc/mint_token_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/burn_token/bloc/burn_token_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/burn_token/token_card_test.dart",
+          "kind": "unit"
+        }
+      ]
+    },
+    {
+      "area": "p2p_htlc",
+      "domain": "p2p_htlc",
+      "contract": "HTLC timelock safety-margin arithmetic (8h initial vs 1h counter duration, 3h min remaining window, 10m unlock/reclaim mutual-exclusion buffer, 1h max clock drift, 120s reclaim cooldown, max-swaps capacity and chain-ID matching), HTLC swap lifecycle state machine (Completed terminal absorption, outgoing vs incoming transitions, reclaim deposit expiration gating before address derivation), hardware-wallet HTLC restriction, SQLCipher 32-byte key validation, information-flow zero-preimage-leakage error sanitizer with 5-layer unwrap cap, and parallel-let HTLC evaluator equivalence.",
+      "bend_files": [
+        "test/bend/p2p_htlc/model.bend",
+        "test/bend/p2p_htlc/LAWS.bend",
+        "test/bend/p2p_htlc/PROOF.bend"
+      ],
+      "laws": [
+        "p2p_htlc.safe_join_requires_participants",
+        "p2p_htlc.safe_join_requires_unused_and_unique",
+        "p2p_htlc.safe_join_requires_duration_caps",
+        "p2p_htlc.safe_join_window_margin_parametric",
+        "p2p_htlc.safe_join_guarantees_preimage_margin",
+        "p2p_htlc.unlock_reclaim_mutually_exclusive",
+        "p2p_htlc.unlock_has_strict_reclaim_buffer",
+        "p2p_htlc.start_and_join_initial_states",
+        "p2p_htlc.create_flips_pending_to_active",
+        "p2p_htlc.unlock_incoming_completes_and_records_preimage",
+        "p2p_htlc.unlock_outgoing_active_completes",
+        "p2p_htlc.reclaim_non_completed_funded_unsuccessful",
+        "p2p_htlc.expire_moves_pending_and_active_only",
+        "p2p_htlc.completed_is_terminal_absorbing",
+        "p2p_htlc.safe_deletion_partition",
+        "p2p_htlc.funded_htlc_direction_bijection",
+        "p2p_htlc.reclaim_hw_rejects_missing_never_derives",
+        "p2p_htlc.reclaim_unexpired_never_derives",
+        "p2p_htlc.reclaim_sw_lookahead_exact_and_bounded",
+        "p2p_htlc.reclaim_sw_out_of_window_rejected",
+        "p2p_htlc.auto_unlock_mutex_blocks_reentry",
+        "p2p_htlc.auto_unlock_cooldown_blocks_retry",
+        "p2p_htlc.auto_unlock_cooldown_expires_allows_retry",
+        "p2p_htlc.sqlcipher_key_requires_32_bytes",
+        "p2p_htlc.sqlcipher_key_rejects_invalid_bytes_and_accepts_32",
+        "p2p_htlc.processed_block_requires_matching_chain",
+        "p2p_htlc.pruning_never_evicts_unresolved_swaps",
+        "p2p_htlc.begin_rekey_retains_old_backup",
+        "p2p_htlc.change_password_atomicity_commit_and_rollback",
+        "p2p_htlc.change_password_always_restarts_sync",
+        "p2p_htlc.open_crash_recovery_and_stale_backup_cleanup",
+        "p2p_htlc.legacy_migration_safety",
+        "p2p_htlc.sanitizer_zero_preimage_leakage",
+        "p2p_htlc.sanitizer_five_layer_cap",
+        "p2p_htlc.parallel_swap_safety_check_equiv"
+      ],
+      "law_count": 35,
+      "checks": [
+        "inventory",
+        "proof",
+        "verdict",
+        "oracle",
+        "conformance",
+        "model-mutations",
+        "dart-mutations",
+        "harness-tests"
+      ],
+      "source_files": [
+        "lib/rearchitecture/features/initial_htlc_validation/utils/htlc_window_utils.dart",
+        "lib/rearchitecture/features/initial_htlc_validation/utils/htlc_info_extension.dart",
+        "lib/rearchitecture/features/p2p_swaps/services/htlc_swap_sync_service.dart",
+        "lib/rearchitecture/features/p2p_swaps/utils/swap_storage_error_sanitizer.dart",
+        "lib/rearchitecture/features/reclaim_deposit/bloc/reclaim_deposit_bloc.dart",
+        "lib/rearchitecture/features/start_p2p_swap/bloc/start_p2p_swap_bloc.dart",
+        "lib/rearchitecture/features/join_p2p_swap/bloc/join_p2p_swap_bloc.dart",
+        "lib/rearchitecture/features/complete_swap/bloc/complete_swap_bloc.dart"
+      ],
+      "evidence": [
+        {
+          "file": "test/bend_conformance/p2p_htlc_conformance_test.dart",
+          "kind": "conformance"
+        },
+        {
+          "file": "test/initial_htlc_validation/utils/htlc_info_extension_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/initial_htlc_validation/bloc/initial_htlc_validation_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/p2p_swaps/services/htlc_swap_sync_service_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/p2p_swaps/utils/swap_storage_error_sanitizer_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/reclaim_deposit/bloc/reclaim_deposit_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/start_p2p_swap/bloc/start_p2p_swap_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/join_p2p_swap/bloc/join_p2p_swap_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/complete_swap/bloc/complete_swap_bloc_test.dart",
+          "kind": "unit"
+        }
+      ]
+    },
+    {
+      "area": "accelerator",
+      "domain": "accelerator",
+      "contract": "Accelerator-Z quorum threshold strictly exceeding 33% of active pillars (with 0 pillars never reaching quorum), AcceleratorVoteSummary total/remaining/quorumReached arithmetic and voting progress-bar clamped percentage spans, project visibility rules for pillars vs non-pillars (owner + active), Pillar-only voting eligibility and phase-creation ownership rules, SubmitDonationBloc non-negative/positive-sum/balance validation, project creation fee (1 ZNN) and ZNN [10..5000] / QSR [100..50000] budget caps, phase budget conservation against remaining project funds, and parallel-let governance evaluator equivalence.",
+      "bend_files": [
+        "test/bend/accelerator/model.bend",
+        "test/bend/accelerator/LAWS.bend",
+        "test/bend/accelerator/PROOF.bend"
+      ],
+      "laws": [
+        "accelerator.pillar_owner_takes_precedence",
+        "accelerator.pillar_owner_beats_earlier_producer",
+        "accelerator.pillar_producer_fallback",
+        "accelerator.vote_method_owner_vs_producer",
+        "accelerator.non_pillar_never_votes",
+        "accelerator.can_submit_vote_requires_pillar_and_voting",
+        "accelerator.quorum_zero_when_no_pillars",
+        "accelerator.quorum_bounded_by_one_and_n",
+        "accelerator.quorum_strictly_exceeds_33_percent",
+        "accelerator.abstains_count_for_quorum_not_majority",
+        "accelerator.majority_strict_tie_fails",
+        "accelerator.clamped_bar_zero_total_safe",
+        "accelerator.clamped_bar_3_conserved",
+        "accelerator.quorum_progress_bar_conserved",
+        "accelerator.pillar_sees_all_statuses",
+        "accelerator.non_pillar_visibility_exact",
+        "accelerator.losing_pillar_strips_voting_tags",
+        "accelerator.filter_tags_strict_and_conjunction",
+        "accelerator.donation_rejects_negative_legs",
+        "accelerator.donation_valid_bounds_and_positive",
+        "accelerator.donation_partial_failure_no_double_znn",
+        "accelerator.donation_both_succeed_reaches_submitted",
+        "accelerator.valid_project_budget_enforces_caps",
+        "accelerator.budget_conservation",
+        "accelerator.phase_funds_never_overspend_total",
+        "accelerator.sequential_phase_create_and_update_gate",
+        "accelerator.can_create_phase_requires_owner_and_active",
+        "accelerator.parallel_accelerator_audit_equiv"
+      ],
+      "law_count": 28,
+      "checks": [
+        "inventory",
+        "proof",
+        "verdict",
+        "oracle",
+        "conformance",
+        "model-mutations",
+        "dart-mutations",
+        "harness-tests"
+      ],
+      "source_files": [
+        "lib/rearchitecture/features/accelerator_projects/utils/accelerator_vote_summary.dart",
+        "lib/rearchitecture/features/accelerator_projects/widgets/accelerator_project_list_item.dart",
+        "lib/rearchitecture/features/accelerator_donation_stepper/bloc/submit_donation_bloc.dart",
+        "lib/rearchitecture/features/create_project_stepper/bloc/create_project_bloc.dart",
+        "lib/rearchitecture/features/create_phase_stepper/bloc/create_phase_bloc.dart",
+        "lib/rearchitecture/features/accelerator_projects/bloc/vote_project_bloc.dart"
+      ],
+      "evidence": [
+        {
+          "file": "test/bend_conformance/accelerator_conformance_test.dart",
+          "kind": "conformance"
+        },
+        {
+          "file": "test/utils/edge_helpers_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/accelerator_donation_stepper/bloc/submit_donation_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/accelerator_donation_stepper/donation_validation_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/accelerator_projects/widgets/accelerator_project_list_item_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/create_project_stepper/bloc/create_project_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/create_phase_stepper/bloc/create_phase_bloc_test.dart",
+          "kind": "unit"
+        },
+        {
+          "file": "test/accelerator_projects/bloc/vote_project_bloc_test.dart",
+          "kind": "unit"
+        }
+      ]
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/input_validators.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/password_strength_utils.dart';
 
 /// Three-segment strength indicator bar for a wallet password.
 class PasswordProgressBar extends StatefulWidget {
@@ -74,25 +75,27 @@ class _PasswordProgressBarState extends State<PasswordProgressBar> {
   }
 
   void _getBarColors() {
-    if (widget.password.isEmpty) {
-      _colors[0] = AppColors.accessWalletContainersGray;
-      _colors[1] = AppColors.accessWalletContainersGray;
-      _colors[2] = AppColors.accessWalletContainersGray;
-    } else if (widget.password.length < 8) {
-      _colors[0] = AppColors.errorColor;
-      _colors[1] = AppColors.accessWalletContainersGray;
-      _colors[2] = AppColors.accessWalletContainersGray;
-    } else if (widget.password.length >= 8 &&
-        widget.password.length < 16 &&
-        InputValidators.validatePassword(widget.password) == null) {
-      _colors[0] = Colors.orange[300]!;
-      _colors[1] = Colors.orange[300]!;
-      _colors[2] = AppColors.accessWalletContainersGray;
-    } else if (widget.password.length >= 16 &&
-        InputValidators.validatePassword(widget.password) == null) {
-      _colors[0] = AppColors.znnColor;
-      _colors[1] = AppColors.znnColor;
-      _colors[2] = AppColors.znnColor;
+    final PasswordStrengthTier tier = classifyPasswordStrength(
+      widget.password,
+      isValid: InputValidators.validatePassword(widget.password) == null,
+    );
+    switch (tier) {
+      case PasswordStrengthTier.empty:
+        _colors[0] = AppColors.accessWalletContainersGray;
+        _colors[1] = AppColors.accessWalletContainersGray;
+        _colors[2] = AppColors.accessWalletContainersGray;
+      case PasswordStrengthTier.weak:
+        _colors[0] = AppColors.errorColor;
+        _colors[1] = AppColors.accessWalletContainersGray;
+        _colors[2] = AppColors.accessWalletContainersGray;
+      case PasswordStrengthTier.medium:
+        _colors[0] = Colors.orange[300]!;
+        _colors[1] = Colors.orange[300]!;
+        _colors[2] = AppColors.accessWalletContainersGray;
+      case PasswordStrengthTier.strong:
+        _colors[0] = AppColors.znnColor;
+        _colors[1] = AppColors.znnColor;
+        _colors[2] = AppColors.znnColor;
     }
   }
 }

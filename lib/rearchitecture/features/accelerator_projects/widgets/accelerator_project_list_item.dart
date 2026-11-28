@@ -338,32 +338,12 @@ class _ViewState extends State<_View> {
     BuildContext context,
     VoteBreakdown voteBreakdown,
   ) {
-    final int yesVotes = voteBreakdown.yes;
-    final int noVotes = voteBreakdown.no;
-    final int decisiveVotes = yesVotes + noVotes;
-    final int quorum = voteBreakdown.total;
-    final int totalPillars = widget._activePillarCount ?? kNumOfPillars ?? 0;
-    final int quorumNeeded = totalPillars > 0
-        ? (totalPillars * 33) ~/ 100 + 1
-        : 0;
-    final int votesToAchieveQuorum = totalPillars > 0
-        ? (quorumNeeded - quorum).clamp(0, totalPillars)
-        : 0;
-    final int pillarsThatCanStillVote = totalPillars > 0
-        ? (totalPillars - quorum - votesToAchieveQuorum).clamp(0, totalPillars)
-        : 0;
-    final double quorumFraction = totalPillars > 0
-        ? (quorum / totalPillars).clamp(0.0, 1.0)
-        : 0.0;
-    final double remainingQuorumFraction = totalPillars > 0
-        ? (votesToAchieveQuorum / totalPillars).clamp(0.0, 1.0 - quorumFraction)
-        : 0.0;
-    final double remainingPillarsFraction = totalPillars > 0
-        ? (pillarsThatCanStillVote / totalPillars).clamp(
-            0.0,
-            1.0 - quorumFraction - remainingQuorumFraction,
-          )
-        : 0.0;
+    final AcceleratorVoteSummary summary = computeAcceleratorVoteSummary(
+      yes: voteBreakdown.yes,
+      no: voteBreakdown.no,
+      total: voteBreakdown.total,
+      totalPillars: widget._activePillarCount ?? kNumOfPillars ?? 0,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -376,26 +356,28 @@ class _ViewState extends State<_View> {
               child: Row(
                 children: <Widget>[
                   AcceleratorVotingProgressBarSpan(
-                    value: decisiveVotes > 0 ? yesVotes / decisiveVotes : 0,
+                    value: summary.yesFraction,
                     color: AppColors.znnColor,
-                    tooltipMessage: context.l10n.yesVotesCount(yesVotes),
+                    tooltipMessage: context.l10n.yesVotesCount(
+                      summary.yesVotes,
+                    ),
                   ),
                   AcceleratorVotingProgressBarSpan(
-                    value: decisiveVotes > 0 ? noVotes / decisiveVotes : 0,
+                    value: summary.noFraction,
                     color: AppColors.errorColor,
-                    tooltipMessage: context.l10n.noVotesCount(noVotes),
+                    tooltipMessage: context.l10n.noVotesCount(summary.noVotes),
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 10),
             Tooltip(
-              message: yesVotes > noVotes
+              message: summary.hasMajority
                   ? context.l10n.moreYesThanNoVotes
                   : context.l10n.notEnoughYesVotes,
               child: Icon(
                 Icons.check_circle,
-                color: yesVotes > noVotes
+                color: summary.hasMajority
                     ? AppColors.znnColor
                     : Theme.of(context).colorScheme.secondary,
                 size: 15,
@@ -404,32 +386,32 @@ class _ViewState extends State<_View> {
           ],
         ),
         const SizedBox(height: 10),
-        if (totalPillars > 0)
+        if (summary.totalPillars > 0)
           Row(
             children: <Widget>[
               AcceleratorVotingProgressBar(
                 child: Row(
                   children: <Widget>[
                     AcceleratorVotingProgressBarSpan(
-                      value: quorumFraction,
+                      value: summary.quorumFraction,
                       color: AppColors.qsrColor,
                       tooltipMessage: context.l10n.totalVotesCount(
-                        voteBreakdown.total,
+                        summary.totalVotes,
                       ),
                     ),
-                    if (votesToAchieveQuorum > 0)
+                    if (summary.votesToAchieveQuorum > 0)
                       AcceleratorVotingProgressBarSpan(
-                        value: remainingQuorumFraction,
+                        value: summary.remainingQuorumFraction,
                         color: AppColors.alertNotification,
                         tooltipMessage: context.l10n.moreVotesNeededForQuorum(
-                          votesToAchieveQuorum,
+                          summary.votesToAchieveQuorum,
                         ),
                       ),
                     AcceleratorVotingProgressBarSpan(
-                      value: remainingPillarsFraction,
+                      value: summary.remainingPillarsFraction,
                       color: Colors.transparent,
                       tooltipMessage: context.l10n.pillarsCanStillVote(
-                        pillarsThatCanStillVote,
+                        summary.pillarsThatCanStillVote,
                       ),
                     ),
                   ],
@@ -437,12 +419,12 @@ class _ViewState extends State<_View> {
               ),
               const SizedBox(width: 10),
               Tooltip(
-                message: quorum >= quorumNeeded
+                message: summary.quorumReached
                     ? context.l10n.quorumAchieved
                     : context.l10n.quorumNotAchieved,
                 child: Icon(
                   Icons.check_circle,
-                  color: quorum >= quorumNeeded
+                  color: summary.quorumReached
                       ? AppColors.znnColor
                       : Theme.of(context).colorScheme.secondary,
                   size: 15,

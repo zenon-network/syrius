@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/math_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -82,24 +81,27 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
     AccountInfo accountInfo,
     CreatePillarQsrInfoData qsrInfo,
   ) {
-    final BigInt maxQsrAmount = MathUtils.bigMin(
-      widget.accountInfo.getBalance(kQsrCoin.tokenStandard),
-      MathUtils.bigMax(BigInt.zero, qsrInfo.cost - qsrInfo.deposit),
+    final PillarQsrDepositSummary summary = computePillarQsrDepositSummary(
+      qsrBalance: widget.accountInfo.getBalance(kQsrCoin.tokenStandard),
+      qsrCost: qsrInfo.cost,
+      qsrDeposit: qsrInfo.deposit,
     );
 
-    widget.qsrAmountController.text = maxQsrAmount.addDecimals(coinDecimals);
+    widget.qsrAmountController.text = summary.maxDeposit.addDecimals(
+      coinDecimals,
+    );
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Expanded(
-          child: _buildFields(accountInfo, context, qsrInfo, maxQsrAmount),
+          child: _buildFields(accountInfo, context, qsrInfo, summary),
         ),
         kHorizontalGap45,
         Expanded(
           child: Visibility(
-            visible: qsrInfo.deposit > BigInt.zero,
-            child: _buildDepositedQsrInfo(context, qsrInfo),
+            visible: summary.canWithdraw,
+            child: _buildDepositedQsrInfo(context, qsrInfo, summary),
           ),
         ),
       ],
@@ -109,12 +111,8 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
   Card _buildDepositedQsrInfo(
     BuildContext context,
     CreatePillarQsrInfoData qsrInfo,
+    PillarQsrDepositSummary summary,
   ) {
-    final double toBeDepositedValue =
-        (qsrInfo.cost - qsrInfo.deposit) / qsrInfo.cost;
-
-    final double depositedValue = qsrInfo.deposit / qsrInfo.cost;
-
     return Card.filled(
       color: context.themeData.inputDecorationTheme.fillColor,
       child: Padding(
@@ -132,7 +130,7 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
                         PieChartSectionData(
                           showTitle: false,
                           radius: 7,
-                          value: toBeDepositedValue,
+                          value: summary.remainingFraction,
                           color: AppColors.qsrColor.withAlpha(
                             (255 * 0.3).round(),
                           ),
@@ -140,7 +138,7 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
                         PieChartSectionData(
                           showTitle: false,
                           radius: 7,
-                          value: depositedValue,
+                          value: summary.depositedFraction,
                           color: AppColors.qsrColor,
                         ),
                       ],
@@ -190,9 +188,10 @@ class _PillarQsrManagementStepState extends State<PillarQsrManagementStep> {
     AccountInfo accountInfo,
     BuildContext context,
     CreatePillarQsrInfoData qsrInfo,
-    BigInt maxQsrAmount,
+    PillarQsrDepositSummary summary,
   ) {
-    final bool qsrCostCovered = qsrInfo.deposit >= qsrInfo.cost;
+    final bool qsrCostCovered = summary.isCovered;
+    final BigInt maxQsrAmount = summary.maxDeposit;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

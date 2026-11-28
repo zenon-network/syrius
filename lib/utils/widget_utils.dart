@@ -5,6 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/settings_dis
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_theme_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_tier_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// UI helper utilities for theme, text scale, visibility keys, and plasma copy.
@@ -49,16 +50,11 @@ class WidgetUtils {
 
   /// Returns a human-readable plasma level tooltip label for [plasmaInfo].
   static String getPlasmaToolTipMessage(PlasmaInfo plasmaInfo) {
-    if (plasmaInfo.currentPlasma >= kPillarPlasmaAmountNeeded) {
-      return 'High Plasma';
-    } else if (plasmaInfo.currentPlasma >= kIssueTokenPlasmaAmountNeeded &&
-        plasmaInfo.currentPlasma < kPillarPlasmaAmountNeeded) {
-      return 'Average Plasma';
-    } else if (plasmaInfo.currentPlasma >= minPlasmaAmount.toInt() &&
-        plasmaInfo.currentPlasma < kIssueTokenPlasmaAmountNeeded) {
-      return 'Low Plasma';
-    } else {
-      return 'Insufficient Plasma';
-    }
+    return switch (classifyPlasmaTier(plasmaInfo.currentPlasma)) {
+      PlasmaTier.high => 'High Plasma',
+      PlasmaTier.average => 'Average Plasma',
+      PlasmaTier.low => 'Low Plasma',
+      PlasmaTier.insufficient => 'Insufficient Plasma',
+    };
   }
 }

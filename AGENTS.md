@@ -54,3 +54,13 @@
 - The fields of a class should also be private
 - Each new feature must also have basic unit tests for the bloc or cubit class; take pillars_card as an example
 - Inside the build method of a Widget, when other methods return an object of type Widget - Row, Column, etc - the method's name should by prefixed by _build; for example, instead of _getColletButton(), use _buildCollectButton()
+
+## Bend formal verification
+When using Bend in this repository:
+- Run `bend guide` (or `./scripts/bend guide`) before writing or modifying Bend code.
+- Keep reviewable invariants in `LAWS.bend` (root cross-cutting laws plus per-domain `test/bend/<domain>/LAWS.bend`), executable models in `test/bend/<domain>/model.bend`, and proofs in `PROOF.bend` (`def Laws.<name>(...)`).
+- Run `./scripts/bend PROOF.bend` (and `./test/bend/run.sh` for the full gate) before committing changes to verified logic, models, laws, or conformance tests.
+- Keep all proofs and models free of `@unsafe`, `def f?(`, `?TODO` / `?` holes, and foreign imports; every law must pass both Bend's checker and the independent Lean kernel (`--verdict`).
+- Update laws, Bend models, Dart<->Bend conformance tests (`test/bend_conformance/`, tagged `@Tags(<String>['bend'])`), and `test/bend/coverage.json` together. Never weaken a law merely to make a check pass; treat law edits as contract changes.
+- Parallelize independent checks and balanced pure computations (e.g. Bend parallel-let with named function calls on RHS in batched oracle evaluators and concurrent domain verification) while preserving required wallet, signing, lock, and persistence ordering.
+- Document honest verification boundaries in `docs/BEND_LAWS.md`: Bend proves stated properties of the models and differential tests check bounded agreement with real Dart code; it does not prove Flutter rendering, cryptography, SQLCipher, OS/network behavior, or every concurrent interleaving.

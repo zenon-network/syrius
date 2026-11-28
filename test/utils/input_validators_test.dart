@@ -300,6 +300,83 @@ void main() {
           ),
           isNull,
         );
+        expect(
+          InputValidators.correctValue(
+            '0',
+            BigInt.zero,
+            8,
+            BigInt.zero,
+            canBeEqualToMin: true,
+            l10n: custom,
+          ),
+          isNull,
+        );
+        expect(
+          InputValidators.correctValue(
+            '999',
+            BigInt.zero,
+            8,
+            BigInt.zero,
+            canBeEqualToMin: true,
+            l10n: custom,
+          ),
+          '[L10N] valueMustBe:0',
+        );
+        expect(
+          InputValidators.correctValue(
+            'abc',
+            BigInt.zero,
+            8,
+            BigInt.zero,
+            canBeEqualToMin: true,
+            l10n: custom,
+          ),
+          '[L10N] error',
+        );
+        expect(
+          InputValidators.correctValue(
+            '',
+            BigInt.zero,
+            8,
+            BigInt.zero,
+            canBeEqualToMin: true,
+            l10n: custom,
+          ),
+          '[L10N] enterValidAmount',
+        );
+        expect(
+          InputValidators.correctValue(
+            '',
+            BigInt.zero,
+            8,
+            BigInt.zero,
+            canBeEqualToMin: true,
+            canBeBlank: true,
+            l10n: custom,
+          ),
+          isNull,
+        );
+        expect(
+          InputValidators.correctValue(
+            '1',
+            BigInt.zero,
+            0,
+            BigInt.one,
+            canBeEqualToMin: true,
+            l10n: custom,
+          ),
+          '[L10N] availableBalanceMustBeAtLeast:1',
+        );
+        expect(
+          InputValidators.correctValue(
+            '1.2.3',
+            BigInt.from(1000),
+            2,
+            BigInt.zero,
+            l10n: custom,
+          ),
+          '[L10N] error',
+        );
       },
     );
 

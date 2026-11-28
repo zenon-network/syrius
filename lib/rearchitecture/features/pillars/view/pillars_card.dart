@@ -355,12 +355,10 @@ class _PopulatedState extends State<_Populated> {
   }
 
   int _getMomentumsPercentage(PillarInfo pillarInfo) {
-    final double percentage =
-        pillarInfo.producedMomentums / pillarInfo.expectedMomentums * 100;
-    if (percentage.isNaN) {
-      return 0;
-    }
-    return percentage.round();
+    return computeMomentumUptimePercentage(
+      pillarInfo.producedMomentums,
+      pillarInfo.expectedMomentums,
+    );
   }
 
   List<InfiniteScrollTableColumnType> _buildHeaderColumns() =>

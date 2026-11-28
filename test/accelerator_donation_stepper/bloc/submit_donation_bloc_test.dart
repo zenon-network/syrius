@@ -246,6 +246,58 @@ void main() {
     );
 
     blocTest<SubmitDonationBloc, SubmitDonationState>(
+      'emits failure when ZNN amount is negative even if QSR is positive',
+      build: () => SubmitDonationBloc(
+        accountBlockUtils: accountBlockUtils,
+        zenon: zenon,
+        zenonAddressUtils: zenonAddressUtils,
+      ),
+      act: (SubmitDonationBloc bloc) => bloc.add(
+        SubmitDonationRequested(
+          address: donorAddress,
+          znnAmount: BigInt.from(-1),
+          qsrAmount: BigInt.from(10),
+        ),
+      ),
+      expect: () => <Matcher>[
+        isA<SubmitDonationFailure>().having(
+          (SubmitDonationFailure s) => s.exception,
+          'exception',
+          isA<InvalidDonationAmountException>(),
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => acceleratorApi.donate(any(), any()));
+      },
+    );
+
+    blocTest<SubmitDonationBloc, SubmitDonationState>(
+      'emits failure when QSR amount is negative even if ZNN is positive',
+      build: () => SubmitDonationBloc(
+        accountBlockUtils: accountBlockUtils,
+        zenon: zenon,
+        zenonAddressUtils: zenonAddressUtils,
+      ),
+      act: (SubmitDonationBloc bloc) => bloc.add(
+        SubmitDonationRequested(
+          address: donorAddress,
+          znnAmount: BigInt.from(10),
+          qsrAmount: BigInt.from(-1),
+        ),
+      ),
+      expect: () => <Matcher>[
+        isA<SubmitDonationFailure>().having(
+          (SubmitDonationFailure s) => s.exception,
+          'exception',
+          isA<InvalidDonationAmountException>(),
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => acceleratorApi.donate(any(), any()));
+      },
+    );
+
+    blocTest<SubmitDonationBloc, SubmitDonationState>(
       'reports partial ZNN success and refreshes balance when QSR throws',
       setUp: () {
         when(

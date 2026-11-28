@@ -13,6 +13,16 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 part 'submit_donation_event.dart';
 part 'submit_donation_state.dart';
 
+/// Returns whether a donation pair `(znnAmount, qsrAmount)` has non-negative
+/// legs and donates a strictly positive combined amount.
+bool isValidDonationAmounts({
+  required BigInt znnAmount,
+  required BigInt qsrAmount,
+}) =>
+    znnAmount >= BigInt.zero &&
+    qsrAmount >= BigInt.zero &&
+    (znnAmount > BigInt.zero || qsrAmount > BigInt.zero);
+
 /// Submits ZNN and/or QSR donations to the Accelerator embedded contract.
 class SubmitDonationBloc
     extends Bloc<SubmitDonationEvent, SubmitDonationState> {
@@ -36,7 +46,10 @@ class SubmitDonationBloc
     SubmitDonationRequested event,
     Emitter<SubmitDonationState> emit,
   ) async {
-    if (event.znnAmount <= BigInt.zero && event.qsrAmount <= BigInt.zero) {
+    if (!isValidDonationAmounts(
+      znnAmount: event.znnAmount,
+      qsrAmount: event.qsrAmount,
+    )) {
       emit(SubmitDonationFailure(exception: InvalidDonationAmountException()));
       return;
     }

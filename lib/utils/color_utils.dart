@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_tier_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -26,16 +26,11 @@ class ColorUtils {
 
   /// Returns a status [Color] corresponding to the plasma tier of [plasmaInfo].
   static Color getPlasmaColor(PlasmaInfo plasmaInfo) {
-    if (plasmaInfo.currentPlasma >= kPillarPlasmaAmountNeeded) {
-      return AppColors.znnColor;
-    } else if (plasmaInfo.currentPlasma >= kIssueTokenPlasmaAmountNeeded &&
-        plasmaInfo.currentPlasma < kPillarPlasmaAmountNeeded) {
-      return Colors.yellow;
-    } else if (plasmaInfo.currentPlasma >= minPlasmaAmount.toInt() &&
-        plasmaInfo.currentPlasma < kIssueTokenPlasmaAmountNeeded) {
-      return Colors.orange;
-    } else {
-      return AppColors.ztsColor;
-    }
+    return switch (classifyPlasmaTier(plasmaInfo.currentPlasma)) {
+      PlasmaTier.high => AppColors.znnColor,
+      PlasmaTier.average => Colors.yellow,
+      PlasmaTier.low => Colors.orange,
+      PlasmaTier.insufficient => AppColors.ztsColor,
+    };
   }
 }
