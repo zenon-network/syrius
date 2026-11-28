@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/accelerator_projects/accelerator_projects.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fuse_plasma/fuse_plasma.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/initial_htlc_validation/initial_htlc_validation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pillars/pillars.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/tokens.dart';
@@ -71,6 +72,56 @@ void main() {
         'AAA',
         'BBB',
       ]);
+    });
+
+    test('preserves relative order of >32 custom tokens (stable sort)', () {
+      final List<Token> customTokens = <Token>[
+        for (int i = 0; i < 50; i += 1)
+          _token(
+            'T$i',
+            TokenStandard.fromBytes(<int>[1, 2, 3, 4, 5, 6, 7, 8, 0, i]),
+          ),
+      ];
+      final List<Token> input = <Token>[
+        ...customTokens.sublist(0, 17),
+        qsr,
+        ...customTokens.sublist(17, 35),
+        znn,
+        ...customTokens.sublist(35),
+      ];
+      final List<Token> sorted = sortAssets(input);
+      expect(
+        sorted.map((Token t) => t.symbol).toList(),
+        <String>['ZNN', 'QSR', for (int i = 0; i < 50; i += 1) 'T$i'],
+      );
+    });
+  });
+
+  group('truncateToWholeQsr', () {
+    test('truncates fractional QSR balances down to whole units', () {
+      final BigInt unit = BigInt.from(10).pow(coinDecimals);
+      final BigInt fractional = BigInt.from(25) * unit + BigInt.from(50000000);
+      final BigInt truncated = truncateToWholeQsr(fractional);
+      expect(truncated, BigInt.from(25) * unit);
+      final String formatted = truncated.addDecimals(coinDecimals);
+      expect(formatted, '25');
+      expect(isIntegerQsrAmount(formatted), isTrue);
+      expect(
+        canFusePlasma(
+          amountText: formatted,
+          maxQsrBalance: fractional,
+          beneficiaryAddress: emptyAddress.toString(),
+        ),
+        isTrue,
+      );
+
+      expect(
+        truncateToWholeQsr(BigInt.from(10) * unit),
+        BigInt.from(10) * unit,
+      );
+      expect(truncateToWholeQsr(BigInt.from(50000000)), BigInt.zero);
+      expect(truncateToWholeQsr(BigInt.zero), BigInt.zero);
+      expect(truncateToWholeQsr(BigInt.from(-100)), BigInt.zero);
     });
   });
 

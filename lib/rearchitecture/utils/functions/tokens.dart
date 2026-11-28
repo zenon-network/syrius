@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -31,7 +32,7 @@ int compareAssets(Token a, Token b) {
 ///
 /// If no coins are found in the list, then the order is preserved
 List<Token> sortAssets(List<Token> assets) {
-  assets.sort(compareAssets);
+  mergeSort<Token>(assets, compare: compareAssets);
   return assets;
 }
 

@@ -561,9 +561,18 @@ def Laws.plasma_thresholds_and_tiers_coherence(p):
 def Laws.plasma_sufficiency_cross_domain_hierarchy(pk, op, role, extra):
   plasma_hierarchy_from_bounds(pk, op, role, extra, op_plasma_bounds(op))
 
+def zero_bal_parse_err_rejected(+val: Nat, +dec: Nat, +min_val: Nat, +can_blank: Bool, +frac: Nat) -> {Amt.amount_is_ok(Amt.correct_value(val, 0n, dec, min_val, True{}, can_blank, False{}, False{}, frac)) == False{} : Bool}:
+  match min_val:
+    case 0n:
+      {==}
+    case 1n+_:
+      {==}
+
 def Laws.zero_balance_rejects_all_spend_ops(val, dec, min_val, can_blank, is_blank, parse_ok, frac, is_int, valid_ben, months, total, is_burn, is_own, znn_d, qsr_d):
+  e_cv = zero_bal_parse_err_rejected(val, dec, min_val, can_blank, frac)
   e_burn = can_burn_zero_bal(val, total, is_burn, is_own)
   e_don = donation_zero_bals(znn_d, qsr_d)
+  %Equal.sym(Bool, Amt.amount_is_ok(Amt.correct_value(val, 0n, dec, min_val, True{}, can_blank, False{}, False{}, frac)), False{}, e_cv) : {Bool.and(True{}, Bool.and(Bool.not(_), Bool.and(True{}, Bool.and(True{}, Bool.and(Bool.not(Tok.can_burn_amount(val, 0n, total, is_burn, is_own)), Bool.and(Bool.not(Acc.is_valid_donation(znn_d, qsr_d, 0n, 0n)), True{})))))) == True{} : Bool}
   %Equal.sym(Bool, Tok.can_burn_amount(val, 0n, total, is_burn, is_own), False{}, e_burn) : {Bool.and(True{}, Bool.and(True{}, Bool.and(True{}, Bool.and(True{}, Bool.and(Bool.not(_), Bool.and(Bool.not(Acc.is_valid_donation(znn_d, qsr_d, 0n, 0n)), True{})))))) == True{} : Bool}
   %Equal.sym(Bool, Acc.is_valid_donation(znn_d, qsr_d, 0n, 0n), False{}, e_don) : {Bool.and(True{}, Bool.and(True{}, Bool.and(True{}, Bool.and(True{}, Bool.and(True{}, Bool.and(Bool.not(_), True{})))))) == True{} : Bool}
   {==}

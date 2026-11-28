@@ -65,7 +65,7 @@
     "all_verified_laws": 445,
     "maintained_bend_files": 36,
     "oracle_ops": 107,
-    "oracle_vectors_default": 833,
+    "oracle_vectors_default": 834,
     "oracle_exercised_domain_laws": 291,
     "model_only_domain_laws": 90,
     "model_only_root_laws": 17,

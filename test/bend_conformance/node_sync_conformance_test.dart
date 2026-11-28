@@ -799,5 +799,5 @@ void main() {
         expect(bloc.state.autoReceive, isTrue);
       },
     );
-  });
+  }, skip: bendConformanceSkipReason);
 }

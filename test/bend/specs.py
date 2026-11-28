@@ -239,6 +239,7 @@ def _amounts_cases(depth: int, seed: int) -> list[OracleCase]:
         ("zero_max_can_eq_ok", 0, 0, 0, 0, True, False, False, True, 0),
         ("zero_max_can_eq_parse_err", 0, 0, 0, 0, True, False, False, False, 0),
         ("zero_max_empty_bal", 0, 0, 0, 0, False, False, False, True, 0),
+        ("zero_max_pos_min_can_eq_empty_bal", 1, 0, 0, 1, True, False, False, True, 0),
         ("blank_allowed", 0, 50, 2, 10, True, True, True, True, 0),
         ("blank_rejected", 0, 50, 2, 10, True, False, True, True, 0),
         ("parse_multi_dot", 10, 50, 2, 10, True, False, False, False, 2),
@@ -3636,7 +3637,7 @@ MODEL_FAULTS: tuple[ModelFault, ...] = (
     ModelFault(
         name="amounts_correct_value_zero_max_ignores_can_eq",
         domain="amounts",
-        old="Bool.and(Nat.is_eq(max_val, 0n), Bool.not(can_eq_min))",
+        old="Bool.and(Nat.is_eq(max_val, 0n), Bool.or(Bool.not(can_eq_min), Nat.is_gt(min_val, 0n)))",
         new="Nat.is_eq(max_val, 0n)",
         expected_law="correct_value_blank_iff",
     ),
@@ -3815,7 +3816,10 @@ DART_FAULTS: tuple[DartFault, ...] = (
         name="amounts_correct_value_zero_max_dart",
         domain="amounts",
         source_path="lib/utils/input_validators.dart",
-        old="if (maxValue == BigInt.zero && !canBeEqualToMin) {",
+        old=(
+            "if (maxValue == BigInt.zero &&\n"
+            "            (!canBeEqualToMin || minValue > BigInt.zero)) {"
+        ),
         new="if (maxValue == BigInt.zero) {",
         test_file="test/bend_conformance/amounts_conformance_test.dart",
     ),

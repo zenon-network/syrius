@@ -148,7 +148,7 @@ Reviewers and maintainers must keep these boundaries explicit:
 All **445** laws (root `17` + domain `381` + `test/bend/common/nat.bend` `47`)
 are mechanically proved in Bend and rechecked by the Lean `--verdict` kernel.
 The differential Dart <-> Bend conformance surface is **exact 107 oracle ops
-across 11 suites** (**833** Bend oracle vectors at default `depth=3, seed=1`),
+across 11 suites** (**834** Bend oracle vectors at default `depth=3, seed=1`),
 mechanically cross-checked 1:1 between `test/bend/coverage.json` (`oracle_ops`),
 `test/bend/specs.py` (`ORACLE_SPECS`), and Dart `seenOps`.
 
@@ -234,19 +234,21 @@ preserved and documented below.
 
 ### Category-A Fixes Landed in `lib/`
 
-1. **`sortAssets` strict weak ordering**
+1. **`sortAssets` strict weak ordering & stability**
    (`lib/rearchitecture/utils/functions/tokens.dart`): Previously returned `-1`
    for `(ZNN, ZNN)` and `+1` for `(QSR, QSR)`, violating comparator reflexivity
-   and antisymmetry. Extracted `compareAssets(Token a, Token b)` returning `0`
-   on equal `tokenStandard` while preserving `ZNN < QSR < non-coin` ordering.
+   and antisymmetry, and used `List.sort` (which switches to unstable quicksort
+   above 32 elements). Extracted `compareAssets(Token a, Token b)` returning `0`
+   on equal `tokenStandard` while preserving `ZNN < QSR < non-coin` ordering,
+   and switched `sortAssets` to `mergeSort` so ties remain stable at any size.
 2. **`InputValidators.correctValue` zero-max validation bypass**
    (`lib/utils/input_validators.dart`): Previously short-circuited to `null`
    (valid) when `maxValue == BigInt.zero && canBeEqualToMin == true`, accepting
    arbitrary strings like `"abc"` or `"999"` on zero-balance stake/plasma/token
-   inputs. Fixed so `maxValue == BigInt.zero && !canBeEqualToMin` still returns
-   `emptyBalance`, while `canBeEqualToMin == true` executes full empty, parse,
-   multi-dot (`split('.').length > 2`), decimal-count, and `[minValue, maxValue]`
-   checks.
+   inputs. Fixed so `maxValue == BigInt.zero && (!canBeEqualToMin || minValue > BigInt.zero)`
+   returns `emptyBalance`, while `maxValue == BigInt.zero && canBeEqualToMin && minValue == BigInt.zero`
+   executes full empty, parse, multi-dot (`split('.').length > 2`, returning
+   `enterValidAmount`), decimal-count, and `[minValue, maxValue]` checks.
 3. **`ProtocolHandler.getArguments` guard**
    (`lib/rearchitecture/utils/url_protocol/protocol.dart`): Changed
    `arguments.isEmpty && !arguments.any(...)` to `||` so non-empty custom
@@ -441,6 +443,9 @@ python3 -B -m unittest discover -s test/bend -p 'test_*.py' -v
 ./test/bend/run.sh --inventory-only
 
 # Ordinary Syrius analysis & unit/widget suite (Docker-free; excludes chain & bend)
+# Plain `flutter test` also passes: `test/bend_conformance/` skips cleanly when
+# `BEND_VECTORS` is unset, while `./test/bend/run.sh` exports `BEND_VECTORS` and
+# strictly rejects any skipped test.
 flutter analyze --no-pub
 flutter test --no-pub --exclude-tags chain,bend
 ```
@@ -462,7 +467,7 @@ flutter test --no-pub --exclude-tags chain,bend
 
 ## 5. Domain Law Catalog
 
-### Summary Table (445 Total Lean-Verified Laws, 107 Oracle Ops / 833 Real Bend Oracle Vectors at Default `depth=3, seed=1`, 56 Fault Injections)
+### Summary Table (445 Total Lean-Verified Laws, 107 Oracle Ops / 834 Real Bend Oracle Vectors at Default `depth=3, seed=1`, 56 Fault Injections)
 
 Stage 1 audits **398 laws across 12 proof suites** (root `LAWS.bend` + 11 domain
 `LAWS.bend` files across **36 audited `.bend` files** — **291** oracle-exercised
@@ -477,7 +482,7 @@ short sequences + deterministic seeded histories scale with `--depth` and
 |---|---:|---:|:---:|---:|---:|---|:---:|---|
 | Root `LAWS.bend` / `PROOF.bend` | 17 | 17 (0) | Pass | — | — | All 11 suites + `test/bend/test_harness.py` | — | Cross-cutting invariants composing all 11 domains |
 | `test/bend/common/nat.bend` | 47 | — | Pass | — | — | Imported by all 11 domain `PROOF.bend` suites | — | Shared constructive `Bool`/`Nat` algebra, order & refutation lemmas |
-| `test/bend/amounts/` | 39 | 3 (0) | Pass | 11 | 84 | `amounts_conformance_test.dart` | 2 / 2 | `math_utils`, `extensions`, `input_validators`, `format_utils`, `plasma_tier_utils`, `password_strength_utils`, `amount_max_utils`, `tokens` (`compareAssets`/`sortAssets`), `url_protocol`, `exchange_rate` |
+| `test/bend/amounts/` | 39 | 3 (0) | Pass | 11 | 85 | `amounts_conformance_test.dart` | 2 / 2 | `math_utils`, `extensions`, `input_validators`, `format_utils`, `plasma_tier_utils`, `password_strength_utils`, `amount_max_utils`, `tokens` (`compareAssets`/`sortAssets`), `url_protocol`, `exchange_rate` |
 | `test/bend/wallet_lifecycle/` | 39 | 8 (0) | Pass | 9 | 95 | `wallet_lifecycle_conformance_test.dart` | 2 / 3 | `wallet_file`, `wallet_service`, `wallet_unlock_bloc`, `lock`, `auto_lock_utils`, `splash`, `hide_widget_cubit`, `onboarding` seed verification, `window_geometry` |
 | `test/bend/tx_pipeline/` | 43 | 11 (0) | Pass | 10 | 84 | `tx_pipeline_conformance_test.dart` | 2 / 2 | `account_block_utils`, `pow_generating_status`, `auto_receive_tx`, `poll_until_confirmed`, `infinite_list_bloc`, `fetch_bloc`, `timer_cubit`, `balance`, `account_chain_stats` |
 | `test/bend/node_sync/` | 42 | 12 (0) | Pass | 8 | 63 | `node_sync_conformance_test.dart` | 2 / 2 | `node_management`, `sync_info_extension`, `node_sync_status_cubit`, `node_utils`, `about`, `notifications`, `settings_wallet_options` |
@@ -488,7 +493,7 @@ short sequences + deterministic seeded histories scale with `--depth` and
 | `test/bend/tokens_zts/` | 28 | 5 (0) | Pass | 8 | 78 | `tokens_zts_conformance_test.dart` | 2 / 3 | `tokens`, `create_token*`, `token_validation_utils`, `mint_token`, `burn_token`, `transfer_token`, `token_favorite`, `search_token`, `token_capabilities`, `zts_utils` |
 | `test/bend/p2p_htlc/` | 35 | 10 (1) | Pass | 9 | 61 | `p2p_htlc_conformance_test.dart` | 2 / 3 | `p2p_swap`, `initial_htlc_validation`, `htlc_window_utils`, `reclaim_deposit`, `htlc_swaps_dao`, 2-phase SQLCipher rekey, legacy migrator, `swap_storage_error_sanitizer` |
 | `test/bend/accelerator/` | 28 | 6 (0) | Pass | 7 | 54 | `accelerator_conformance_test.dart` | 2 / 3 | `accelerator_pillar`, `accelerator_projects`, `accelerator_lifecycle_utils`, `accelerator_project_details`, `accelerator_vote_summary`, `accelerator_donation_stepper`, `create_project_stepper`, `create_phase_stepper`, `update_phase_stepper` |
-| **Total** | **445** | **107 (8)** | **13/13 Pass** | **107** | **833** | **11 suites** | **22 / 34** | **All 11 wallet domains + root + shared Nat library** |
+| **Total** | **445** | **107 (8)** | **13/13 Pass** | **107** | **834** | **11 suites** | **22 / 34** | **All 11 wallet domains + root + shared Nat library** |
 
 ---
 

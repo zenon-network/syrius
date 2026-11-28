@@ -925,5 +925,5 @@ void main() {
       expect(oneSecAboveMinute.canSafelyJoin, isTrue);
       expect(oneSecAboveMinute.minutesLeftToJoin, equals(2));
     });
-  });
+  }, skip: bendConformanceSkipReason);
 }

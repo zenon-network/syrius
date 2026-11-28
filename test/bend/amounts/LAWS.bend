@@ -70,11 +70,13 @@ law correct_value_empty_balance_rejected:
   for +val: Nat
   for +dec: Nat
   for +min_val: Nat
+  for +can_eq_min: Bool
   for +can_be_blank: Bool
   for +is_blank: Bool
   for +parse_ok: Bool
   for +frac_digits: Nat
-  {M.correct_value(val, 0n, dec, min_val, False{}, can_be_blank, is_blank, parse_ok, frac_digits) == M.AmountErrEmptyBalance{} : M.AmountError}
+  for e_empty: {Bool.or(Bool.not(can_eq_min), Nat.is_gt(min_val, 0n)) == True{} : Bool}
+  {M.correct_value(val, 0n, dec, min_val, can_eq_min, can_be_blank, is_blank, parse_ok, frac_digits) == M.AmountErrEmptyBalance{} : M.AmountError}
 
 law correct_value_blank_iff:
   for +val: Nat
@@ -85,7 +87,7 @@ law correct_value_blank_iff:
   for +can_be_blank: Bool
   for +parse_ok: Bool
   for +frac_digits: Nat
-  for e_non_empty: {Bool.and(Nat.is_eq(max_val, 0n), Bool.not(can_eq_min)) == False{} : Bool}
+  for e_non_empty: {Bool.and(Nat.is_eq(max_val, 0n), Bool.or(Bool.not(can_eq_min), Nat.is_gt(min_val, 0n))) == False{} : Bool}
   {M.amount_is_ok(M.correct_value(val, max_val, dec, min_val, can_eq_min, can_be_blank, True{}, parse_ok, frac_digits)) == can_be_blank : Bool}
 
 law correct_value_parse_error_rejected:

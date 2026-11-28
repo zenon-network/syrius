@@ -108,7 +108,8 @@ class InputValidators {
     final AppLocalizations resolvedL10n = l10n ?? resolveAppLocalizations();
     if (value != null) {
       try {
-        if (maxValue == BigInt.zero && !canBeEqualToMin) {
+        if (maxValue == BigInt.zero &&
+            (!canBeEqualToMin || minValue > BigInt.zero)) {
           return resolvedL10n.emptyBalance;
         }
         if (value.isEmpty) {
@@ -119,7 +120,7 @@ class InputValidators {
           }
         }
         if (value.split('.').length > 2) {
-          return resolvedL10n.error;
+          return resolvedL10n.enterValidAmount;
         }
 
         final BigInt inputNum = value.extractDecimals(decimals);

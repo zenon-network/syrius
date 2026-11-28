@@ -449,6 +449,7 @@
   "enterValidAmount": "Enter a valid amount",
   "enterValidDomainWithoutProtocol": "Enter a valid domain without protocol (e.g. example.com)",
   "enterWalletPasswordToDumpMnemonic": "Enter the wallet password to dump the mnemonic",
+  "enterWholeNumberAmount": "Enter a whole number amount",
   "eraseAfterFailedPasswordAttempts": "Erase after {attempts} failed password attempts",
   "@eraseAfterFailedPasswordAttempts": {
     "placeholders": {

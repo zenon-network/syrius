@@ -157,7 +157,7 @@ def correct_value_check_empty_bal(+val: Nat, +max_val: Nat, +dec: Nat, +min_val:
       correct_value_after_empty(val, max_val, dec, min_val, can_eq_min, can_be_blank, is_blank, parse_ok, frac_digits)
 
 def correct_value(+val: Nat, +max_val: Nat, +dec: Nat, +min_val: Nat, +can_eq_min: Bool, can_be_blank: Bool, is_blank: Bool, parse_ok: Bool, +frac_digits: Nat) -> AmountError:
-  correct_value_check_empty_bal(val, max_val, dec, min_val, can_eq_min, can_be_blank, is_blank, parse_ok, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), Bool.not(can_eq_min)))
+  correct_value_check_empty_bal(val, max_val, dec, min_val, can_eq_min, can_be_blank, is_blank, parse_ok, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), Bool.or(Bool.not(can_eq_min), Nat.is_gt(min_val, 0n))))
 
 # 4. Asset sort comparator (sortAssets strict weak ordering)
 # ----------------------------------------------------------

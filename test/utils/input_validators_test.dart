@@ -365,7 +365,7 @@ void main() {
             canBeEqualToMin: true,
             l10n: custom,
           ),
-          '[L10N] availableBalanceMustBeAtLeast:1',
+          '[L10N] emptyBalance',
         );
         expect(
           InputValidators.correctValue(
@@ -375,7 +375,7 @@ void main() {
             BigInt.zero,
             l10n: custom,
           ),
-          '[L10N] error',
+          '[L10N] enterValidAmount',
         );
       },
     );

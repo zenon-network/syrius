@@ -3,6 +3,20 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+/// Skip reason for Bend conformance groups when `BEND_VECTORS` is unset.
+///
+/// Plain `flutter test` skips Bend conformance suites cleanly when the oracle
+/// vector file is not configured, while `./test/bend/run.sh` always exports
+/// `BEND_VECTORS` and rejects any skipped test in its JSON event stream.
+String? get bendConformanceSkipReason {
+  final String? path = Platform.environment['BEND_VECTORS'];
+  if (path == null || path.isEmpty) {
+    return 'Requires BEND_VECTORS (run `./test/bend/run.sh` to execute Bend '
+        'conformance tests)';
+  }
+  return null;
+}
+
 /// Loads Bend oracle conformance vectors for [domain] from the JSON file
 /// referenced by the `BEND_VECTORS` environment variable.
 ///

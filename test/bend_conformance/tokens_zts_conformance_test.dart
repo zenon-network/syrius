@@ -341,5 +341,5 @@ void main() {
         equals(<String>['ZNN', 'QSR', 'ALP']),
       );
     });
-  });
+  }, skip: bendConformanceSkipReason);
 }

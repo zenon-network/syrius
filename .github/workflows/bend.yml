@@ -13,7 +13,7 @@ on:
       depth:
         description: 'Maximum exhaustive operation sequence depth (1-4)'
         type: choice
-        options: ['2', '3', '4']
+        options: ['1', '2', '3', '4']
         default: '3'
       seed:
         description: 'Deterministic seed for sampled conformance histories'

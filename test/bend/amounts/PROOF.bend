@@ -273,8 +273,16 @@ def Laws.scale_frac_truncation_exact(frac, d, extra):
 # 3. Amount validator (correct_value) proofs
 # ------------------------------------------
 
-def Laws.correct_value_empty_balance_rejected(val, dec, min_val, can_be_blank, is_blank, parse_ok, frac_digits):
-  {==}
+def Laws.correct_value_empty_balance_rejected(val, dec, min_val, can_eq_min, can_be_blank, is_blank, parse_ok, frac_digits, e_empty):
+  match min_val can_eq_min:
+    case 0n False{}:
+      {==}
+    case 0n True{}:
+      Empty.absurd({M.correct_value(val, 0n, dec, 0n, True{}, can_be_blank, is_blank, parse_ok, frac_digits) == M.AmountErrEmptyBalance{} : M.AmountError}, NatL.false_is_not_true(e_empty))
+    case 1n+_ False{}:
+      {==}
+    case 1n+_ True{}:
+      {==}
 
 def blank_is_ok_eq(can_be_blank: Bool) -> {M.amount_is_ok(M.correct_value_blank(can_be_blank)) == can_be_blank : Bool}:
   match can_be_blank:
@@ -284,7 +292,7 @@ def blank_is_ok_eq(can_be_blank: Bool) -> {M.amount_is_ok(M.correct_value_blank(
       {==}
 
 def Laws.correct_value_blank_iff(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, e_non_empty):
-  %Equal.sym(Bool, Bool.and(Nat.is_eq(max_val, 0n), Bool.not(can_eq_min)), False{}, e_non_empty) : {M.amount_is_ok(M.correct_value_check_empty_bal(val, max_val, dec, min_val, can_eq_min, can_be_blank, True{}, parse_ok, frac_digits, _)) == can_be_blank : Bool}
+  %Equal.sym(Bool, Bool.and(Nat.is_eq(max_val, 0n), Bool.or(Bool.not(can_eq_min), Nat.is_gt(min_val, 0n))), False{}, e_non_empty) : {M.amount_is_ok(M.correct_value_check_empty_bal(val, max_val, dec, min_val, can_eq_min, can_be_blank, True{}, parse_ok, frac_digits, _)) == can_be_blank : Bool}
   blank_is_ok_eq(can_be_blank)
 
 def check_empty_parse_err(+val: Nat, +max_val: Nat, +dec: Nat, +min_val: Nat, +can_eq_min: Bool, can_be_blank: Bool, +frac_digits: Nat, empty_bal: Bool) -> {M.amount_is_ok(M.correct_value_check_empty_bal(val, max_val, dec, min_val, can_eq_min, can_be_blank, False{}, False{}, frac_digits, empty_bal)) == False{} : Bool}:
@@ -295,7 +303,7 @@ def check_empty_parse_err(+val: Nat, +max_val: Nat, +dec: Nat, +min_val: Nat, +c
       {==}
 
 def Laws.correct_value_parse_error_rejected(val, max_val, dec, min_val, can_eq_min, can_be_blank, frac_digits):
-  check_empty_parse_err(val, max_val, dec, min_val, can_eq_min, can_be_blank, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), Bool.not(can_eq_min)))
+  check_empty_parse_err(val, max_val, dec, min_val, can_eq_min, can_be_blank, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), Bool.or(Bool.not(can_eq_min), Nat.is_gt(min_val, 0n))))
 
 def check_empty_too_many(+val: Nat, +max_val: Nat, +dec: Nat, +min_val: Nat, +can_eq_min: Bool, can_be_blank: Bool, parse_ok: Bool, +frac_digits: Nat, empty_bal: Bool, e: {Nat.is_gt(frac_digits, dec) == True{} : Bool}) -> {M.amount_is_ok(M.correct_value_check_empty_bal(val, max_val, dec, min_val, can_eq_min, can_be_blank, False{}, parse_ok, frac_digits, empty_bal)) == False{} : Bool}:
   match parse_ok empty_bal:
@@ -308,7 +316,7 @@ def check_empty_too_many(+val: Nat, +max_val: Nat, +dec: Nat, +min_val: Nat, +ca
       {==}
 
 def Laws.correct_value_too_many_decimals_rejected(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, e):
-  check_empty_too_many(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), Bool.not(can_eq_min)), e)
+  check_empty_too_many(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), Bool.or(Bool.not(can_eq_min), Nat.is_gt(min_val, 0n))), e)
 
 def correct_value_check_frac_when_max_lt_min(+val: Nat, +max_val: Nat, +min_val: Nat, +can_eq_min: Bool, too_many: Bool, e: {Nat.is_lt(max_val, min_val) == True{} : Bool}) -> {M.amount_is_ok(M.correct_value_check_frac(val, max_val, min_val, can_eq_min, too_many)) == False{} : Bool}:
   match too_many:
@@ -328,7 +336,7 @@ def check_empty_max_lt_min(+val: Nat, +max_val: Nat, +dec: Nat, +min_val: Nat, +
       correct_value_check_frac_when_max_lt_min(val, max_val, min_val, can_eq_min, Nat.is_gt(frac_digits, dec), e)
 
 def Laws.correct_value_max_below_min_rejected(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, e):
-  check_empty_max_lt_min(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), Bool.not(can_eq_min)), e)
+  check_empty_max_lt_min(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), Bool.or(Bool.not(can_eq_min), Nat.is_gt(min_val, 0n))), e)
 
 def not_eq_true_is_false(+x: Bool, e: {Bool.not(x) == True{} : Bool}) -> {x == False{} : Bool}:
   match x:
@@ -367,7 +375,7 @@ def check_empty_le_false(+val: Nat, +max_val: Nat, +dec: Nat, +min_val: Nat, +ca
       correct_value_check_frac_when_le_false(val, max_val, min_val, can_eq_min, Nat.is_gt(frac_digits, dec), e_le)
 
 def Laws.correct_value_gt_max_rejected(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, e):
-  check_empty_le_false(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), Bool.not(can_eq_min)), gt_implies_le_false(val, max_val, e))
+  check_empty_le_false(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), Bool.or(Bool.not(can_eq_min), Nat.is_gt(min_val, 0n))), gt_implies_le_false(val, max_val, e))
 
 def lt_implies_lower_false(+val: Nat, +min_val: Nat, can_eq_min: Bool, e: {Nat.is_lt(val, min_val) == True{} : Bool}) -> {M.amount_lower_ok(val, min_val, can_eq_min) == False{} : Bool}:
   match can_eq_min:
@@ -410,7 +418,7 @@ def check_empty_lower_false(+val: Nat, +max_val: Nat, +dec: Nat, +min_val: Nat, 
       correct_value_check_frac_when_lower_false(val, max_val, min_val, can_eq_min, Nat.is_gt(frac_digits, dec), e_lo)
 
 def Laws.correct_value_lt_min_rejected(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, e):
-  check_empty_lower_false(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), Bool.not(can_eq_min)), lt_implies_lower_false(val, min_val, can_eq_min, e))
+  check_empty_lower_false(val, max_val, dec, min_val, can_eq_min, can_be_blank, parse_ok, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), Bool.or(Bool.not(can_eq_min), Nat.is_gt(min_val, 0n))), lt_implies_lower_false(val, min_val, can_eq_min, e))
 
 def le_implies_gt_false(+a: Nat, +b: Nat, e: {Nat.is_le(a, b) == True{} : Bool}) -> {Nat.is_gt(a, b) == False{} : Bool}:
   %NatL.not_le_is_gt(a, b) : {_ == False{} : Bool}
@@ -420,6 +428,24 @@ def le_implies_gt_false(+a: Nat, +b: Nat, e: {Nat.is_le(a, b) == True{} : Bool})
 def le_implies_lt_rev_false(+a: Nat, +b: Nat, e: {Nat.is_le(a, b) == True{} : Bool}) -> {Nat.is_lt(b, a) == False{} : Bool}:
   %NatL.is_gt_as_lt(a, b) : {_ == False{} : Bool}
   le_implies_gt_false(a, b, e)
+
+def dup3_bool_true(+x: Bool, e: {x == True{} : Bool}) -> {x == True{} : Bool} & ({x == True{} : Bool} & {x == True{} : Bool}):
+  match x:
+    case True{}:
+      ({==}, ({==}, {==}))
+    case False{}:
+      Empty.absurd({False{} == True{} : Bool} & ({False{} == True{} : Bool} & {False{} == True{} : Bool}), NatL.false_is_not_true(e))
+
+def le_implies_not_zero_max_pos_min(+min_val: Nat, +max_val: Nat, eb: {Nat.is_le(min_val, max_val) == True{} : Bool}) -> {Bool.and(Nat.is_eq(max_val, 0n), Nat.is_gt(min_val, 0n)) == False{} : Bool}:
+  match min_val max_val:
+    case 0n 0n:
+      {==}
+    case 0n 1n+_:
+      {==}
+    case 1n+mnp 0n:
+      Empty.absurd({True{} == False{} : Bool}, NatL.false_is_not_true(eb))
+    case 1n+_ 1n+_:
+      {==}
 
 def at_min_false_empty(+max_val: Nat, +dec: Nat, +min_val: Nat, can_be_blank: Bool, +frac_digits: Nat, empty_bal: Bool, e_frac: {Nat.is_le(frac_digits, dec) == True{} : Bool}, e_bounds: {Nat.is_le(min_val, max_val) == True{} : Bool}) -> {M.amount_is_ok(M.correct_value_check_empty_bal(min_val, max_val, dec, min_val, False{}, can_be_blank, False{}, True{}, frac_digits, empty_bal)) == False{} : Bool}:
   match empty_bal:
@@ -431,9 +457,10 @@ def at_min_false_empty(+max_val: Nat, +dec: Nat, +min_val: Nat, can_be_blank: Bo
       %Equal.sym(Bool, Nat.is_lt(min_val, min_val), False{}, NatL.is_lt_irrefl(min_val)) : {M.amount_is_ok(M.amount_range_check(Bool.and(_, Nat.is_le(min_val, max_val)))) == False{} : Bool}
       {==}
 
-def at_min_true_pair(+max_val: Nat, +dec: Nat, +min_val: Nat, can_be_blank: Bool, +frac_digits: Nat, e_frac: {Nat.is_le(frac_digits, dec) == True{} : Bool}, ebs: {Nat.is_le(min_val, max_val) == True{} : Bool} & {Nat.is_le(min_val, max_val) == True{} : Bool}) -> {M.amount_is_ok(M.correct_value(min_val, max_val, dec, min_val, True{}, can_be_blank, False{}, True{}, frac_digits)) == True{} : Bool}:
-  (eb1, eb2) = ebs
-  %Equal.sym(Bool, Bool.and(Nat.is_eq(max_val, 0n), False{}), False{}, NatL.and_false_right(Nat.is_eq(max_val, 0n))) : {M.amount_is_ok(M.correct_value_check_empty_bal(min_val, max_val, dec, min_val, True{}, can_be_blank, False{}, True{}, frac_digits, _)) == True{} : Bool}
+def at_min_true_pair(+max_val: Nat, +dec: Nat, +min_val: Nat, can_be_blank: Bool, +frac_digits: Nat, e_frac: {Nat.is_le(frac_digits, dec) == True{} : Bool}, ebs: {Nat.is_le(min_val, max_val) == True{} : Bool} & ({Nat.is_le(min_val, max_val) == True{} : Bool} & {Nat.is_le(min_val, max_val) == True{} : Bool})) -> {M.amount_is_ok(M.correct_value(min_val, max_val, dec, min_val, True{}, can_be_blank, False{}, True{}, frac_digits)) == True{} : Bool}:
+  (eb0, rest) = ebs
+  (eb1, eb2) = rest
+  %Equal.sym(Bool, Bool.and(Nat.is_eq(max_val, 0n), Nat.is_gt(min_val, 0n)), False{}, le_implies_not_zero_max_pos_min(min_val, max_val, eb0)) : {M.amount_is_ok(M.correct_value_check_empty_bal(min_val, max_val, dec, min_val, True{}, can_be_blank, False{}, True{}, frac_digits, _)) == True{} : Bool}
   %Equal.sym(Bool, Nat.is_gt(frac_digits, dec), False{}, le_implies_gt_false(frac_digits, dec, e_frac)) : {M.amount_is_ok(M.correct_value_check_frac(min_val, max_val, min_val, True{}, _)) == True{} : Bool}
   %Equal.sym(Bool, Nat.is_lt(max_val, min_val), False{}, le_implies_lt_rev_false(min_val, max_val, eb1)) : {M.amount_is_ok(M.correct_value_check_bounds(min_val, max_val, min_val, True{}, _)) == True{} : Bool}
   %Equal.sym(Bool, Nat.is_le(min_val, min_val), True{}, NatL.is_le_refl(min_val)) : {M.amount_is_ok(M.amount_range_check(Bool.and(_, Nat.is_le(min_val, max_val)))) == True{} : Bool}
@@ -443,7 +470,7 @@ def at_min_true_pair(+max_val: Nat, +dec: Nat, +min_val: Nat, can_be_blank: Bool
 def Laws.correct_value_at_min_iff(max_val, dec, min_val, can_eq_min, can_be_blank, frac_digits, e_frac, e_bounds):
   match can_eq_min:
     case True{}:
-      at_min_true_pair(max_val, dec, min_val, can_be_blank, frac_digits, e_frac, dup_bool_true(Nat.is_le(min_val, max_val), e_bounds))
+      at_min_true_pair(max_val, dec, min_val, can_be_blank, frac_digits, e_frac, dup3_bool_true(Nat.is_le(min_val, max_val), e_bounds))
     case False{}:
       at_min_false_empty(max_val, dec, min_val, can_be_blank, frac_digits, Bool.and(Nat.is_eq(max_val, 0n), True{}), e_frac, e_bounds)
 
@@ -472,9 +499,10 @@ def correct_value_at_max_false_branch(+max_val: Nat, +dec: Nat, +min_val: Nat, c
       %Equal.sym(Bool, Bool.and(Nat.is_lt(min_val, 1n+mp), True{}), Nat.is_lt(min_val, 1n+mp), NatL.and_true_right(Nat.is_lt(min_val, 1n+mp))) : {M.amount_is_ok(M.amount_range_check(_)) == Nat.is_lt(min_val, 1n+mp) : Bool}
       range_check_is_ok_id(Nat.is_lt(min_val, 1n+mp))
 
-def at_max_true_pair(+max_val: Nat, +dec: Nat, +min_val: Nat, can_be_blank: Bool, +frac_digits: Nat, e_frac: {Nat.is_le(frac_digits, dec) == True{} : Bool}, ebs: {Nat.is_le(min_val, max_val) == True{} : Bool} & {Nat.is_le(min_val, max_val) == True{} : Bool}) -> {M.amount_is_ok(M.correct_value(max_val, max_val, dec, min_val, True{}, can_be_blank, False{}, True{}, frac_digits)) == True{} : Bool}:
-  (eb1, eb2) = ebs
-  %Equal.sym(Bool, Bool.and(Nat.is_eq(max_val, 0n), False{}), False{}, NatL.and_false_right(Nat.is_eq(max_val, 0n))) : {M.amount_is_ok(M.correct_value_check_empty_bal(max_val, max_val, dec, min_val, True{}, can_be_blank, False{}, True{}, frac_digits, _)) == True{} : Bool}
+def at_max_true_pair(+max_val: Nat, +dec: Nat, +min_val: Nat, can_be_blank: Bool, +frac_digits: Nat, e_frac: {Nat.is_le(frac_digits, dec) == True{} : Bool}, ebs: {Nat.is_le(min_val, max_val) == True{} : Bool} & ({Nat.is_le(min_val, max_val) == True{} : Bool} & {Nat.is_le(min_val, max_val) == True{} : Bool})) -> {M.amount_is_ok(M.correct_value(max_val, max_val, dec, min_val, True{}, can_be_blank, False{}, True{}, frac_digits)) == True{} : Bool}:
+  (eb0, rest) = ebs
+  (eb1, eb2) = rest
+  %Equal.sym(Bool, Bool.and(Nat.is_eq(max_val, 0n), Nat.is_gt(min_val, 0n)), False{}, le_implies_not_zero_max_pos_min(min_val, max_val, eb0)) : {M.amount_is_ok(M.correct_value_check_empty_bal(max_val, max_val, dec, min_val, True{}, can_be_blank, False{}, True{}, frac_digits, _)) == True{} : Bool}
   %Equal.sym(Bool, Nat.is_gt(frac_digits, dec), False{}, le_implies_gt_false(frac_digits, dec, e_frac)) : {M.amount_is_ok(M.correct_value_check_frac(max_val, max_val, min_val, True{}, _)) == True{} : Bool}
   %Equal.sym(Bool, Nat.is_lt(max_val, min_val), False{}, le_implies_lt_rev_false(min_val, max_val, eb1)) : {M.amount_is_ok(M.correct_value_check_bounds(max_val, max_val, min_val, True{}, _)) == True{} : Bool}
   %Equal.sym(Bool, Nat.is_le(min_val, max_val), True{}, eb2) : {M.amount_is_ok(M.amount_range_check(Bool.and(_, Nat.is_le(max_val, max_val)))) == True{} : Bool}
@@ -484,7 +512,7 @@ def at_max_true_pair(+max_val: Nat, +dec: Nat, +min_val: Nat, can_be_blank: Bool
 def Laws.correct_value_at_max_iff(max_val, dec, min_val, can_eq_min, can_be_blank, frac_digits, e_frac, e_bounds):
   match can_eq_min:
     case True{}:
-      at_max_true_pair(max_val, dec, min_val, can_be_blank, frac_digits, e_frac, dup_bool_true(Nat.is_le(min_val, max_val), e_bounds))
+      at_max_true_pair(max_val, dec, min_val, can_be_blank, frac_digits, e_frac, dup3_bool_true(Nat.is_le(min_val, max_val), e_bounds))
     case False{}:
       %Equal.sym(Bool, Bool.and(Nat.is_eq(max_val, 0n), True{}), Nat.is_eq(max_val, 0n), NatL.and_true_right(Nat.is_eq(max_val, 0n))) : {M.amount_is_ok(M.correct_value_check_empty_bal(max_val, max_val, dec, min_val, False{}, can_be_blank, False{}, True{}, frac_digits, _)) == Nat.is_lt(min_val, max_val) : Bool}
       correct_value_at_max_false_branch(max_val, dec, min_val, can_be_blank, frac_digits, e_frac, e_bounds)
