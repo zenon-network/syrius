@@ -192,6 +192,10 @@ const config: Config = {
               to: '/docs/developers/architecture/bloc-rearchitecture',
             },
             {
+              label: 'Branding & Design System',
+              to: '/docs/developers/architecture/branding-and-design-system',
+            },
+            {
               label: 'Blockchain Integration Tests',
               to: '/docs/developers/testing/blockchain-integration-tests',
             },

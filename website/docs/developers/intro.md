@@ -95,6 +95,8 @@ flutter build <macos|windows|linux> --release
 - **[Building & Releases](/docs/developers/getting-started/building-and-releases)** — Generate Git metadata, package desktop release artifacts, and understand all five GitHub Actions workflows.
 - **[System Architecture](/docs/developers/architecture/overview)** — Dive into startup DI, embedded node lifecycle, Hive/Drift persistence, and Reown WalletConnect wiring.
 - **[BLoC Rearchitecture Guide](/docs/developers/architecture/bloc-rearchitecture)** — Follow Syrius's conventions for building and refactoring feature modules under `lib/rearchitecture/features/`.
+- **[Localization, Theming, and Codegen](/docs/developers/architecture/localization-and-theming)** — Reference ARB key naming rules, `build_runner` generators, and static analysis settings.
+- **[Branding & Design System](/docs/developers/architecture/branding-and-design-system)** — Explore official logo rules, all 32 dark/light `SyriusThemeTokens` with live swatches, signature gradients, typography, and reusable redesign UI primitives.
 - **[P2P Swaps HTLC Protocol](/docs/developers/architecture/p2p-swaps-protocol)** — Read the full technical HTLC specification, timing constants, and auto-unlock architecture.
 - **[Testing](/docs/developers/testing/unit-and-widget-tests)** & **[Blockchain Integration Tests](/docs/developers/testing/blockchain-integration-tests)** — Write mocked BLoC tests and Dockerized devnet BDD integration tests.
 - **[Contributing Guide](/docs/developers/contributing/contributing-guide)** — Review the PR checklist, licensing rules, and documentation contribution workflow.

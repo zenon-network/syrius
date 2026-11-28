@@ -70,6 +70,10 @@ For parameterized or pluralized strings, include `@<key>` metadata with `descrip
 
 ## Theming (`SyriusThemeTokens` & `AppTheme`)
 
+:::tip Full Branding & Design System Reference
+For official logo usage, live dark/light color swatches across all **32** `SyriusThemeTokens`, signature gradients, typography & tabular numeral rules, WCAG AA+ contrast guidance, and reusable redesign widget primitives (`lib/rearchitecture/utils/widgets/redesign/`), see the **[Branding & Design System](/docs/developers/architecture/branding-and-design-system)** guide.
+:::
+
 Syrius defaults to **dark mode** (`kDefaultThemeMode = ThemeMode.dark` in `lib/utils/constants.dart`) and supports switching between light, dark, and system themes via `AppThemeNotifier` (`lib/main.dart`).
 
 ### Semantic Design Tokens (`SyriusThemeTokens`)
